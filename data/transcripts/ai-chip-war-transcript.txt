@@ -1,0 +1,80 @@
+[00:00] Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We're skipping past the software, we're skipping the algorithms, and we're going straight to the foundation, the bedrock.
+[00:15] The silicon.
+[00:16] The silicon that makes modern large language models possible. We are doing a deep dive into the AI accelerator chip arms race.
+[00:24] That's exactly right. And look, if you're involved in or you're just tracking the scaling of these massive LLMs, you were constantly, constantly battling constraints that are imposed by the hardware.
+[00:35] Right.
+[00:35] You know the names. NVIDIA's H100, the new B200, Google's TPUs.
+[00:39] Yeah.
+[00:39] But the critical question, the one we're digging into, is what's the philosophical difference between these chips?
+[00:45] And how does that difference create these really specific bottlenecks? You know, when you're training models that have to stretch across thousands of accelerators.
+[00:52] Exactly.
+[00:52] Our mission today is tailored specifically to unpack the sources you sent over.
+[00:57] We're going to be peeling back the metal, comparing the core philosophies, the architectures,
+[01:01] the networking standards.
+[01:02] Everything from the tiny compute cores inside the chip itself to the, you know, massive optical
+[01:08] cables that connect entire data centers.
+[01:10] And we really want to get a handle on this one concept that just defines the limits of modern training runs and that the roofline The roofline is it It the ultimate physical constraint It tells you mathematically if your multi parameter model is compute bound so limited by how fast the math the
+[01:30] FLOPs get done, or communication bound, which means you're limited by how fast data can move
+[01:35] between memory, or even worse, between different chips.
+[01:38] Okay, so by the end of this deep dive, the goal is that you should have really an expert
+[01:43] level understanding of where those critical thresholds lie for the current GPU architectures.
+[01:48] Yep. Let's do it.
+[01:49] Okay. So let's unpack this starting with the chips themselves. When we look at a modern
+[01:54] AI accelerator, like an H100 or a B200, we're not talking about a traditional CPU anymore,
+[01:59] right? Not even close. We're looking at a system that's been built for one task.
+[02:03] Massive matrix multiplication. That's the game.
+[02:05] So what's the fundamental blueprint of a modern GPU then?
+[02:08] At a really fundamental level, a modern machine learning GPU is just a massive array of specialized, highly parallel compute units.
+[02:18] You can think of the whole chip as a city.
+[02:20] And the primary factories doing all the work are called streaming multiprocessors, or SMs.
+[02:24] SMs, especially.
+[02:25] That has the core engine.
+[02:26] It's designed from the ground up for parallel execution.
+[02:30] And what's the scale we're talking about here?
+[02:32] How many of these factories are actually built into a chip like Hopper or Blackwell Well on the current generation H100 hopper chip you got 132 SMs 132 And in the upcoming Blackwell D200 that number bumps up just a little bit to 148 SMs
+[02:48] And crucially, each one of these SMs is connected to this incredibly fast, localized pool of
+[02:55] memory called high bandwidth memory or HBM.
+[02:58] So it's the sheer number of these independent units that really defines this modular philosophy.
+[03:04] That modularity is absolutely key, yes.
+[03:06] Okay, let's go inside the factory then.
+[03:08] If the SM is the work unit, what are the specialized subcomponents that are actually handling the
+[03:12] math that LLMs use all the time?
+[03:14] So inside each SM, you find several key processing units, and they're often organized into these
+[03:20] four identical subpartitions.
+[03:23] But the real engine of the LLM calculation is the tensor core, the TC.
+[03:28] The tensor core.
+[03:29] This is the dedicated, highly specialized matrix multiplication subunit.
+[03:34] And this is functionally analogous to the MXU, the matrix multiplication unit, that you'd
+[03:38] find inside a Google TPU.
+[03:40] And this is where the raw power really is.
+[03:42] I mean, when you look at the source material, the difference in capability between these
+[03:45] specialized TCs and the more general purpose units is just, it's astonishing.
+[03:49] It really is.
+[03:50] The specialization is relentless.
+[03:52] On an H100 the Tensor cores deliver an incredible 990 BFLOW 16 TFLOPs per second of processing power 990 Now if you look at the general purpose vector cores on that same chip they only manage about
+[04:04] 66 TFLOPs per second.
+[04:06] 66.
+[04:07] So the tensor cores are doing what, over 90% of the work?
+[04:10] Well over 90% of the chip's total floating point operations, yeah.
+[04:13] That 15 to 1 ratio, it just shows how completely the architecture has been driven by this one
+[04:20] need for dense matrix multiplication.
+[04:22] and we've seen this consistent almost exponential growth in Tensor Core capability with every
+[04:28] single generation.
+[04:29] That's the dedicated path NVIDIA has taken.
+[04:31] Yeah.
+[04:32] And the scaling is remarkable.
+[04:33] I mean, it follows this powerful doubling trend.
+[04:35] The V100 Tensor Cores, they perform 256 FLOPs per cycle.
+[04:40] The A100 double that to 512.
+[04:42] The H100 doubled it again to 21 into 24 FLOPs per cycle.
+[04:46] Wow.
+[04:47] And while the B200 is brand new, industry estimates, you know, based on the available
+[04:51] data suggest it's likely going to double again to 2048 FLOPs per cycle.
+[04:56] Just maintaining that incredible focus on maximizing matrix throughput.
+[04:59] But LLMs aren't just massive matrix multiplications, you have to handle all the other bits and pieces.
+[05:03] You know, activation functions like ReLUs and GLUs and these essential vector-based operations
+[05:09] like reductions.
+[05:10] So where do those tasks fit into the SM?
+[05:13] Ah, okay.
+[05:14] So those tasks fall to the older, more general purpose units, which are known as CIDI-ACOR.
+[05:17] CIDI-ACOR, right.

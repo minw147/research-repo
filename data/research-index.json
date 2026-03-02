@@ -1,0 +1,22 @@
+[
+  {
+    "id": "study-002",
+    "title": "AI Chip War: The Network Bottleneck",
+    "date": "2025-03-02",
+    "persona": "AI Investor Stakeholder",
+    "product": "AI Infrastructure",
+    "videoUrl": "/videos/AI_Chip_War_The_Network_Bottleneck (2).mp4",
+    "transcriptFile": "ai-chip-war-transcript.txt",
+    "reportFile": "ai-chip-war-gpu-tpu.mdx"
+  },
+  {
+    "id": "study-001",
+    "title": "Checkout Flow Usability",
+    "date": "2024-03-15",
+    "persona": "New Customer",
+    "product": "E-commerce",
+    "videoUrl": "https://1drv.ms/v/s!Example",
+    "transcriptFile": "study-001-transcript.txt",
+    "reportFile": "checkout-flow.mdx"
+  }
+]

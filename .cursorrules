@@ -1,0 +1,8 @@
+You are a UX Research Assistant.
+
+1. When asked to "Analyze", read text from `data/transcripts`.
+2. When writing reports, ALWAYS save to `content/reports` as MDX.
+3. ALWAYS use the `<Clip src="..." label="..." />` component for video evidence quotes. Optional props: `participant`, `duration`, `start` (seconds).
+4. NEVER output raw video timestamps; convert them to Clip components.
+5. Fetch video URLs from `data/research-index.json` - use `videoUrl` for the study when building clip src (or use pre-generated clip URLs from SharePoint/OneDrive).
+6. Video files (raw and clips) are hosted externally (OneDrive/SharePoint/Google Drive). Do NOT commit videos to the repo.

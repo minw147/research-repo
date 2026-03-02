@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Research Repo - Interactive Clip</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 lg:px-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[24px]">science</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Research Repo</h2>
+</div>
+<div class="hidden items-center gap-6 md:flex">
+<a class="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary text-sm font-medium transition-colors" href="#">Projects</a>
+<a class="text-primary text-sm font-medium" href="#">Insights</a>
+<a class="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary text-sm font-medium transition-colors" href="#">Tags</a>
+<a class="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary text-sm font-medium transition-colors" href="#">People</a>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-6">
+<label class="hidden md:flex flex-col min-w-40 h-10 w-full max-w-64 group">
+<div class="flex w-full flex-1 items-stretch rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-transparent focus-within:ring-primary/50 transition-all">
+<div class="flex items-center justify-center pl-3 text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="w-full flex-1 border-none bg-transparent px-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-0" placeholder="Search insights..."/>
+</div>
+</label>
+<div class="relative h-10 w-10 overflow-hidden rounded-full border border-slate-200 dark:border-slate-700">
+<img alt="User Avatar" class="h-full w-full object-cover" data-alt="Portrait of a smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx4XyTppkZGJjnLdBTex4noE89W-iLQrjuOzWeXKgSQciVp0tZ5VLwQtwOqwNNQvmleHY-NUJ5y_otdRRuvpLuo6CE_oQRzfB4cQ4ruCtqYT94CjtDXoKeFoIEE8VUq-2zF-qAMRD4lZ8mIO3rvmq2mo9WmM-Bwr9DTL4xphg8SceO9BmZSOBhg9oycBCodPihojsWb9NG1P7Djg-ijQhgXJAUBbogkWbqBlLl-jHcBe7Iq2KK0JutX1GYSJhYfNfcC0CagEg5Knk"/>
+</div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<main class="flex flex-1 justify-center py-8">
+<div class="flex w-full max-w-4xl flex-col px-4 md:px-6">
+<!-- Breadcrumbs/Meta -->
+<div class="mb-6 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+<span class="flex items-center gap-1 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[16px]">folder</span>
+                        Checkout Optimization
+                    </span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary">Usability Study Mar '24</span>
+</div>
+<!-- Title Section -->
+<div class="mb-8 flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 pb-6">
+<div class="flex flex-wrap items-start justify-between gap-4">
+<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+                            Usability Study: Checkout Flow
+                        </h1>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-[16px]">share</span>
+                                Share
+                            </button>
+<button class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+                                Edit
+                            </button>
+</div>
+</div>
+<p class="text-lg text-slate-600 dark:text-slate-400">
+                        Key findings regarding the new payment gateway integration, focusing on user confusion during method selection.
+                    </p>
+<div class="mt-2 flex items-center gap-3">
+<div class="flex -space-x-2">
+<img alt="Team member 1" class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait of a man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_AJ8RrFfee4szMMpp5D4vIUCldLQGFxbCIIPxNUa-rHSc0_45kuCXMjznVFkmmITdoamYjWOMrYv6RAQgG4Bo_-nn4B1R1ocOfTyLLV_uQBAfBrKZT1PkcFMZkuJvU2ra3vHGO0PpC_KsNqUzfXoNrvO9zhYKL6e2YADEkf9JbdAP1D_bebJJh2bTaSSBrduwI_kNULIkP91C0qHqO5enYUTCQqrTVYkvk6Hq65TWTWKoRBPRY-do0urGefW4TzGgxUHn4Gbbi8Y"/>
+<img alt="Team member 2" class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait of a woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCkwGJVbCO12Cyqy9R9wjFzdfvZ9pEcR6I8MZ64VV_XZmeV6I26Vyqog3gHoERkbTRVm8QIAImcCRo7LYE5ElbcJzUaKaxdqJp9brxoypwy1JMlp4cRJmZS5r6rxFcxYfGboae2vGtFnWctOqiQtdiHU-YY8BZizEjkN8SyZtHlCm-ItTOY9RUxGq4Mq0iTHhpzr3oUxqgBQ6AaziOrV37caK6n_sGuyEYrBT79wKqINk7YazZKXTPRdLPYRftaf3Y45vmiEzA12Y"/>
+</div>
+<span class="text-sm text-slate-500">Updated 2 days ago</span>
+<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                            High Priority
+                        </span>
+</div>
+</div>
+<!-- Report Content -->
+<article class="prose prose-slate max-w-none dark:prose-invert">
+<!-- Text Block -->
+<div class="mb-6">
+<h3 class="mb-3 text-xl font-semibold text-slate-900 dark:text-white">1. Payment Method Visibility</h3>
+<p class="mb-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                            During the sessions, several participants noted confusion when selecting a payment method. The placement of the credit card icons was often missed because it was positioned below the fold on smaller laptop screens.
+                        </p>
+</div>
+<!-- Interactive Clip Component 1 -->
+<div class="group my-8 cursor-pointer rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md dark:bg-slate-800 dark:ring-slate-700 dark:hover:bg-slate-700/50">
+<div class="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
+<!-- Play Button Area -->
+<div class="relative shrink-0">
+<div class="group/play flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-slate-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary dark:bg-slate-900 dark:text-slate-500 dark:group-hover:bg-primary/20 dark:group-hover:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">play_arrow</span>
+</div>
+<div class="absolute -bottom-2 -right-2 rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm dark:bg-white dark:text-slate-900">
+                                    00:45
+                                </div>
+</div>
+<!-- Content Area -->
+<div class="flex min-w-0 flex-1 flex-col gap-2">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Participant 4</span>
+<span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+<span class="text-xs text-slate-400 dark:text-slate-500">04:12</span>
+</div>
+<button class="invisible flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 group-hover:visible dark:hover:bg-slate-600 dark:hover:text-slate-200 transition-all" title="Open in viewer">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</button>
+</div>
+<blockquote class="relative">
+<p class="text-lg font-medium leading-normal text-slate-800 dark:text-slate-100">
+                                        "I kept looking for the Visa logo on the left, but it was hidden under the dropdown. I honestly didn't think I could pay with card at first."
+                                    </p>
+</blockquote>
+<!-- Tags -->
+<div class="mt-2 flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-900/20 dark:text-yellow-300 dark:ring-yellow-500/30">
+<span class="material-symbols-outlined text-[12px]">sentiment_dissatisfied</span>
+                                        Confusion
+                                    </span>
+<span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600">
+                                        #checkout-flow
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Follow up text -->
+<div class="mb-6">
+<p class="mb-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                            This sentiment was echoed by three other users in the same cohort. We recommend moving the payment logos to a more prominent position above the form fields, rather than nesting them within the selector component.
+                        </p>
+</div>
+<!-- Another Interactive Clip Component (Different State/Content) -->
+<div class="group my-8 cursor-pointer rounded-xl border-l-4 border-slate-300 bg-white shadow-sm ring-1 ring-slate-200 transition-all hover:border-primary hover:bg-slate-50 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:ring-slate-700 dark:hover:border-primary dark:hover:bg-slate-700/50">
+<div class="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
+<!-- Play Button Area -->
+<div class="relative shrink-0">
+<div class="group/play flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-slate-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary dark:bg-slate-900 dark:text-slate-500 dark:group-hover:bg-primary/20 dark:group-hover:text-primary">
+<span class="material-symbols-outlined text-[32px] fill-current">play_arrow</span>
+</div>
+<div class="absolute -bottom-2 -right-2 rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm dark:bg-white dark:text-slate-900">
+                                    01:20
+                                </div>
+</div>
+<!-- Content Area -->
+<div class="flex min-w-0 flex-1 flex-col gap-2">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Participant 7</span>
+<span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+<span class="text-xs text-slate-400 dark:text-slate-500">12:30</span>
+</div>
+<button class="invisible flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 group-hover:visible dark:hover:bg-slate-600 dark:hover:text-slate-200 transition-all" title="Open in viewer">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</button>
+</div>
+<blockquote class="relative">
+<p class="text-lg font-medium leading-normal text-slate-800 dark:text-slate-100">
+                                        "Once I found the option, the auto-fill feature was really smooth. It saved me a lot of typing."
+                                    </p>
+</blockquote>
+<!-- Tags -->
+<div class="mt-2 flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-300 dark:ring-green-500/30">
+<span class="material-symbols-outlined text-[12px]">sentiment_satisfied</span>
+                                        Positive
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Conclusion Block -->
+<div class="mt-10 rounded-2xl bg-slate-100 p-6 dark:bg-slate-800/50">
+<h4 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+                            Actionable Insight
+                        </h4>
+<p class="mt-3 text-lg font-medium text-slate-900 dark:text-white">
+                            Redesign the payment selection component to expose top-level payment methods immediately. Run an A/B test on the new layout next sprint.
+                        </p>
+</div>
+</article>
+</div>
+</main>
+</div>
+</body></html>

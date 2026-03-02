@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Print: hide nav, show only report content */
+@media print {
+  header,
+  aside,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    max-width: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

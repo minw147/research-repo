@@ -1,0 +1,93 @@
+---
+title: "AI Chip War: GPU vs TPU Deep Dive"
+date: "2025-03-02"
+studyId: "study-002"
+---
+
+A thematic analysis of AI accelerator architecture for stakeholders considering AI infrastructure investment. Focus: GPU vs TPU introduction, the roofline constraint, and NVIDIA's scaling trajectory.
+
+## 1. The Roofline: The Ultimate Constraint
+
+Training billion-parameter models hits a fundamental limit: you're either **compute bound** (limited by how fast the math runs) or **communication bound** (limited by data movement between memory and across chips). The roofline defines where modern training runs hit the ceiling.
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="The roofline... is the ultimate physical constraint. It tells you mathematically if your multi-parameter model is compute bound... or communication bound."
+  participant="Host"
+  duration="05:17"
+  start={70}
+/>
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="When you're training models that have to stretch across thousands of accelerators."
+  participant="Host"
+  duration="05:17"
+  start={45}
+/>
+
+---
+
+## 2. GPU Architecture: Modular, Tensor-Core-Centric
+
+Modern AI GPUs (NVIDIA H100, B200) are built as massive arrays of **streaming multiprocessors** (SMs), each with specialized **tensor cores** for matrix multiplication. They are optimized for one primary task.
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="A modern machine learning GPU is just a massive array of specialized, highly parallel compute units."
+  participant="Host"
+  duration="05:17"
+  start={128}
+/>
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="The real engine of the LLM calculation is the tensor core... This is functionally analogous to the MXU, the matrix multiplication unit, that you'd find inside a Google TPU."
+  participant="Host"
+  duration="05:17"
+  start={208}
+/>
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="The tensor cores are doing... well over 90% of the chip's total floating point operations. That 15 to 1 ratio... shows how completely the architecture has been driven by this one need for dense matrix multiplication."
+  participant="Host"
+  duration="05:17"
+  start={250}
+/>
+
+---
+
+## 3. NVIDIA's Scaling Trajectory: Investable Doubling
+
+NVIDIA has consistently doubled tensor-core capability each generation—a predictable, investable roadmap.
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="V100 Tensor Cores... 256 FLOPs per cycle. The A100 double that to 512. The H100 doubled it again to 1024... the B200... likely going to double again to 2048."
+  participant="Host"
+  duration="05:17"
+  start={275}
+/>
+
+---
+
+## 4. GPU vs TPU: Same Philosophy, Different Paths
+
+Both NVIDIA GPUs and Google TPUs center on dedicated matrix-multiplication units (Tensor Cores vs MXU). The difference is implementation and ecosystem, not core design philosophy.
+
+<Clip
+  src="/videos/AI_Chip_War_The_Network_Bottleneck%20(2).mp4"
+  label="We're looking at a system that's been built for one task. Massive matrix multiplication. That's the game."
+  participant="Host"
+  duration="05:17"
+  start={123}
+/>
+
+---
+
+## Actionable Insights for AI Investors
+
+1. **Roofline matters at scale** – Communication bottlenecks (memory, networking) often limit training before raw compute. Invest in companies addressing interconnect and memory bandwidth, not only peak FLOPS.
+2. **Tensor-core roadmaps are key** – Vendors with sustained tensor-core doubling (V100 → B200) are structurally aligned with LLM workloads.
+3. **GPU vs TPU** – Both pursue the same core idea. The competition is in ecosystem, deployment, and total cost of ownership.
