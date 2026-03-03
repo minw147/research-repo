@@ -1,0 +1,322 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:15.000
+Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We're skipping past the software, we're skipping the algorithms, and we're going straight to the foundation, the bedrock.
+
+2
+00:00:15.000 --> 00:00:16.000
+The silicon.
+
+3
+00:00:16.000 --> 00:00:24.000
+The silicon that makes modern large language models possible. We are doing a deep dive into the AI accelerator chip arms race.
+
+4
+00:00:24.000 --> 00:00:35.000
+That's exactly right. And look, if you're involved in or you're just tracking the scaling of these massive LLMs, you were constantly, constantly battling constraints that are imposed by the hardware.
+
+5
+00:00:35.000 --> 00:00:35.000
+Right.
+
+6
+00:00:35.000 --> 00:00:39.000
+You know the names. NVIDIA's H100, the new B200, Google's TPUs.
+
+7
+00:00:39.000 --> 00:00:39.000
+Yeah.
+
+8
+00:00:39.000 --> 00:00:45.000
+But the critical question, the one we're digging into, is what's the philosophical difference between these chips?
+
+9
+00:00:45.000 --> 00:00:52.000
+And how does that difference create these really specific bottlenecks? You know, when you're training models that have to stretch across thousands of accelerators.
+
+10
+00:00:52.000 --> 00:00:52.000
+Exactly.
+
+11
+00:00:52.000 --> 00:00:57.000
+Our mission today is tailored specifically to unpack the sources you sent over.
+
+12
+00:00:57.000 --> 00:01:01.000
+We're going to be peeling back the metal, comparing the core philosophies, the architectures,
+
+13
+00:01:01.000 --> 00:01:02.000
+the networking standards.
+
+14
+00:01:02.000 --> 00:01:08.000
+Everything from the tiny compute cores inside the chip itself to the, you know, massive optical
+
+15
+00:01:08.000 --> 00:01:10.000
+cables that connect entire data centers.
+
+16
+00:01:10.000 --> 00:01:30.000
+And we really want to get a handle on this one concept that just defines the limits of modern training runs and that the roofline The roofline is it It the ultimate physical constraint It tells you mathematically if your multi parameter model is compute bound so limited by how fast the math the
+
+17
+00:01:30.000 --> 00:01:35.000
+FLOPs get done, or communication bound, which means you're limited by how fast data can move
+
+18
+00:01:35.000 --> 00:01:38.000
+between memory, or even worse, between different chips.
+
+19
+00:01:38.000 --> 00:01:43.000
+Okay, so by the end of this deep dive, the goal is that you should have really an expert
+
+20
+00:01:43.000 --> 00:01:48.000
+level understanding of where those critical thresholds lie for the current GPU architectures.
+
+21
+00:01:48.000 --> 00:01:49.000
+Yep. Let's do it.
+
+22
+00:01:49.000 --> 00:01:54.000
+Okay. So let's unpack this starting with the chips themselves. When we look at a modern
+
+23
+00:01:54.000 --> 00:01:59.000
+AI accelerator, like an H100 or a B200, we're not talking about a traditional CPU anymore,
+
+24
+00:01:59.000 --> 00:02:03.000
+right? Not even close. We're looking at a system that's been built for one task.
+
+25
+00:02:03.000 --> 00:02:05.000
+Massive matrix multiplication. That's the game.
+
+26
+00:02:05.000 --> 00:02:08.000
+So what's the fundamental blueprint of a modern GPU then?
+
+27
+00:02:08.000 --> 00:02:18.000
+At a really fundamental level, a modern machine learning GPU is just a massive array of specialized, highly parallel compute units.
+
+28
+00:02:18.000 --> 00:02:20.000
+You can think of the whole chip as a city.
+
+29
+00:02:20.000 --> 00:02:24.000
+And the primary factories doing all the work are called streaming multiprocessors, or SMs.
+
+30
+00:02:24.000 --> 00:02:25.000
+SMs, especially.
+
+31
+00:02:25.000 --> 00:02:26.000
+That has the core engine.
+
+32
+00:02:26.000 --> 00:02:30.000
+It's designed from the ground up for parallel execution.
+
+33
+00:02:30.000 --> 00:02:32.000
+And what's the scale we're talking about here?
+
+34
+00:02:32.000 --> 00:02:48.000
+How many of these factories are actually built into a chip like Hopper or Blackwell Well on the current generation H100 hopper chip you got 132 SMs 132 And in the upcoming Blackwell D200 that number bumps up just a little bit to 148 SMs
+
+35
+00:02:48.000 --> 00:02:55.000
+And crucially, each one of these SMs is connected to this incredibly fast, localized pool of
+
+36
+00:02:55.000 --> 00:02:58.000
+memory called high bandwidth memory or HBM.
+
+37
+00:02:58.000 --> 00:03:04.000
+So it's the sheer number of these independent units that really defines this modular philosophy.
+
+38
+00:03:04.000 --> 00:03:06.000
+That modularity is absolutely key, yes.
+
+39
+00:03:06.000 --> 00:03:08.000
+Okay, let's go inside the factory then.
+
+40
+00:03:08.000 --> 00:03:12.000
+If the SM is the work unit, what are the specialized subcomponents that are actually handling the
+
+41
+00:03:12.000 --> 00:03:14.000
+math that LLMs use all the time?
+
+42
+00:03:14.000 --> 00:03:20.000
+So inside each SM, you find several key processing units, and they're often organized into these
+
+43
+00:03:20.000 --> 00:03:23.000
+four identical subpartitions.
+
+44
+00:03:23.000 --> 00:03:28.000
+But the real engine of the LLM calculation is the tensor core, the TC.
+
+45
+00:03:28.000 --> 00:03:29.000
+The tensor core.
+
+46
+00:03:29.000 --> 00:03:34.000
+This is the dedicated, highly specialized matrix multiplication subunit.
+
+47
+00:03:34.000 --> 00:03:38.000
+And this is functionally analogous to the MXU, the matrix multiplication unit, that you'd
+
+48
+00:03:38.000 --> 00:03:40.000
+find inside a Google TPU.
+
+49
+00:03:40.000 --> 00:03:42.000
+And this is where the raw power really is.
+
+50
+00:03:42.000 --> 00:03:45.000
+I mean, when you look at the source material, the difference in capability between these
+
+51
+00:03:45.000 --> 00:03:49.000
+specialized TCs and the more general purpose units is just, it's astonishing.
+
+52
+00:03:49.000 --> 00:03:50.000
+It really is.
+
+53
+00:03:50.000 --> 00:03:52.000
+The specialization is relentless.
+
+54
+00:03:52.000 --> 00:04:04.000
+On an H100 the Tensor cores deliver an incredible 990 BFLOW 16 TFLOPs per second of processing power 990 Now if you look at the general purpose vector cores on that same chip they only manage about
+
+55
+00:04:04.000 --> 00:04:06.000
+66 TFLOPs per second.
+
+56
+00:04:06.000 --> 00:04:07.000
+66.
+
+57
+00:04:07.000 --> 00:04:10.000
+So the tensor cores are doing what, over 90% of the work?
+
+58
+00:04:10.000 --> 00:04:13.000
+Well over 90% of the chip's total floating point operations, yeah.
+
+59
+00:04:13.000 --> 00:04:20.000
+That 15 to 1 ratio, it just shows how completely the architecture has been driven by this one
+
+60
+00:04:20.000 --> 00:04:22.000
+need for dense matrix multiplication.
+
+61
+00:04:22.000 --> 00:04:28.000
+and we've seen this consistent almost exponential growth in Tensor Core capability with every
+
+62
+00:04:28.000 --> 00:04:29.000
+single generation.
+
+63
+00:04:29.000 --> 00:04:31.000
+That's the dedicated path NVIDIA has taken.
+
+64
+00:04:31.000 --> 00:04:32.000
+Yeah.
+
+65
+00:04:32.000 --> 00:04:33.000
+And the scaling is remarkable.
+
+66
+00:04:33.000 --> 00:04:35.000
+I mean, it follows this powerful doubling trend.
+
+67
+00:04:35.000 --> 00:04:40.000
+The V100 Tensor Cores, they perform 256 FLOPs per cycle.
+
+68
+00:04:40.000 --> 00:04:42.000
+The A100 double that to 512.
+
+69
+00:04:42.000 --> 00:04:46.000
+The H100 doubled it again to 21 into 24 FLOPs per cycle.
+
+70
+00:04:46.000 --> 00:04:47.000
+Wow.
+
+71
+00:04:47.000 --> 00:04:51.000
+And while the B200 is brand new, industry estimates, you know, based on the available
+
+72
+00:04:51.000 --> 00:04:56.000
+data suggest it's likely going to double again to 2048 FLOPs per cycle.
+
+73
+00:04:56.000 --> 00:04:59.000
+Just maintaining that incredible focus on maximizing matrix throughput.
+
+74
+00:04:59.000 --> 00:05:03.000
+But LLMs aren't just massive matrix multiplications, you have to handle all the other bits and pieces.
+
+75
+00:05:03.000 --> 00:05:09.000
+You know, activation functions like ReLUs and GLUs and these essential vector-based operations
+
+76
+00:05:09.000 --> 00:05:10.000
+like reductions.
+
+77
+00:05:10.000 --> 00:05:13.000
+So where do those tasks fit into the SM?
+
+78
+00:05:13.000 --> 00:05:14.000
+Ah, okay.
+
+79
+00:05:14.000 --> 00:05:17.000
+So those tasks fall to the older, more general purpose units, which are known as CIDI-ACOR.
+
+80
+00:05:17.000 --> 00:05:22.000
+CIDI-ACOR, right.
+

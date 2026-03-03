@@ -6,9 +6,15 @@ studyId: "study-002"
 
 A thematic analysis of AI accelerator architecture for stakeholders considering AI infrastructure investment. Focus: GPU vs TPU introduction, the roofline constraint, and NVIDIA's scaling trajectory.
 
+<Divider label="📐 Core Concepts" />
+
 ## 1. The Roofline: The Ultimate Constraint
 
-Training billion-parameter models hits a fundamental limit: you're either **compute bound** (limited by how fast the math runs) or **communication bound** (limited by data movement between memory and across chips). The roofline defines where modern training runs hit the ceiling.
+Training billion-parameter models hits a fundamental limit: you're either **compute bound** (limited by how fast the math runs) or **communication bound** (limited by data movement between memory and across chips). The <Tooltip content="A performance model that shows when a workload is limited by compute vs. memory bandwidth">roofline</Tooltip> defines where modern training runs hit the ceiling.
+
+<Callout variant="info" title="💡 Why it matters">
+  At scale, most training runs are communication bound—data movement between chips often bottlenecks before raw compute. Interconnect and memory bandwidth matter as much as FLOPS.
+</Callout>
 
 <Clip
   src="/videos/clips/ai-chip-war-gpu-tpu_01_70s.mp4"
@@ -26,7 +32,7 @@ Training billion-parameter models hits a fundamental limit: you're either **comp
   start={45}
 />
 
----
+<Divider label="🔧 Architecture" />
 
 ## 2. GPU Architecture: Modular, Tensor-Core-Centric
 
@@ -56,11 +62,11 @@ Modern AI GPUs (NVIDIA H100, B200) are built as massive arrays of **streaming mu
   start={250}
 />
 
----
+<Divider label="📈 Scaling" />
 
 ## 3. NVIDIA's Scaling Trajectory: Investable Doubling
 
-NVIDIA has consistently doubled tensor-core capability each generation—a predictable, investable roadmap.
+NVIDIA has consistently doubled <Tooltip content="Floating Point Operations Per Second—raw compute throughput">tensor-core</Tooltip> capability each generation—a predictable, investable roadmap.
 
 <Clip
   src="/videos/clips/ai-chip-war-gpu-tpu_06_275s.mp4"
@@ -70,7 +76,7 @@ NVIDIA has consistently doubled tensor-core capability each generation—a predi
   start={275}
 />
 
----
+<Divider />
 
 ## 4. GPU vs TPU: Same Philosophy, Different Paths
 
@@ -84,10 +90,12 @@ Both NVIDIA GPUs and Google TPUs center on dedicated matrix-multiplication units
   start={123}
 />
 
----
+<Divider label="🎯 Recommendations" />
 
 ## Actionable Insights for AI Investors
 
-1. **Roofline matters at scale** – Communication bottlenecks (memory, networking) often limit training before raw compute. Invest in companies addressing interconnect and memory bandwidth, not only peak FLOPS.
-2. **Tensor-core roadmaps are key** – Vendors with sustained tensor-core doubling (V100 → B200) are structurally aligned with LLM workloads.
-3. **GPU vs TPU** – Both pursue the same core idea. The competition is in ecosystem, deployment, and total cost of ownership.
+<Callout variant="insight" title="✨ Top takeaways">
+  1. **Roofline matters at scale** – Communication bottlenecks (memory, networking) often limit training before raw compute. Invest in companies addressing interconnect and memory bandwidth, not only peak FLOPS.
+  2. **Tensor-core roadmaps are key** – Vendors with sustained tensor-core doubling (V100 → B200) are structurally aligned with LLM workloads.
+  3. **GPU vs TPU** – Both pursue the same core idea. The competition is in ecosystem, deployment, and total cost of ownership.
+</Callout>

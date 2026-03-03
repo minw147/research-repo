@@ -20,6 +20,34 @@ const VTT_DIR = path.join(ROOT, "public", "vtt");
 const VIDEOS_DIR = path.join(ROOT, "public", "videos");
 
 const CLIP_RE = /<Clip\s+([\s\S]+?)\s*\/>/g;
+const CALLOUT_RE = /<Callout\s+variant=["'](\w+)["']\s*title=["']([^"']*)["']\s*>([\s\S]*?)<\/Callout>/g;
+const CALLOUT_NOTITLE_RE = /<Callout\s+variant=["'](\w+)["']\s*>([\s\S]*?)<\/Callout>/g;
+const DIVIDER_LABEL_RE = /<Divider\s+label=["']([^"']*)["']\s*\/>/g;
+const DIVIDER_RE = /<Divider\s*\/>/g;
+const TOOLTIP_RE = /<Tooltip\s+content=["']([^"']*)["']\s*>([\s\S]*?)<\/Tooltip>/g;
+
+/** Convert Callout, Divider, Tooltip to markdown/html that remark can process. */
+function preprocessCustomComponents(str) {
+  let s = str;
+  // Tooltip: emit just the inner text (tooltips need JS for hover)
+  s = s.replace(TOOLTIP_RE, "$2");
+  // Divider with label
+  s = s.replace(DIVIDER_LABEL_RE, "\n\n---\n\n*$1*\n\n---\n\n");
+  // Divider without label
+  s = s.replace(DIVIDER_RE, "\n\n---\n\n");
+  // Callout with title
+  s = s.replace(CALLOUT_RE, (_, _variant, title, body) => {
+    const t = title.replace(/"/g, "&quot;");
+    const b = body.trim().replace(/\n/g, "\n> ");
+    return `\n\n> **${t}**\n>\n> ${b}\n\n`;
+  });
+  // Callout without title
+  s = s.replace(CALLOUT_NOTITLE_RE, (_, _variant, body) => {
+    const b = body.trim().replace(/\n/g, "\n> ");
+    return `\n\n> ${b}\n\n`;
+  });
+  return s;
+}
 
 function parseClipProps(str) {
   const props = {};
@@ -195,6 +223,9 @@ strong{font-weight:600;color:#1e293b}
 ul,ol{margin:0 0 1rem;padding-left:1.5rem}
 li{margin-bottom:0.25rem}
 hr{border:none;border-top:1px solid #e2e8f0;margin:2rem 0}
+blockquote{margin:1.5rem 0;padding:1rem 1.25rem;border-left:4px solid #137fec;background:#eff6ff;border-radius:0 0.5rem 0.5rem 0;color:#1e3a5f}
+blockquote p{margin:0.25rem 0}
+blockquote strong{color:#0c4a6e}
 .meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem;padding-bottom:2rem;border-bottom:1px solid #e2e8f0;font-size:14px;color:#64748b}
 details summary::-webkit-details-marker{display:none}
 `;
@@ -229,7 +260,8 @@ async function exportReport(filename, outDir, pathPrefix) {
 
   for (let i = 0; i < parts.length; i++) {
     if (i % 2 === 0) {
-      const md = parts[i];
+      let md = parts[i];
+      md = preprocessCustomComponents(md);
       if (md.trim()) {
         const mdResult = await processor.process(md);
         htmlParts.push(String(mdResult));

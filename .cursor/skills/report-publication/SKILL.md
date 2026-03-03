@@ -180,6 +180,63 @@ extra padding for readability.]
 | `participant` | No | e.g., "Participant 4" |
 | `duration` | No | Display only, e.g., "04:12" |
 
+## Visual components for readability and engagement
+
+**Use these components liberally** to make reports more scannable, colorful, and engaging. Avoid walls of plain text—mix in callouts, dividers, emojis, and tooltips.
+
+### Callout (highlight box)
+
+Draw attention to key takeaways, definitions, or caveats.
+
+```mdx
+<Callout variant="insight" title="Key takeaway">
+  Communication bottlenecks often limit training before raw compute. Invest in interconnect and memory bandwidth, not only peak FLOPS.
+</Callout>
+```
+
+| `variant` | Use for | Example |
+|-----------|---------|---------|
+| `info` | Background, definitions | Technical context, glossary terms |
+| `tip` | Practical advice | "Try X when Y happens" |
+| `warning` | Caveats, limitations | "Note: this assumes local deployment" |
+| `insight` | Key findings, recommendations | Main takeaways, actionable insights |
+
+`title` is optional. Use emojis in titles for extra visual punch: `title="💡 Pro tip"`, `title="⚠️ Caveat"`, `title="✨ Key insight"`.
+
+### Divider
+
+Add visual breaks between sections. Use `---` in markdown for a simple gradient line, or `<Divider label="✨ Next section" />` for a labeled divider.
+
+```mdx
+<Divider label="📊 Evidence" />
+```
+
+### Tooltip
+
+Explain jargon or add context on hover. Wrap the term in `<Tooltip content="[explanation]">term</Tooltip>`.
+
+```mdx
+<Tooltip content="Floating Point Operations Per Second—measures raw compute throughput">FLOPS</Tooltip> have doubled each generation.
+```
+
+### Emojis
+
+Use emojis sparingly in headings and callouts to aid scanning:
+- **📊** Data, metrics, evidence
+- **💡** Tips, recommendations
+- **⚠️** Warnings, caveats
+- **✨** Insights, key takeaways
+- **🎯** Action items, next steps
+
+Do not overuse—1–2 per section max. Prefer section-level emphasis over every sentence.
+
+### General guidelines
+
+- **Break up long blocks** with `<Callout>`, `<Divider>`, or subheadings.
+- **Define jargon** with `<Tooltip>` the first time it appears.
+- **Highlight actionable insights** in `<Callout variant="insight">`.
+- **Use blockquotes** (`> quote`) for participant voices when not using Clip—they render with a colored left border.
+
 ## Adding a new study to research-index.json
 
 ```json

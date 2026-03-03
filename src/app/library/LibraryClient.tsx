@@ -97,7 +97,7 @@ export function LibraryClient({ studies }: { studies: StudyWithContent[] }) {
             >
               All
             </button>
-            {personas.map((p) => (
+          {personas.map((p) => (
               <button
                 key={p}
                 type="button"
@@ -127,7 +127,7 @@ export function LibraryClient({ studies }: { studies: StudyWithContent[] }) {
             >
               All
             </button>
-            {products.map((p) => (
+          {products.map((p) => (
               <button
                 key={p}
                 type="button"

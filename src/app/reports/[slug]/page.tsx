@@ -5,6 +5,9 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import { getReportRaw, getAllReportFilenames, getStudyById, getTranscriptForStudy } from "@/lib/db";
 import Clip from "@/components/Clip";
 import { Slide } from "@/components/Slide";
+import { Callout } from "@/components/Callout";
+import { Tooltip } from "@/components/Tooltip";
+import { Divider } from "@/components/Divider";
 import { ShareReport } from "@/components/ShareReport";
 import { TranscriptProvider } from "@/context/TranscriptContext";
 import { format } from "date-fns";
@@ -13,17 +16,36 @@ import { Calendar, LayoutList, Rows3 } from "lucide-react";
 const blogComponents = {
   Clip,
   Slide,
+  Callout,
+  Tooltip,
+  Divider,
+  hr: () => <Divider />,
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
+    <blockquote
+      className="my-6 border-l-4 border-primary/50 bg-primary/5 pl-6 pr-4 py-3 italic text-slate-700 dark:text-slate-300"
+      {...props}
+    />
+  ),
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="mb-6 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="mb-4 mt-8 text-xl font-semibold text-slate-900" {...props} />
+    <h2 className="mb-4 mt-10 text-xl font-semibold text-slate-900 border-b border-slate-200 dark:border-slate-700 pb-2" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="mb-3 text-lg font-semibold text-slate-900" {...props} />
+    <h3 className="mb-3 mt-6 text-lg font-semibold text-slate-800 dark:text-slate-200" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mb-4 text-base leading-relaxed text-slate-600" {...props} />
+    <p className="mb-4 text-base leading-relaxed text-slate-600 dark:text-slate-400" {...props} />
+  ),
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
+    <ul className="mb-6 ml-6 list-disc space-y-2 text-slate-600 dark:text-slate-400 [&>li]:pl-1" {...props} />
+  ),
+  ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+    <ol className="mb-6 ml-6 list-decimal space-y-2 text-slate-600 dark:text-slate-400 [&>li]:pl-1" {...props} />
+  ),
+  strong: (props: React.HTMLAttributes<HTMLElement>) => (
+    <strong className="font-semibold text-slate-800 dark:text-slate-200" {...props} />
   ),
 };
 
@@ -81,7 +103,7 @@ export default async function ReportPage({
   const vttUrl = transcriptLines.length > 0 ? `/vtt/${slug}.vtt` : null;
 
   return (
-    <article className={isSlides ? "max-w-none" : "prose prose-slate max-w-none dark:prose-invert"}>
+    <article className={isSlides ? "max-w-none" : "report-prose prose prose-slate max-w-none dark:prose-invert"}>
       <TranscriptProvider lines={transcriptLines} vttUrl={vttUrl}>
       {/* Breadcrumbs */}
       <nav

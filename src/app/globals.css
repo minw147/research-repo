@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Report prose (blog layout) ────────────────────────────────────── */
+
+.report-prose a {
+  color: #137fec;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+.report-prose a:hover {
+  color: #0b5db0;
+}
+.report-prose .report-callout-content p {
+  margin-bottom: 0.5rem;
+}
+.report-prose .report-callout-content p:last-child {
+  margin-bottom: 0;
+}
+
 /* ─── Slides layout ────────────────────────────────────────────────── */
 
 /*
