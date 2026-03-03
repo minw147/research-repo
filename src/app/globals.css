@@ -17,4 +17,14 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+  /* Expand transcript sections for PDF export */
+  details {
+    display: block !important;
+  }
+  details summary {
+    list-style: none;
+  }
+  details summary::-webkit-details-marker {
+    display: none;
+  }
 }

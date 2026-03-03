@@ -24,7 +24,20 @@ export function ShareReport({ slug, title }: ShareReportProps) {
 
   const handleExportPDF = () => {
     setOpen(false);
+    const details = document.querySelectorAll("details");
+    const opened: Element[] = [];
+    details.forEach((el) => {
+      if (!el.hasAttribute("open")) {
+        el.setAttribute("open", "");
+        opened.push(el);
+      }
+    });
     window.print();
+    const afterPrint = () => {
+      opened.forEach((el) => el.removeAttribute("open"));
+      window.removeEventListener("afterprint", afterPrint);
+    };
+    window.addEventListener("afterprint", afterPrint);
   };
 
   const handleExportHTML = () => {

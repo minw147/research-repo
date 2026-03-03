@@ -1,0 +1,13 @@
+{
+  "description": "Cloud share links for pre-sliced clips. Copy clips from public/videos/clips/ to your folder, then paste each file's share link. Google Drive: https://drive.google.com/file/d/FILE_ID/view?usp=sharing. OneDrive: https://1drv.ms/v/s!...",
+  "folder": "https://drive.google.com/drive/folders/1EWSEcfPDyeiQvxWPaoSoab_mQpKQ0o7w?usp=sharing",
+  "clips": {
+    "ai-chip-war-gpu-tpu_01_70s.mp4": "https://1drv.ms/v/c/732b2a28f866f6d3/IQCxngDWHxMARJcCoV9MrYNgAXiDbC5dUp2TKmqV8StpxEI?e=V9Ry9G",
+    "ai-chip-war-gpu-tpu_02_45s.mp4": "https://1drv.ms/v/c/732b2a28f866f6d3/IQA5oa5rsm_IR52VR81YzvkkARCaXhakYpmy8yK5eeP4wSs?e=5C9cgq",
+    "ai-chip-war-gpu-tpu_03_128s.mp4": "https://1drv.ms/v/c/732b2a28f866f6d3/IQC5tmAwKU85S60_VMPumPlQAfN43v5miSAvWuE141FI7CI?e=1VVsvv",
+    "ai-chip-war-gpu-tpu_04_208s.mp4": "",
+    "ai-chip-war-gpu-tpu_05_250s.mp4": "",
+    "ai-chip-war-gpu-tpu_06_275s.mp4": "",
+    "ai-chip-war-gpu-tpu_07_123s.mp4": ""
+  }
+}

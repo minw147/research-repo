@@ -16,8 +16,8 @@ const ROOT = path.resolve(__dirname, "../../../..");
 const CONTENT_DIR = path.join(ROOT, "content", "reports");
 const DATA_DIR = path.join(ROOT, "data");
 const TRANSCRIPT_DIR = path.join(ROOT, "data", "transcripts");
-const OUT_DIR = path.join(ROOT, "public", "reports-standalone");
 const VTT_DIR = path.join(ROOT, "public", "vtt");
+const VIDEOS_DIR = path.join(ROOT, "public", "videos");
 
 const CLIP_RE = /<Clip\s+([\s\S]+?)\s*\/>/g;
 
@@ -72,7 +72,30 @@ function transcriptToVtt(lines) {
   return vtt;
 }
 
-function clipToHtml(props, transcriptExcerpt, vttPath) {
+function isCloudVideoUrl(src) {
+  return src && /drive\.google\.com|1drv\.ms|onedrive\.live\.com|sharepoint\.com/i.test(src);
+}
+
+function isOneDriveOrSharePoint(src) {
+  return src && /1drv\.ms|onedrive\.live\.com|sharepoint\.com/i.test(src);
+}
+
+function toCloudEmbedUrl(url) {
+  if (/drive\.google\.com/.test(url)) {
+    return url.replace(/\/view[^/]*$/, "/preview").replace(/\?.*$/, "");
+  }
+  if (/1drv\.ms/.test(url)) {
+    let u = url.replace(/\/v\//, "/i/").replace(/\/e\//, "/i/");
+    if (!/embed=1/.test(u)) u = u + (u.includes("?") ? "&embed=1" : "?embed=1");
+    return u;
+  }
+  if (/onedrive\.live\.com|sharepoint\.com/i.test(url)) {
+    return url.includes("embed=1") ? url : url + (url.includes("?") ? "&embed=1" : "?embed=1");
+  }
+  return url;
+}
+
+function clipToHtml(props, transcriptExcerpt, vttPath, pathPrefix = "../") {
   const src = props.src || "";
   const label = (props.label || "").replace(/"/g, "&quot;");
   const participant = props.participant || "";
@@ -88,18 +111,32 @@ function clipToHtml(props, transcriptExcerpt, vttPath) {
   const timeRange = `${mm}:${ss} – ${mm2}:${ss2}`;
 
   const videoPath = src.startsWith("/videos/")
-    ? `../videos/${src.replace(/^\/videos\//, "")}`
+    ? `${pathPrefix}videos/${src.replace(/^\/videos\//, "")}`
     : src.startsWith("/")
-      ? `../${src.slice(1)}`
+      ? `${pathPrefix}${src.slice(1)}`
       : src;
   const srcWithStart = videoPath.includes("#") ? videoPath : `${videoPath}#t=${start}`;
+  const watchHref = isCloudVideoUrl(src) ? src : `${videoPath}#t=${start}`;
 
   const trackEl = vttPath ? `<track kind="captions" src="${vttPath}" srclang="en" label="English" default />` : "";
   const transcriptSection = transcriptExcerpt
     ? `<details style="margin-top:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;overflow:hidden"><summary style="padding:0.5rem 0.75rem;font-size:0.8125rem;font-weight:600;color:#64748b;cursor:pointer;user-select:none">Transcript (${timeRange})</summary><div style="padding:0.75rem 1rem;font-size:0.875rem;line-height:1.5;color:#475569;background:#f8fafc">${transcriptExcerpt.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div></details>`
     : "";
 
-  return `<div style="margin:1.5rem 0;border-radius:0.75rem;border-left:4px solid #137fec;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden"><div style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem"><div style="position:relative;flex-shrink:0"><video src="${srcWithStart}" controls preload="metadata" style="height:auto;max-width:28rem;border-radius:0.75rem;background:#000">${trackEl}</video>${start > 0 ? `<span style="position:absolute;bottom:-8px;right:-8px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.8);font-size:10px;font-weight:700;color:#fff">${timeLabel}</span>` : ""}</div><div style="flex:1;min-width:0">${participant ? `<div style="font-size:12px;font-weight:600;letter-spacing:0.05em;color:#64748b;margin-bottom:0.5rem">${participant}${duration ? ` • ${duration}` : ""}</div>` : ""}<blockquote style="margin:0"><p style="font-size:1.125rem;font-weight:500;line-height:1.5;color:#334155">"${label}"</p></blockquote><div style="margin-top:0.5rem;font-size:0.75rem;color:#94a3b8"><a href="${videoPath}#t=${start}" style="color:#137fec;text-decoration:none">Watch clip at ${timeRange}</a></div>${transcriptSection}</div></div></div>`;
+  let videoEl;
+  if (isCloudVideoUrl(src)) {
+    if (isOneDriveOrSharePoint(src)) {
+      videoEl = `<a href="${watchHref}" target="_blank" rel="noopener noreferrer" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;height:180px;max-width:28rem;border-radius:0.75rem;border:2px dashed #e2e8f0;background:#f8fafc;text-decoration:none;color:#475569;font-size:0.875rem;font-weight:500;transition:all 0.2s"><span style="font-size:2rem">▶</span> Watch clip at ${timeRange}</a>`;
+    } else {
+      videoEl = `<iframe src="${toCloudEmbedUrl(src)}" title="Video clip" style="height:240px;width:100%;max-width:28rem;border-radius:0.75rem;background:#000" allow="autoplay" allowfullscreen></iframe>`;
+    }
+  } else {
+    videoEl = `<video src="${srcWithStart}" controls preload="metadata" style="height:auto;max-width:28rem;border-radius:0.75rem;background:#000">${trackEl}</video>`;
+  }
+
+  const watchTarget = isCloudVideoUrl(src) ? ' target="_blank" rel="noopener noreferrer"' : "";
+
+  return `<div style="margin:1.5rem 0;border-radius:0.75rem;border-left:4px solid #137fec;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden"><div style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem"><div style="position:relative;flex-shrink:0">${videoEl}${start > 0 ? `<span style="position:absolute;bottom:-8px;right:-8px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.8);font-size:10px;font-weight:700;color:#fff">${timeLabel}</span>` : ""}</div><div style="flex:1;min-width:0">${participant ? `<div style="font-size:12px;font-weight:600;letter-spacing:0.05em;color:#64748b;margin-bottom:0.5rem">${participant}${duration ? ` • ${duration}` : ""}</div>` : ""}<blockquote style="margin:0"><p style="font-size:1.125rem;font-weight:500;line-height:1.5;color:#334155">${label.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p></blockquote><div style="margin-top:0.5rem;font-size:0.75rem;color:#94a3b8"><a href="${watchHref}"${watchTarget} style="color:#137fec;text-decoration:none">Watch clip at ${timeRange}</a></div>${transcriptSection}</div></div></div>`;
 }
 
 function getStudyById(id) {
@@ -125,7 +162,7 @@ hr{border:none;border-top:1px solid #e2e8f0;margin:2rem 0}
 details summary::-webkit-details-marker{display:none}
 `;
 
-async function exportReport(filename) {
+async function exportReport(filename, outDir, pathPrefix) {
   const raw = fs.readFileSync(path.join(CONTENT_DIR, filename), "utf-8");
   const { data: frontmatter, content } = matter(raw);
   const study = frontmatter.studyId ? getStudyById(frontmatter.studyId) : null;
@@ -135,16 +172,16 @@ async function exportReport(filename) {
 
   let transcriptLines = [];
   let vttPath = null;
+  const slug = filename.replace(/\.mdx?$/, "");
   if (study?.transcriptFile) {
     const transcriptPath = path.join(TRANSCRIPT_DIR, study.transcriptFile);
     if (fs.existsSync(transcriptPath)) {
       transcriptLines = parseTranscriptLines(fs.readFileSync(transcriptPath, "utf-8"));
       if (transcriptLines.length > 0) {
         if (!fs.existsSync(VTT_DIR)) fs.mkdirSync(VTT_DIR, { recursive: true });
-        const slug = filename.replace(/\.mdx?$/, "");
         const vttFile = path.join(VTT_DIR, `${slug}.vtt`);
         fs.writeFileSync(vttFile, transcriptToVtt(transcriptLines), "utf-8");
-        vttPath = `../vtt/${slug}.vtt`;
+        vttPath = `${pathPrefix}vtt/${slug}.vtt`;
       }
     }
   }
@@ -165,13 +202,12 @@ async function exportReport(filename) {
       const start = props.start || 0;
       const end = props.end ?? start + 20;
       const excerpt = getTranscriptForRange(transcriptLines, start, end);
-      htmlParts.push(clipToHtml(props, excerpt, vttPath));
+      htmlParts.push(clipToHtml(props, excerpt, vttPath, pathPrefix));
     }
   }
   const html = htmlParts.join("\n\n");
 
   const title = frontmatter.title || "Report";
-  const slug = filename.replace(/\.mdx?$/, "");
   const dateStr = date
     ? new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "";
@@ -182,7 +218,7 @@ async function exportReport(filename) {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>${title}</title>
-<!-- For video playback: place this file in your project root (next to the videos folder) -->
+<!-- Portable: HTML + videos/ + vtt/ in same folder. Zip and share. Open via http (e.g. npx serve) for video playback. -->
 <style>${REPORT_CSS}</style>
 </head>
 <body>
@@ -198,17 +234,49 @@ ${html}
 </body>
 </html>`;
 
-  if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
-  fs.writeFileSync(path.join(OUT_DIR, `${slug}.html`), fullHtml, "utf-8");
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, `${slug}.html`), fullHtml, "utf-8");
   console.log(`  Exported ${slug}.html`);
 }
 
+function copyDirSync(src, dest) {
+  if (!fs.existsSync(src)) return;
+  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 async function main() {
-  console.log("Exporting standalone report HTML files...");
+  const portable = process.argv.includes("--portable");
+  const outDir = portable ? path.join(ROOT, "public", "reports-portable") : path.join(ROOT, "public", "reports-standalone");
+  const pathPrefix = portable ? "" : "../";
+
+  console.log(portable ? "Exporting portable report HTML (videos + vtt in same folder)..." : "Exporting standalone report HTML files...");
   const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith(".mdx") || f.endsWith(".md"));
   for (const f of files) {
-    await exportReport(f);
+    await exportReport(f, outDir, pathPrefix);
   }
+
+  if (portable) {
+    const destVideos = path.join(outDir, "videos");
+    const destVtt = path.join(outDir, "vtt");
+    copyDirSync(VIDEOS_DIR, destVideos);
+    copyDirSync(VTT_DIR, destVtt);
+    fs.writeFileSync(
+      path.join(outDir, "README.md"),
+      `# Portable Report Export\n\nOpen the HTML files in a browser. **For local video playback**, run a local server (browsers block file:// video):\n\n\`\`\`\nnpx serve .\n\`\`\`\n\nThen open http://localhost:3000/ai-chip-war-gpu-tpu.html\n\nZip this folder and share—recipients get HTML, videos, and captions together.\n`,
+      "utf-8"
+    );
+    console.log("  Copied videos/ and vtt/ into reports-portable/");
+  }
+
   console.log("Done.");
 }
 

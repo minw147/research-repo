@@ -46,3 +46,4 @@ raw_videos/
 /public/videos/*
 !/public/videos/.gitkeep
 !/public/videos/README.md
+/public/reports-portable/

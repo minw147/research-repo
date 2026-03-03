@@ -16,22 +16,27 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 5. **Index**: Ensure `reportFile` in `data/research-index.json` points to `[slug].mdx`.
 6. **Slice clips**: Run `npm run slice-clips` (or `npm run slice-clips -- --report [slug]`) to extract video clips via FFmpeg. Requires the full video in `public/videos/` (local path from `src`, e.g. `/videos/Study_Title.mp4` → `public/videos/Study_Title.mp4`). Output goes to `public/videos/clips/`. Preview at `/videos/clips/` when dev server is running.
 
-7. **Cloud storage (optional)**: After clips are generated, ask: *"Do you want to store these clips in OneDrive, Google Drive, or SharePoint?"*
+7. **Video hosting**: After clips are generated, ask: *"How will you host the video clips—local files only, Google Drive, OneDrive, SharePoint, or another service?"*
 
-   - **If yes**: Ask for the folder path/URL where they will put the clips. Then:
+   - **Local only**: No change. Clips stay in `public/videos/clips/`. Clip `src` remains `/videos/...` (full video with `#t=start`) or `/videos/clips/...` if using pre-sliced files.
+
+   - **Google Drive / OneDrive / SharePoint / Other**: Ask for the folder path/URL where they will put the clips. Then:
      - Tell the user to **copy or move** the clip files from `public/videos/clips/` to that folder.
-     - **Do not rename the clips.** Keep original filenames (e.g. `ai-chip-war-gpu-tpu_01_70s.mp4`) when uploading—move them as-is so links match.
-     - Once uploaded, the user should share the folder or provide direct links to each clip. Update each `<Clip src="..." />` in the MDX report to use the cloud-hosted URL (direct video link if the service supports it).
-     - Re-run `npm run dev` or `npm run build` so the standalone HTML export picks up the new URLs. The "Watch clip at …" links will then point to the cloud-hosted clips.
+     - **Do not rename the clips.** Keep original filenames (e.g. `ai-chip-war-gpu-tpu_01_70s.mp4`) when uploading.
+     - Once uploaded, the user provides share links for each clip. Create or update `data/clip-urls-[slug].json` with the mapping, then run `npm run update-clip-urls` to update the MDX.
+     - **Google Drive**: Use share links like `https://drive.google.com/file/d/FILE_ID/view?usp=sharing`. Clips render via iframe; "Watch clip at" opens in new tab.
+     - **OneDrive / SharePoint**: Use share links (e.g. `https://1drv.ms/v/c/...`). OneDrive blocks iframe embeds, so clips show a "Watch clip at …" link placeholder instead of an inline player. Link opens in new tab.
+     - Re-run `npm run dev` or `npm run build` so the standalone HTML export picks up the new URLs.
 
-   - **If no**: Clips remain in `public/videos/clips/` for local use only.
+8. **Portable sharing** (optional): To share a report with local videos like PowerPoint, run `npm run export-portable`. Output goes to `public/reports-portable/` with HTML, `videos/`, and `vtt/` in the same folder. Zip the folder; recipients unzip and run `npx serve .` in that folder, then open `http://localhost:3000`—browsers often block video playback over `file://`, so serving over HTTP is required.
 
 ## Scripts
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
 | `.cursor/skills/report-publication/scripts/slice-clips.js` | Slice video clips from full video per MDX Clip components | `npm run slice-clips` or `npm run slice-clips -- --report [slug]` — requires full video in `public/videos/` |
-| `.cursor/skills/report-publication/scripts/export-reports-html.js` | Generate standalone HTML for each report (Export PDF, Download HTML) | Runs automatically on `npm run dev` and `npm run build` via predev/prebuild; writes to `public/reports-standalone/[slug].html` |
+| `.cursor/skills/report-publication/scripts/update-clip-urls.js` | Update Clip `src` in MDX from `data/clip-urls-[report].json` | `npm run update-clip-urls` (defaults to ai-chip-war) or pass json + mdx paths |
+| `.cursor/skills/report-publication/scripts/export-reports-html.js` | Generate standalone HTML for each report (Export PDF, Download HTML) | Runs automatically on `npm run dev` and `npm run build` via predev/prebuild; writes to `public/reports-standalone/[slug].html`. Use `npm run export-portable` for shareable output with videos/vtt in same folder. |
 
 ## File locations
 
@@ -40,6 +45,7 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 - Index: `data/research-index.json`
 - Clips: `public/videos/clips/` (sliced via `npm run slice-clips`, gitignored)
 - Standalone HTML: `public/reports-standalone/` (from export script, gitignored)
+- Portable HTML: `public/reports-portable/` (from `npm run export-portable`, gitignored)—includes `videos/` and `vtt/` in same folder for sharing
 
 ## MDX report structure
 
