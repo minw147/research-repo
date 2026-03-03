@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useTranscript } from "@/context/TranscriptContext";
-import { getTranscriptExcerpt } from "@/lib/transcript";
+import { getTranscriptExcerpt, getClipVtt } from "@/lib/transcript";
 
 interface ClipProps {
   src: string;
@@ -30,6 +30,11 @@ function isCloudVideoUrl(src: string): boolean {
 /** OneDrive/SharePoint blocks iframe embeds—show link placeholder instead */
 function isOneDriveOrSharePoint(src: string): boolean {
   return /1drv\.ms|onedrive\.live\.com|sharepoint\.com/i.test(src);
+}
+
+/** Detect pre-sliced clip file (e.g. /videos/clips/name_01_70s.mp4) - video timeline is 0..duration, not original */
+function isSlicedClip(src: string): boolean {
+  return /\/clips\/|_\d+_\d+s\.(mp4|webm|mkv)/i.test(src);
 }
 
 /** Convert cloud share URL to embeddable iframe URL */
@@ -62,6 +67,19 @@ export default function Clip({
   const clipEnd = end ?? start + clipDuration;
   const transcriptExcerpt = lines.length > 0 ? getTranscriptExcerpt(lines, start, clipEnd) : null;
 
+  // For sliced clips, VTT must have timestamps rebased to 0 (clip's own timeline). Full vttUrl uses original video timeline.
+  const trackSrc = useMemo(() => {
+    if (isSlicedClip(src) && lines.length > 0) {
+      const vtt = getClipVtt(lines, start, clipEnd);
+      if (vtt) {
+        // Use data URL for reliability (no blob revocation issues)
+        const base64 = btoa(unescape(encodeURIComponent(vtt)));
+        return `data:text/vtt;charset=utf-8;base64,${base64}`;
+      }
+    }
+    return vttUrl;
+  }, [src, lines, start, clipEnd, vttUrl]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || clipEnd <= start) return;
@@ -77,7 +95,11 @@ export default function Clip({
     return () => video.removeEventListener("timeupdate", stopAtEnd);
   }, [start, clipEnd]);
 
-  const srcWithStart = src.includes("#") ? src : `${src}#t=${start}`;
+  // Pre-sliced clips start at 0; full-video URLs need #t=start to seek
+  const srcWithStart =
+    src.includes("#") ? src
+    : isSlicedClip(src) ? src  // sliced file: no #t=, plays from 0
+    : `${src}#t=${start}`;
   const watchUrl = isCloudVideoUrl(src) ? src : `${src}#t=${start}`;
 
   if (isCloudVideoUrl(src)) {
@@ -154,8 +176,8 @@ export default function Clip({
             className="h-auto max-w-md rounded-xl bg-black"
             preload="metadata"
           >
-            {vttUrl && (
-              <track kind="captions" src={vttUrl} srcLang="en" label="English" default />
+            {trackSrc && (
+              <track kind="captions" src={trackSrc} srcLang="en" label="English" default />
             )}
           </video>
           {start > 0 && (
@@ -181,14 +203,12 @@ export default function Clip({
             </div>
           )}
           <blockquote>
-            <p className="text-lg font-medium leading-normal text-slate-800">
-              &ldquo;{label}&rdquo;
-            </p>
+            <p className="text-lg font-medium leading-normal text-slate-800">{label}</p>
           </blockquote>
           <a
             href={watchUrl}
-            target={isCloudVideoUrl(src) ? "_blank" : undefined}
-            rel={isCloudVideoUrl(src) ? "noopener noreferrer" : undefined}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-xs text-slate-400 hover:text-primary transition-colors"
           >
             Watch clip at {formatTime(start)}–{formatTime(clipEnd)}

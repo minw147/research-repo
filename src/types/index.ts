@@ -9,6 +9,10 @@ export interface Study {
   reportFile: string;
 }
 
+export interface StudyWithContent extends Study {
+  searchText: string;
+}
+
 export interface ReportFrontmatter {
   title: string;
   date?: string;

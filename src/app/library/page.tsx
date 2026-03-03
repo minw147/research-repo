@@ -1,8 +1,9 @@
-import { getAllStudies } from "@/lib/db";
+import { Suspense } from "react";
+import { getAllStudiesWithContent } from "@/lib/db";
 import { LibraryClient } from "./LibraryClient";
 
 export default function LibraryPage() {
-  const studies = getAllStudies();
+  const studies = getAllStudiesWithContent();
 
   return (
     <div>
@@ -13,7 +14,9 @@ export default function LibraryPage() {
         </p>
       </header>
 
-      <LibraryClient studies={studies} />
+      <Suspense fallback={<div className="text-slate-500">Loading...</div>}>
+        <LibraryClient studies={studies} />
+      </Suspense>
     </div>
   );
 }

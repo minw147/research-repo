@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import matter from "gray-matter";
-import type { Study, Report } from "@/types";
+import type { Study, StudyWithContent, Report } from "@/types";
 import { parseTranscript, type TranscriptLine } from "./transcript";
 
 const DATA_DIR = join(process.cwd(), "data");
@@ -21,6 +21,26 @@ export function getAllStudies(): Study[] {
   if (!existsSync(filePath)) return [];
   const raw = readFileSync(filePath, "utf-8");
   return JSON.parse(raw) as Study[];
+}
+
+/** Strip JSX tags and markdown to plain text for search indexing */
+function stripMdxToPlainText(content: string): string {
+  let text = content
+    .replace(/<[^>]+>/g, " ") // Remove JSX/HTML tags
+    .replace(/[#*_`[\]()]/g, " ") // Remove markdown formatting
+    .replace(/\s+/g, " ") // Collapse whitespace
+    .trim();
+  return text;
+}
+
+export function getAllStudiesWithContent(): StudyWithContent[] {
+  const studies = getAllStudies();
+  return studies.map((study) => {
+    const report = getReportContent(study.reportFile);
+    const rawContent = report?.content ?? "";
+    const searchText = stripMdxToPlainText(rawContent);
+    return { ...study, searchText };
+  });
 }
 
 export function getStudyById(id: string): Study | null {

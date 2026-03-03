@@ -72,6 +72,36 @@ function transcriptToVtt(lines) {
   return vtt;
 }
 
+/** VTT for a clip segment using transcript timestamps. One cue per line, rebased to 0. */
+function transcriptToClipVtt(lines, startSec, endSec) {
+  const clipLines = lines.filter((l) => l.sec >= startSec && l.sec < endSec);
+  if (clipLines.length === 0) return "";
+  const clipDuration = endSec - startSec;
+  const ts = (sec) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    const ms = Math.round((sec % 1) * 1000) % 1000;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+  };
+  let vtt = "WEBVTT\n\n";
+  for (let i = 0; i < clipLines.length; i++) {
+    const origStart = clipLines[i].sec;
+    const origEnd = i + 1 < clipLines.length ? clipLines[i + 1].sec : Math.min(origStart + 10, endSec);
+    const rebasedStart = origStart - startSec;
+    const rebasedEnd = Math.min(origEnd - startSec, clipDuration);
+    if (rebasedEnd <= rebasedStart) continue;
+    const text = clipLines[i].text.replace(/\n/g, " ").trim();
+    const endTs = ts(Math.max(rebasedStart + 0.001, rebasedEnd));
+    vtt += `${i + 1}\n${ts(rebasedStart)} --> ${endTs}\n${text}\n\n`;
+  }
+  return vtt;
+}
+
+function isSlicedClip(src) {
+  return src && (/\/clips\//.test(src) || /_\d+_\d+s\.(mp4|webm|mkv)/i.test(src));
+}
+
 function isCloudVideoUrl(src) {
   return src && /drive\.google\.com|1drv\.ms|onedrive\.live\.com|sharepoint\.com/i.test(src);
 }
@@ -95,7 +125,7 @@ function toCloudEmbedUrl(url) {
   return url;
 }
 
-function clipToHtml(props, transcriptExcerpt, vttPath, pathPrefix = "../") {
+function clipToHtml(props, transcriptExcerpt, vttPath, pathPrefix = "../", transcriptLines = []) {
   const src = props.src || "";
   const label = (props.label || "").replace(/"/g, "&quot;");
   const participant = props.participant || "";
@@ -115,10 +145,17 @@ function clipToHtml(props, transcriptExcerpt, vttPath, pathPrefix = "../") {
     : src.startsWith("/")
       ? `${pathPrefix}${src.slice(1)}`
       : src;
-  const srcWithStart = videoPath.includes("#") ? videoPath : `${videoPath}#t=${start}`;
+  // Sliced clips start at 0; full-video URLs need #t= to seek
+  const srcWithStart = videoPath.includes("#") ? videoPath : isSlicedClip(src) ? videoPath : `${videoPath}#t=${start}`;
   const watchHref = isCloudVideoUrl(src) ? src : `${videoPath}#t=${start}`;
 
-  const trackEl = vttPath ? `<track kind="captions" src="${vttPath}" srclang="en" label="English" default />` : "";
+  // For sliced clips, use clip-specific VTT with rebased timestamps (0..duration). Full vttPath uses original video timeline.
+  let trackSrc = vttPath;
+  if (isSlicedClip(src) && transcriptLines.length > 0) {
+    const clipVtt = transcriptToClipVtt(transcriptLines, start, clipEnd);
+    if (clipVtt) trackSrc = `data:text/vtt;base64,${Buffer.from(clipVtt, "utf-8").toString("base64")}`;
+  }
+  const trackEl = trackSrc ? `<track kind="captions" src="${trackSrc}" srclang="en" label="English" default />` : "";
   const transcriptSection = transcriptExcerpt
     ? `<details style="margin-top:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;overflow:hidden"><summary style="padding:0.5rem 0.75rem;font-size:0.8125rem;font-weight:600;color:#64748b;cursor:pointer;user-select:none">Transcript (${timeRange})</summary><div style="padding:0.75rem 1rem;font-size:0.875rem;line-height:1.5;color:#475569;background:#f8fafc">${transcriptExcerpt.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div></details>`
     : "";
@@ -134,7 +171,7 @@ function clipToHtml(props, transcriptExcerpt, vttPath, pathPrefix = "../") {
     videoEl = `<video src="${srcWithStart}" controls preload="metadata" style="height:auto;max-width:28rem;border-radius:0.75rem;background:#000">${trackEl}</video>`;
   }
 
-  const watchTarget = isCloudVideoUrl(src) ? ' target="_blank" rel="noopener noreferrer"' : "";
+  const watchTarget = ' target="_blank" rel="noopener noreferrer"';
 
   return `<div style="margin:1.5rem 0;border-radius:0.75rem;border-left:4px solid #137fec;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden"><div style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem"><div style="position:relative;flex-shrink:0">${videoEl}${start > 0 ? `<span style="position:absolute;bottom:-8px;right:-8px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.8);font-size:10px;font-weight:700;color:#fff">${timeLabel}</span>` : ""}</div><div style="flex:1;min-width:0">${participant ? `<div style="font-size:12px;font-weight:600;letter-spacing:0.05em;color:#64748b;margin-bottom:0.5rem">${participant}${duration ? ` • ${duration}` : ""}</div>` : ""}<blockquote style="margin:0"><p style="font-size:1.125rem;font-weight:500;line-height:1.5;color:#334155">${label.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p></blockquote><div style="margin-top:0.5rem;font-size:0.75rem;color:#94a3b8"><a href="${watchHref}"${watchTarget} style="color:#137fec;text-decoration:none">Watch clip at ${timeRange}</a></div>${transcriptSection}</div></div></div>`;
 }
@@ -202,7 +239,7 @@ async function exportReport(filename, outDir, pathPrefix) {
       const start = props.start || 0;
       const end = props.end ?? start + 20;
       const excerpt = getTranscriptForRange(transcriptLines, start, end);
-      htmlParts.push(clipToHtml(props, excerpt, vttPath, pathPrefix));
+      htmlParts.push(clipToHtml(props, excerpt, vttPath, pathPrefix, transcriptLines));
     }
   }
   const html = htmlParts.join("\n\n");

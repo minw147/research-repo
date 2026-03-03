@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mobile Onboarding Flow</title>
+<!-- Portable: HTML + videos/ + vtt/ in same folder. Zip and share. Open via http (e.g. npx serve) for video playback. -->
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.6;color:#334155;background:#fff}
+.container{max-width:48rem;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:700;margin:0 0 1.5rem;color:#0f172a}
+h2{font-size:1.25rem;font-weight:600;margin:2rem 0 1rem;color:#0f172a}
+p{margin:0 0 1rem;color:#475569}
+strong{font-weight:600;color:#1e293b}
+ul,ol{margin:0 0 1rem;padding-left:1.5rem}
+li{margin-bottom:0.25rem}
+hr{border:none;border-top:1px solid #e2e8f0;margin:2rem 0}
+.meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem;padding-bottom:2rem;border-bottom:1px solid #e2e8f0;font-size:14px;color:#64748b}
+details summary::-webkit-details-marker{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Mobile Onboarding Flow</h1>
+<div class="meta">
+<span>New Customer</span>
+<span>Sep 11, 2024</span>
+<span style="background:#eff6ff;color:#137fec;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500">Mobile App</span>
+</div>
+<h1>Mobile Onboarding Flow</h1>
+<p>Summary of usability findings for the first-time user onboarding experience on the mobile app.</p>
+<h2>1. Sign-up Friction</h2>
+<p>Participants found the email verification step redundant when they had already connected via Google Sign-In.</p>
+
+
+<div style="margin:1.5rem 0;border-radius:0.75rem;border-left:4px solid #137fec;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden"><div style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem"><div style="position:relative;flex-shrink:0"><video src="../videos/demo-clip.mp4#t=30" controls preload="metadata" style="height:auto;max-width:28rem;border-radius:0.75rem;background:#000"></video><span style="position:absolute;bottom:-8px;right:-8px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.8);font-size:10px;font-weight:700;color:#fff">00:30</span></div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;letter-spacing:0.05em;color:#64748b;margin-bottom:0.5rem">Participant 2 • 01:45</div><blockquote style="margin:0"><p style="font-size:1.125rem;font-weight:500;line-height:1.5;color:#334155">I already signed in with Google—why am I typing my email again? It felt like the app forgot who I was.</p></blockquote><div style="margin-top:0.5rem;font-size:0.75rem;color:#94a3b8"><a href="../videos/demo-clip.mp4#t=30" target="_blank" rel="noopener noreferrer" style="color:#137fec;text-decoration:none">Watch clip at 00:30 – 00:50</a></div></div></div></div>
+
+<h2>Actionable Insight</h2>
+<p>Skip email verification when the user has authenticated via OAuth. Add a one-tap "Continue" to proceed directly to the home screen.</p>
+
+</div>
+</body>
+</html>

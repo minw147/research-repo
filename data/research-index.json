@@ -18,5 +18,25 @@
     "videoUrl": "https://1drv.ms/v/s!Example",
     "transcriptFile": "study-001-transcript.txt",
     "reportFile": "checkout-flow.mdx"
+  },
+  {
+    "id": "study-003",
+    "title": "Mobile Onboarding Flow",
+    "date": "2024-09-12",
+    "persona": "New Customer",
+    "product": "Mobile App",
+    "videoUrl": "/videos/demo-clip.mp4",
+    "transcriptFile": "study-003-transcript.txt",
+    "reportFile": "mobile-onboarding.mdx"
+  },
+  {
+    "id": "study-004",
+    "title": "Checkout Payment Drop-off",
+    "date": "2024-06-01",
+    "persona": "New Customer",
+    "product": "E-commerce",
+    "videoUrl": "https://1drv.ms/v/s!Example",
+    "transcriptFile": "study-001-transcript.txt",
+    "reportFile": "checkout-flow.mdx"
   }
 ]
