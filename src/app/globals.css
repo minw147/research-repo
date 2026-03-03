@@ -2,6 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Slides layout ────────────────────────────────────────────────── */
+
+/*
+ * Wrap the MDX article in `.slides-mode` (set when frontmatter layout: "slides").
+ * Each <Slide> renders a `.slide-section` div; CSS counters provide slide numbers
+ * without requiring any JS state.
+ */
+.slides-mode {
+  counter-reset: slide-num;
+  /* Slightly recessed background so white cards "float" */
+  background: linear-gradient(180deg, #f0f4f8 0%, #f6f7f8 100%);
+  border-radius: 1rem;
+  padding: 1.5rem 0 2rem;
+}
+
+.slides-mode .slide-section {
+  counter-increment: slide-num;
+}
+
+/* Badge: "01" injected via CSS counter, positioned top-right inside the card */
+.slides-mode .slide-section .slide-counter-badge {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.25rem;
+}
+.slides-mode .slide-section .slide-counter-badge::before {
+  content: counter(slide-num, decimal-leading-zero);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+/* Section headings inside slides get a larger, bolder treatment */
+.slides-mode .slide-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+/* Paragraphs in slides — slightly more breathing room */
+.slides-mode .slide-section p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #475569;
+  margin-bottom: 1rem;
+}
+
+/* Horizontal rules between slides become invisible — spacing handles separation */
+.slides-mode hr {
+  display: none;
+}
+
+/* ─── Print ────────────────────────────────────────────────────────── */
+
 /* Print: hide nav, show only report content */
 @media print {
   header,

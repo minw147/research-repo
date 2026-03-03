@@ -11,12 +11,15 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 
 1. **Input**: Researcher has edited `data/analysis/[slug]-findings.md` and says they are ready to publish.
 2. **Read** the findings file. Parse themes, quotes with timestamps (e.g., `@ 01:10 (70 seconds)`), and actionable insights.
-3. **Convert** to MDX: map themes → sections, quotes → `<Clip />` components. Fetch `videoUrl` from `research-index.json` for the study.
-4. **Write** to `content/reports/[slug].mdx`.
-5. **Index**: Ensure `reportFile` in `data/research-index.json` points to `[slug].mdx`.
-6. **Slice clips**: Run `npm run slice-clips` (or `npm run slice-clips -- --report [slug]`) to extract video clips via FFmpeg. Requires the full video in `public/videos/` (local path from `src`, e.g. `/videos/Study_Title.mp4` → `public/videos/Study_Title.mp4`). Output goes to `public/videos/clips/`. Preview at `/videos/clips/` when dev server is running.
+3. **Ask style**: Before converting, ask the researcher: *"Which report style do you prefer—**Blog** (scrollable article, default) or **Slides** (vertical slide deck—each section becomes a floating card you scroll through)?"*
+   - **Blog**: proceed with standard MDX (no layout field). Each `##` section is a normal prose section.
+   - **Slides**: set `layout: "slides"` in frontmatter. Wrap each section in a `<Slide>` component (see format below). Use `size="tall"` on clip-heavy or data-dense slides.
+4. **Convert** to MDX: map themes → sections, quotes → `<Clip />` components. Fetch `videoUrl` from `research-index.json` for the study.
+5. **Write** to `content/reports/[slug].mdx`.
+6. **Index**: Ensure `reportFile` in `data/research-index.json` points to `[slug].mdx`.
+7. **Slice clips**: Run `npm run slice-clips` (or `npm run slice-clips -- --report [slug]`) to extract video clips via FFmpeg. Requires the full video in `public/videos/` (local path from `src`, e.g. `/videos/Study_Title.mp4` → `public/videos/Study_Title.mp4`). Output goes to `public/videos/clips/`. Preview at `/videos/clips/` when dev server is running.
 
-7. **Video hosting**: After clips are generated, ask: *"How will you host the video clips—local files only, Google Drive, OneDrive, SharePoint, or another service?"*
+8. **Video hosting**: After clips are generated, ask: *"How will you host the video clips—local files only, Google Drive, OneDrive, SharePoint, or another service?"*
 
    - **Local only**: No change. Clips stay in `public/videos/clips/`. Clip `src` remains `/videos/...` (full video with `#t=start`) or `/videos/clips/...` if using pre-sliced files.
 
@@ -28,9 +31,9 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
      - **OneDrive / SharePoint**: Use share links (e.g. `https://1drv.ms/v/c/...`). OneDrive blocks iframe embeds, so clips show a "Watch clip at …" link placeholder instead of an inline player. Link opens in new tab.
      - Re-run `npm run dev` or `npm run build` so the standalone HTML export picks up the new URLs.
 
-8. **Portable sharing** (optional): To share a report with local videos like PowerPoint, run `npm run export-portable`. Output goes to `public/reports-portable/` with HTML, `videos/`, and `vtt/` in the same folder. Zip the folder; recipients unzip and run `npx serve .` in that folder, then open `http://localhost:3000`—browsers often block video playback over `file://`, so serving over HTTP is required.
+9. **Portable sharing** (optional): To share a report with local videos like PowerPoint, run `npm run export-portable`. Output goes to `public/reports-portable/` with HTML, `videos/`, and `vtt/` in the same folder. Zip the folder; recipients unzip and run `npx serve .` in that folder, then open `http://localhost:3000`—browsers often block video playback over `file://`, so serving over HTTP is required.
 
-9. **Export to PowerPoint** (optional): To convert a report to .pptx with embedded video clips, run `npm run export-pptx` (or `npm run export-pptx -- --report [slug]`). Requires local clips in `public/videos/clips/`—run `npm run slice-clips` first. Output: `public/reports-pptx/[slug].pptx`. Videos are embedded in the file; share the .pptx alone. Cloud-hosted clips (Drive/OneDrive) show as quote + link if no local file exists; clip-urls mapping is used to resolve local filenames when possible.
+10. **Export to PowerPoint** (optional): To convert a report to .pptx with embedded video clips, run `npm run export-pptx` (or `npm run export-pptx -- --report [slug]`). Requires local clips in `public/videos/clips/`—run `npm run slice-clips` first. Output: `public/reports-pptx/[slug].pptx`. Videos are embedded in the file; share the .pptx alone. Cloud-hosted clips (Drive/OneDrive) show as quote + link if no local file exists; clip-urls mapping is used to resolve local filenames when possible.
 
 ## Scripts
 
@@ -52,6 +55,10 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 - PowerPoint: `public/reports-pptx/` (from `npm run export-pptx`, gitignored)—.pptx with embedded clips
 
 ## MDX report structure
+
+### Blog style (default)
+
+Standard MDX with prose sections. No `layout` field needed.
 
 ```mdx
 ---
@@ -83,6 +90,71 @@ studyId: "study-XXX"
 
 [Recommendation]
 ```
+
+### Slide deck style
+
+Set `layout: "slides"` in frontmatter. Wrap **each section** in a `<Slide>` component. The `##` heading goes *inside* the `<Slide>`. Horizontal rules (`---`) between slides are hidden automatically.
+
+```mdx
+---
+title: "[Report Title]"
+date: "YYYY-MM-DD"
+studyId: "study-XXX"
+layout: "slides"
+---
+
+[Optional one-sentence intro — displayed above the slide deck, in plain prose.]
+
+<Slide>
+
+## 1. [Section Heading]
+
+[Paragraph with context. Keep focused — one insight per slide.]
+
+<Clip
+  src="[VIDEO_URL]"
+  label="[Exact quote from participant]"
+  participant="Participant N"
+  duration="MM:SS"
+  start={SECONDS}
+  clipDuration={20}
+/>
+
+</Slide>
+
+<Slide size="tall">
+
+## 2. [Data-Dense Section]
+
+[More content, multiple clips, or a table. Use `size="tall"` when a slide
+needs extra vertical breathing room — never try to compress content to fit
+a fixed height. The slide grows with its content; `size="tall"` just adds
+extra padding for readability.]
+
+<Clip ... />
+
+<Clip ... />
+
+</Slide>
+
+<Slide>
+
+## Actionable Insights
+
+1. **[Insight one]** — explanation
+2. **[Insight two]** — explanation
+
+</Slide>
+```
+
+### Slide sizing rules
+
+| `size` prop | When to use |
+|-------------|-------------|
+| `"auto"` (default) | Most slides — one heading, 1–2 paragraphs, 0–1 clips |
+| `"tall"` | Slides with 2+ clips, long analysis paragraphs, or tables |
+
+**Never** try to jam content into a short slide. Let slides be as tall as they need to be — the reader scrolls vertically. Each slide should have **one clear focus**: one theme, one clip cluster, or one set of recommendations.
 
 ## Clip component (required)
 

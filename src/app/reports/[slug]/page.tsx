@@ -1,15 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import { getReportRaw, getAllReportFilenames, getStudyById, getTranscriptForStudy } from "@/lib/db";
 import Clip from "@/components/Clip";
+import { Slide } from "@/components/Slide";
 import { ShareReport } from "@/components/ShareReport";
 import { TranscriptProvider } from "@/context/TranscriptContext";
 import { format } from "date-fns";
-import { Calendar } from "lucide-react";
+import { Calendar, LayoutList, Rows3 } from "lucide-react";
 
-const components = {
+const blogComponents = {
   Clip,
+  Slide,
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="mb-6 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl" {...props} />
   ),
@@ -22,6 +25,12 @@ const components = {
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="mb-4 text-base leading-relaxed text-slate-600" {...props} />
   ),
+};
+
+// Slide-deck mode: Slide component is already registered; h2/p get
+// additional styling via the .slides-mode CSS class in globals.css
+const slideComponents = {
+  ...blogComponents,
 };
 
 export async function generateStaticParams() {
@@ -42,10 +51,15 @@ export default async function ReportPage({
 
   if (!raw) notFound();
 
+  const { data: frontmatterPreview } = matter(raw);
+  const isSlides = frontmatterPreview?.layout === "slides";
+  const components = isSlides ? slideComponents : blogComponents;
+
   const { content, frontmatter } = await compileMDX<{
     title: string;
     date?: string;
     studyId?: string;
+    layout?: "blog" | "slides";
   }>({
     source: raw,
     options: {
@@ -67,7 +81,7 @@ export default async function ReportPage({
   const vttUrl = transcriptLines.length > 0 ? `/vtt/${slug}.vtt` : null;
 
   return (
-    <article className="prose prose-slate max-w-none dark:prose-invert">
+    <article className={isSlides ? "max-w-none" : "prose prose-slate max-w-none dark:prose-invert"}>
       <TranscriptProvider lines={transcriptLines} vttUrl={vttUrl}>
       {/* Breadcrumbs */}
       <nav
@@ -113,11 +127,25 @@ export default async function ReportPage({
               {category}
             </span>
           )}
+          {/* Layout badge */}
+          {isSlides ? (
+            <span className="ml-auto flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+              <Rows3 className="h-3 w-3" />
+              Slide deck
+            </span>
+          ) : (
+            <span className="ml-auto flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+              <LayoutList className="h-3 w-3" />
+              Article
+            </span>
+          )}
         </div>
       </div>
 
       {/* MDX Content */}
-      {content}
+      <div className={isSlides ? "slides-mode" : ""}>
+        {content}
+      </div>
       </TranscriptProvider>
     </article>
   );
