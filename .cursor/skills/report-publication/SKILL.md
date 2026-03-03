@@ -30,6 +30,8 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 
 8. **Portable sharing** (optional): To share a report with local videos like PowerPoint, run `npm run export-portable`. Output goes to `public/reports-portable/` with HTML, `videos/`, and `vtt/` in the same folder. Zip the folder; recipients unzip and run `npx serve .` in that folder, then open `http://localhost:3000`—browsers often block video playback over `file://`, so serving over HTTP is required.
 
+9. **Export to PowerPoint** (optional): To convert a report to .pptx with embedded video clips, run `npm run export-pptx` (or `npm run export-pptx -- --report [slug]`). Requires local clips in `public/videos/clips/`—run `npm run slice-clips` first. Output: `public/reports-pptx/[slug].pptx`. Videos are embedded in the file; share the .pptx alone. Cloud-hosted clips (Drive/OneDrive) show as quote + link if no local file exists; clip-urls mapping is used to resolve local filenames when possible.
+
 ## Scripts
 
 | Script | Purpose | Usage |
@@ -37,6 +39,7 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 | `.cursor/skills/report-publication/scripts/slice-clips.js` | Slice video clips from full video per MDX Clip components | `npm run slice-clips` or `npm run slice-clips -- --report [slug]` — requires full video in `public/videos/` |
 | `.cursor/skills/report-publication/scripts/update-clip-urls.js` | Update Clip `src` in MDX from `data/clip-urls-[report].json` | `npm run update-clip-urls` (defaults to ai-chip-war) or pass json + mdx paths |
 | `.cursor/skills/report-publication/scripts/export-reports-html.js` | Generate standalone HTML for each report (Export PDF, Download HTML) | Runs automatically on `npm run dev` and `npm run build` via predev/prebuild; writes to `public/reports-standalone/[slug].html`. Use `npm run export-portable` for shareable output with videos/vtt in same folder. |
+| `.cursor/skills/report-publication/scripts/export-reports-pptx.js` | Export report to PowerPoint with embedded video clips | `npm run export-pptx` or `npm run export-pptx -- --report [slug]` — requires local clips in `public/videos/clips/`; output in `public/reports-pptx/` |
 
 ## File locations
 
@@ -46,6 +49,7 @@ Publish MDX reports to `content/reports/`. The researcher edits findings in `dat
 - Clips: `public/videos/clips/` (sliced via `npm run slice-clips`, gitignored)
 - Standalone HTML: `public/reports-standalone/` (from export script, gitignored)
 - Portable HTML: `public/reports-portable/` (from `npm run export-portable`, gitignored)—includes `videos/` and `vtt/` in same folder for sharing
+- PowerPoint: `public/reports-pptx/` (from `npm run export-pptx`, gitignored)—.pptx with embedded clips
 
 ## MDX report structure
 

@@ -47,3 +47,4 @@ raw_videos/
 !/public/videos/.gitkeep
 !/public/videos/README.md
 /public/reports-portable/
+/public/reports-pptx/
