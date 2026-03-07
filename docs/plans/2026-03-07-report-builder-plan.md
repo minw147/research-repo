@@ -10,6 +10,8 @@
 
 **PRD:** `docs/plans/2026-03-07-report-builder-prd.md` — read this for full product spec, data models, and UI descriptions.
 
+**Execution approach:** Subagent-driven — dispatch a fresh subagent per task, code review between tasks, stay in the same session.
+
 ---
 
 ## Phase 1: Foundation & Project Scaffolding
