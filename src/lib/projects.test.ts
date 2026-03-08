@@ -75,4 +75,15 @@ describe("project CRUD", () => {
     expect(projects).toHaveLength(2);
     expect(projects[0].title).toBe("Newer");
   });
+
+  it("updateProject modifies project.json", () => {
+    createProject(
+      { title: "Update Test", researcher: "Jane", persona: "User" },
+      TEST_DIR
+    );
+    const updated = updateProject("update-test", { researcher: "John" }, TEST_DIR);
+    expect(updated?.researcher).toBe("John");
+    const project = getProject("update-test", TEST_DIR);
+    expect(project?.researcher).toBe("John");
+  });
 });
