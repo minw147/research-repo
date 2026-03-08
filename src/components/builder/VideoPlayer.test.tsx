@@ -1,10 +1,20 @@
 import React from "react";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import VideoPlayer, { type VideoPlayerRef } from "./VideoPlayer";
 import type { Session } from "@/types";
 
 afterEach(cleanup);
+
+// Mock video element methods
+beforeEach(() => {
+  vi.spyOn(HTMLVideoElement.prototype, "play").mockImplementation(() => Promise.resolve());
+  vi.spyOn(HTMLVideoElement.prototype, "pause").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const mockSessions: Session[] = [
   {
@@ -74,5 +84,56 @@ describe("VideoPlayer", () => {
     expect(ref.current).toBeDefined();
     expect(ref.current?.seekTo).toBeTypeOf("function");
     expect(ref.current?.playRange).toBeTypeOf("function");
+  });
+
+  it("seekTo updates video currentTime", () => {
+    const onSessionChange = vi.fn();
+    const ref = React.createRef<VideoPlayerRef>();
+    const { container } = render(
+      <VideoPlayer
+        ref={ref}
+        sessions={mockSessions}
+        activeSessionIndex={0}
+        onSessionChange={onSessionChange}
+        slug="test-project"
+      />
+    );
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    ref.current?.seekTo(10);
+    expect(video.currentTime).toBe(10);
+  });
+
+  it("playRange starts playback and pauses at end", () => {
+    const onSessionChange = vi.fn();
+    const ref = React.createRef<VideoPlayerRef>();
+    const { container } = render(
+      <VideoPlayer
+        ref={ref}
+        sessions={mockSessions}
+        activeSessionIndex={0}
+        onSessionChange={onSessionChange}
+        slug="test-project"
+      />
+    );
+
+    const video = container.querySelector("video") as HTMLVideoElement;
+    const playSpy = vi.spyOn(video, "play");
+    const pauseSpy = vi.spyOn(video, "pause");
+
+    // Start playRange from 5 to 10
+    ref.current?.playRange(5, 10);
+    expect(video.currentTime).toBe(5);
+    expect(playSpy).toHaveBeenCalled();
+
+    // Trigger timeupdate before end
+    video.currentTime = 8;
+    fireEvent.timeUpdate(video);
+    expect(pauseSpy).not.toHaveBeenCalled();
+
+    // Trigger timeupdate at end
+    video.currentTime = 10;
+    fireEvent.timeUpdate(video);
+    expect(pauseSpy).toHaveBeenCalled();
   });
 });

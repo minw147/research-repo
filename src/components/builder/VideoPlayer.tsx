@@ -23,21 +23,15 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     const activeSession = sessions[activeSessionIndex];
 
-    // Handle playRange end time
-    useEffect(() => {
+    const handleTimeUpdate = () => {
       const video = videoRef.current;
       if (!video) return;
 
-      const handleTimeUpdate = () => {
-        if (rangeEndRef.current !== null && video.currentTime >= rangeEndRef.current) {
-          video.pause();
-          rangeEndRef.current = null;
-        }
-      };
-
-      video.addEventListener("timeupdate", handleTimeUpdate);
-      return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-    }, []);
+      if (rangeEndRef.current !== null && video.currentTime >= rangeEndRef.current) {
+        video.pause();
+        rangeEndRef.current = null;
+      }
+    };
 
     useImperativeHandle(ref, () => ({
       seekTo: (seconds: number) => {
@@ -104,6 +98,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               controls
               preload="metadata"
               playsInline
+              onTimeUpdate={handleTimeUpdate}
             />
           ) : (
             <div className="flex flex-col items-center gap-2 text-slate-500">
