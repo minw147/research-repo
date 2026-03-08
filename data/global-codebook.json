@@ -1,0 +1,13 @@
+{
+  "tags": [
+    { "id": "usability", "label": "Usability Issue", "color": "#EF4444", "category": "Pain Point" },
+    { "id": "delight", "label": "Delight Moment", "color": "#10B981", "category": "Positive" },
+    { "id": "confusion", "label": "Confusion", "color": "#F59E0B", "category": "Pain Point" },
+    { "id": "feature-req", "label": "Feature Request", "color": "#3B82F6", "category": "Feedback" },
+    { "id": "workflow", "label": "Workflow Pattern", "color": "#8B5CF6", "category": "Behavior" },
+    { "id": "onboarding", "label": "Onboarding", "color": "#06B6D4", "category": "Experience" },
+    { "id": "friction", "label": "Friction Point", "color": "#F97316", "category": "Pain Point" },
+    { "id": "mental-model", "label": "Mental Model", "color": "#EC4899", "category": "Behavior" }
+  ],
+  "categories": ["Pain Point", "Positive", "Feedback", "Behavior", "Experience"]
+}
