@@ -19,6 +19,17 @@ export function slugify(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * Sanitizes a slug to ensure it only contains alphanumeric characters and hyphens.
+ * Returns null if the slug is invalid or contains path traversal sequences.
+ */
+export function sanitizeSlug(slug: string | null): string | null {
+  if (!slug || typeof slug !== "string") return null;
+  const sanitized = slug.replace(/[^a-zA-Z0-9-]/g, "");
+  if (sanitized !== slug || sanitized.length === 0) return null;
+  return sanitized;
+}
+
 export function createProject(
   input: {
     title: string;

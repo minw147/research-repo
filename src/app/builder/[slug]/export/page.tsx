@@ -122,7 +122,7 @@ export default function ExportPage() {
     }
   };
 
-  const handleExportHtml = async () => {
+  const handleExportHtml = async (timestampsOnly: boolean = false) => {
     setExportStatus("running");
     setExportError(null);
 
@@ -130,7 +130,7 @@ export default function ExportPage() {
       const res = await fetch("/api/export/html", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, reportMdx: activeContent, quotes }),
+        body: JSON.stringify({ slug, reportMdx: activeContent, quotes, timestampsOnly }),
       });
 
       if (!res.ok) {
@@ -148,8 +148,9 @@ export default function ExportPage() {
   };
 
   const handleDownloadMarkdown = () => {
-    // Open the raw findings.md in a new tab using the preview API
-    window.open(`/api/projects/${slug}/files/findings.md`, "_blank");
+    // Download report.mdx if it exists, otherwise findings.md
+    const filename = reportMdx ? "report.mdx" : "findings.md";
+    window.open(`/api/projects/${slug}/files/${filename}`, "_blank");
   };
 
   if (loadingReport && loadingFindings) {
@@ -235,7 +236,7 @@ export default function ExportPage() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={handleExportHtml}
+                onClick={() => handleExportHtml(false)}
                 disabled={exportStatus === "running"}
                 className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
               >
@@ -247,14 +248,14 @@ export default function ExportPage() {
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <button
-              onClick={handleExportHtml}
+              onClick={() => handleExportHtml(false)}
               className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
             >
               <span className="font-semibold text-slate-900">HTML (with clips)</span>
               <span className="text-xs text-slate-500">Includes sliced video files. Slicing required first.</span>
             </button>
             <button
-              onClick={handleExportHtml}
+              onClick={() => handleExportHtml(true)}
               className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
             >
               <span className="font-semibold text-slate-900">HTML (timestamps only)</span>

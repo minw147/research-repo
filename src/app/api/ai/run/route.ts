@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runClaudePrompt } from "@/lib/ai-bridge";
+import { sanitizeSlug } from "@/lib/projects";
 import path from "path";
 
 const PROJECTS_BASE_DIR = path.join(process.cwd(), "content/projects");
@@ -15,15 +16,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Security: Validate projectSlug to prevent path traversal
-    if (typeof projectSlug !== "string" || projectSlug.includes("..") || projectSlug.includes("/") || projectSlug.includes("\\")) {
+    const slug = sanitizeSlug(projectSlug);
+    if (!slug) {
       return NextResponse.json(
         { error: "Invalid projectSlug provided." },
         { status: 400 }
       );
     }
 
-    const workingDir = path.join(PROJECTS_BASE_DIR, projectSlug);
+    const workingDir = path.join(PROJECTS_BASE_DIR, slug);
     
     // Extra security: ensure the resolved path is inside PROJECTS_BASE_DIR
     const resolvedPath = path.resolve(workingDir);

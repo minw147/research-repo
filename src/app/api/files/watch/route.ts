@@ -1,12 +1,13 @@
 import { startWatcher, addListener } from "@/lib/file-watcher";
+import { sanitizeSlug } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const slug = url.searchParams.get("slug");
+  const slug = sanitizeSlug(url.searchParams.get("slug"));
   if (!slug) {
-    return new Response("slug required", { status: 400 });
+    return new Response("Invalid project slug", { status: 400 });
   }
 
   startWatcher();

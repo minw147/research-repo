@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { sanitizeSlug } from "@/lib/projects";
 
 /**
  * Task 6.1 Fix: Add a route to serve project files for previewing
@@ -11,17 +12,17 @@ export async function GET(
   { params }: { params: { slug: string; path: string[] } }
 ) {
   try {
-    const { slug, path: filePathParts } = params;
+    const { slug: providedSlug, path: filePathParts } = params;
     
     // 1. Sanitize Slug: allow only alphanumeric and hyphens
-    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, "");
-    if (sanitizedSlug !== slug) {
+    const slug = sanitizeSlug(providedSlug);
+    if (!slug) {
       return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
     }
 
     const filePath = filePathParts.join("/");
 
-    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
+    const projectDir = path.resolve(process.cwd(), "content/projects", slug);
     const absolutePath = path.join(projectDir, filePath);
     const resolvedPath = path.resolve(absolutePath);
     const resolvedProjectDir = path.resolve(projectDir);

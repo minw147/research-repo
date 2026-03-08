@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import ffmpeg from "ffmpeg-static";
 import { spawn } from "child_process";
-import { getProject } from "@/lib/projects";
+import { getProject, sanitizeSlug } from "@/lib/projects";
 import type { ParsedQuote } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -21,20 +21,20 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, quotes: providedQuotes }: { slug: string; quotes: ParsedQuote[] } = body;
+    const { slug: providedSlug, quotes: providedQuotes }: { slug: string; quotes: ParsedQuote[] } = body;
 
     // 1. Sanitize Slug: allow only alphanumeric and hyphens
-    const sanitizedSlug = slug?.replace(/[^a-zA-Z0-9-]/g, "");
-    if (!sanitizedSlug || sanitizedSlug !== slug) {
+    const slug = sanitizeSlug(providedSlug);
+    if (!slug) {
       return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
     }
 
-    const project = getProject(sanitizedSlug);
+    const project = getProject(slug);
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
+    const projectDir = path.resolve(process.cwd(), "content/projects", slug);
     const clipsDir = path.resolve(projectDir, "clips");
     const videosDir = path.resolve(projectDir, "videos");
 

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { sanitizeSlug } from "@/lib/projects";
 
 const PROJECTS_DIR = path.join(process.cwd(), "content/projects");
 
 function resolveProjectPath(slug: string, filePath: string): string | null {
-  const resolved = path.resolve(PROJECTS_DIR, slug, filePath);
-  if (!resolved.startsWith(path.resolve(PROJECTS_DIR, slug))) return null;
+  const sanitizedSlug = sanitizeSlug(slug);
+  if (!sanitizedSlug) return null;
+  
+  const resolved = path.resolve(PROJECTS_DIR, sanitizedSlug, filePath);
+  if (!resolved.startsWith(path.resolve(PROJECTS_DIR, sanitizedSlug))) return null;
   return resolved;
 }
 

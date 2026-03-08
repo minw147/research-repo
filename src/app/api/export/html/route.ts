@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { getProject } from "@/lib/projects";
+import { getProject, sanitizeSlug } from "@/lib/projects";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
@@ -16,28 +16,29 @@ import rehypeStringify from "rehype-stringify";
  * 1. Portability: Copies clips into the export folder.
  * 2. Portability: Updates HTML to use relative paths.
  * 3. Security: Sanitized slug and validated paths.
+ * 4. Logic: Added timestampsOnly flag.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, reportMdx } = body;
+    const { slug: providedSlug, reportMdx, timestampsOnly = false } = body;
 
-    if (!slug || !reportMdx) {
+    if (!providedSlug || !reportMdx) {
       return NextResponse.json({ error: "slug and reportMdx required" }, { status: 400 });
     }
 
     // 1. Sanitize Slug: allow only alphanumeric and hyphens
-    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, "");
-    if (sanitizedSlug !== slug) {
+    const slug = sanitizeSlug(providedSlug);
+    if (!slug) {
       return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
     }
 
-    const project = getProject(sanitizedSlug);
+    const project = getProject(slug);
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
+    const projectDir = path.resolve(process.cwd(), "content/projects", slug);
     const exportDir = path.resolve(projectDir, "export");
     const exportClipsDir = path.resolve(exportDir, "clips");
     const projectClipsDir = path.resolve(projectDir, "clips");
@@ -51,23 +52,24 @@ export async function POST(req: NextRequest) {
     if (!fs.existsSync(exportDir)) {
       fs.mkdirSync(exportDir, { recursive: true });
     }
-    if (!fs.existsSync(exportClipsDir)) {
-      fs.mkdirSync(exportClipsDir, { recursive: true });
-    }
 
-    // Step 2: Copy necessary clips from project clips folder to export clips folder
-    // We only copy clips that are referenced in the reportMdx
-    const clipFilenames = extractClipFilenames(reportMdx);
-    for (const filename of clipFilenames) {
-      const srcPath = path.join(projectClipsDir, filename);
-      const destPath = path.join(exportClipsDir, filename);
-      if (fs.existsSync(srcPath)) {
-        fs.copyFileSync(srcPath, destPath);
+    // Step 2: Copy necessary clips if not in timestampsOnly mode
+    if (!timestampsOnly) {
+      if (!fs.existsSync(exportClipsDir)) {
+        fs.mkdirSync(exportClipsDir, { recursive: true });
+      }
+      const clipFilenames = extractClipFilenames(reportMdx);
+      for (const filename of clipFilenames) {
+        const srcPath = path.join(projectClipsDir, filename);
+        const destPath = path.join(exportClipsDir, filename);
+        if (fs.existsSync(srcPath)) {
+          fs.copyFileSync(srcPath, destPath);
+        }
       }
     }
 
     // Generate self-contained HTML
-    const html = await generateReportHtml(project, reportMdx);
+    const html = await generateReportHtml(project, reportMdx, timestampsOnly);
     fs.writeFileSync(path.join(exportDir, "index.html"), html);
 
     // Copy necessary assets (CSS, JS) from repo-viewer if they exist
@@ -124,9 +126,9 @@ function extractClipFilenames(mdx: string): string[] {
   return [...new Set(filenames)];
 }
 
-async function generateReportHtml(project: any, mdx: string): Promise<string> {
+async function generateReportHtml(project: any, mdx: string, timestampsOnly: boolean): Promise<string> {
   // Pre-process custom components into HTML snippets so they can be passed through the remark/rehype pipeline
-  const preprocessed = preprocessCustomComponentsToHtml(mdx);
+  const preprocessed = preprocessCustomComponentsToHtml(mdx, timestampsOnly);
 
   const result = await unified()
     .use(remarkParse)
@@ -171,6 +173,7 @@ async function generateReportHtml(project: any, mdx: string): Promise<string> {
   details { margin-top: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
   summary { padding: 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: #64748b; cursor: pointer; user-select: none; }
   .transcript { padding: 0.75rem 1rem; font-size: 0.875rem; line-height: 1.5; color: #475569; background: #f8fafc; }
+  .timestamp-only-badge { display: inline-block; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #e2e8f0; }
 </style>
 </head>
 <body>
@@ -188,10 +191,7 @@ async function generateReportHtml(project: any, mdx: string): Promise<string> {
 </html>`;
 }
 
-function preprocessCustomComponentsToHtml(md: string): string {
-  // Replace custom Clip component and Quote format with raw HTML snippets
-  // remark-rehype with allowDangerousHtml will pass these through to the final HTML
-  
+function preprocessCustomComponentsToHtml(md: string, timestampsOnly: boolean): string {
   let processed = md;
 
   // Detect and replace <Clip /> components
@@ -214,11 +214,10 @@ function preprocessCustomComponentsToHtml(md: string): string {
     const s = (startSec % 60).toString().padStart(2, "0");
     const timestamp = `${m}:${s}`;
     
-    return generateClipCardHtml(sessionIndex, startSec, durationSec, text, timestamp);
+    return generateClipCardHtml(sessionIndex, startSec, durationSec, text, timestamp, timestampsOnly);
   });
 
   // Detect and replace Markdown quotes
-  // Format: - **"text"** @ MM:SS (seconds) | duration: 20s | session: X
   const QUOTE_MD_RE = /^-\s+\*\*"(.+?)"\*\*\s+@\s+(\d{1,2}:\d{2})\s+\((\d+)\s*(?:seconds|s)\)(.*)/gm;
   processed = processed.replace(QUOTE_MD_RE, (_, text, timestamp, startSeconds, rest) => {
     const durationMatch = rest.match(/duration:\s*(\d+)s/);
@@ -227,18 +226,30 @@ function preprocessCustomComponentsToHtml(md: string): string {
     const sessionMatch = rest.match(/session:\s*(\d+)/);
     const sessionIndex = sessionMatch ? parseInt(sessionMatch[1], 10) : 1;
     
-    return generateClipCardHtml(sessionIndex, parseInt(startSeconds, 10), durationSec, text, timestamp);
+    return generateClipCardHtml(sessionIndex, parseInt(startSeconds, 10), durationSec, text, timestamp, timestampsOnly);
   });
 
   return processed;
 }
 
-function generateClipCardHtml(sessionIndex: number, startSec: number, durationSec: number, text: string, timestamp: string): string {
+function generateClipCardHtml(sessionIndex: number, startSec: number, durationSec: number, text: string, timestamp: string, timestampsOnly: boolean): string {
   const clipFilename = `clip-${sessionIndex}-${startSec}s.mp4`;
-  // Relative path for portability
   const clipPath = `./clips/${clipFilename}`;
   const timeRange = `${timestamp} – ${formatTime(startSec + durationSec)}`;
   
+  if (timestampsOnly) {
+    return `
+<div class="clip-card" style="border-left-color: #cbd5e1; background: #f8fafc;">
+  <div class="clip-container" style="padding: 1rem;">
+    <div class="clip-content">
+      <div class="timestamp-only-badge">Session ${sessionIndex} • ${timestamp}</div>
+      <blockquote class="clip-label" style="font-style: italic; color: #475569;">"${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</blockquote>
+    </div>
+  </div>
+</div>
+`;
+  }
+
   return `
 <div class="clip-card">
   <div class="clip-container">
