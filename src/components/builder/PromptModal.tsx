@@ -3,10 +3,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, Sparkles, Copy, Check, Plus, Terminal, AlertCircle } from "lucide-react";
 import { Codebook, Project } from "@/types";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 import {
   buildAnalyzeTranscriptsPrompt,
   buildAnalyzeFindingsPrompt,
   buildGenerateTagsPrompt,
+  buildGenerateReportPrompt,
 } from "@/lib/prompts";
 
 interface PromptModalProps {
@@ -14,18 +16,24 @@ interface PromptModalProps {
   codebook: Codebook;
   onAppend: (content: string) => void;
   onClose: () => void;
+  initialAction?: AIAction;
+  mode?: "append" | "replace";
+  reportStyle?: "blog" | "slides";
 }
 
-type AIAction = "thematic-transcripts" | "thematic-findings" | "tagging";
+export type AIAction = "thematic-transcripts" | "thematic-findings" | "tagging" | "report-generation";
 
 export const PromptModal: React.FC<PromptModalProps> = ({
   project,
   codebook,
   onAppend,
   onClose,
+  initialAction = "thematic-findings",
+  mode = "append",
+  reportStyle = "blog",
 }) => {
   const projectSlug = project.id;
-  const [selectedAction, setSelectedAction] = useState<AIAction>("thematic-findings");
+  const [selectedAction, setSelectedAction] = useState<AIAction>(initialAction);
   const [isDetecting, setIsDetecting] = useState(true);
   const [cliAvailable, setCliAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +64,12 @@ export const PromptModal: React.FC<PromptModalProps> = ({
       return buildAnalyzeTranscriptsPrompt(project, codebook);
     } else if (selectedAction === "thematic-findings") {
       return buildAnalyzeFindingsPrompt(project, codebook);
-    } else {
+    } else if (selectedAction === "tagging") {
       return buildGenerateTagsPrompt(project, codebook, "findings");
+    } else {
+      return buildGenerateReportPrompt(project, reportStyle);
     }
-  }, [selectedAction, project, codebook]);
+  }, [selectedAction, project, codebook, reportStyle]);
 
   const prompt = generatePrompt();
 
@@ -135,7 +145,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           {/* Action Selection */}
           {!result && !isLoading && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <button
                   onClick={() => setSelectedAction("thematic-transcripts")}
                   className={`p-3 rounded-xl border-2 transition-all text-left ${
@@ -144,11 +154,11 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                       : "border-slate-100 hover:border-slate-200 bg-white"
                   }`}
                 >
-                  <h3 className={`font-bold text-xs ${selectedAction === "thematic-transcripts" ? "text-indigo-700" : "text-slate-700"}`}>
+                  <h3 className={`font-bold text-[10px] ${selectedAction === "thematic-transcripts" ? "text-indigo-700" : "text-slate-700"}`}>
                     Initial Findings
                   </h3>
-                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
-                    Analyze raw transcripts to generate initial themes.
+                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+                    Analyze transcripts.
                   </p>
                 </button>
                 <button
@@ -159,11 +169,11 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                       : "border-slate-100 hover:border-slate-200 bg-white"
                   }`}
                 >
-                  <h3 className={`font-bold text-xs ${selectedAction === "thematic-findings" ? "text-indigo-700" : "text-slate-700"}`}>
+                  <h3 className={`font-bold text-[10px] ${selectedAction === "thematic-findings" ? "text-indigo-700" : "text-slate-700"}`}>
                     Refine Findings
                   </h3>
-                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
-                    Analyze existing findings to identify key patterns.
+                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+                    Analyze findings.
                   </p>
                 </button>
                 <button
@@ -174,11 +184,26 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                       : "border-slate-100 hover:border-slate-200 bg-white"
                   }`}
                 >
-                  <h3 className={`font-bold text-xs ${selectedAction === "tagging" ? "text-indigo-700" : "text-slate-700"}`}>
+                  <h3 className={`font-bold text-[10px] ${selectedAction === "tagging" ? "text-indigo-700" : "text-slate-700"}`}>
                     Suggest Tags
                   </h3>
-                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
-                    Analyze excerpts and suggest codebook tags.
+                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+                    Suggest tags.
+                  </p>
+                </button>
+                <button
+                  onClick={() => setSelectedAction("report-generation")}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    selectedAction === "report-generation"
+                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
+                      : "border-slate-100 hover:border-slate-200 bg-white"
+                  }`}
+                >
+                  <h3 className={`font-bold text-[10px] ${selectedAction === "report-generation" ? "text-indigo-700" : "text-slate-700"}`}>
+                    AI synthesis
+                  </h3>
+                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
+                    Generate report.
                   </p>
                 </button>
               </div>
@@ -272,10 +297,8 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                   Complete
                 </span>
               </div>
-              <div className="max-h-[400px] overflow-y-auto p-4 bg-slate-50 border border-slate-200 rounded-lg prose prose-slate prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-slate-700 leading-relaxed">
-                  {result}
-                </pre>
+              <div className="max-h-[400px] overflow-y-auto p-6 bg-slate-50 border border-slate-200 rounded-lg prose prose-slate prose-sm max-w-none shadow-inner">
+                <MarkdownRenderer content={result} codebook={codebook} />
               </div>
             </div>
           )}
@@ -305,7 +328,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
               className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Append to Findings
+              {mode === "append" ? "Append to Findings" : "Replace Report"}
             </button>
           )}
         </div>

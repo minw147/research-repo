@@ -8,8 +8,8 @@ import { Codebook, ParsedQuote } from "@/types";
 interface MarkdownRendererProps {
   content: string;
   codebook: Codebook;
-  onQuoteClick: (quote: ParsedQuote) => void;
-  onQuoteDoubleClick: (quote: ParsedQuote) => void;
+  onQuoteClick?: (quote: ParsedQuote) => void;
+  onQuoteDoubleClick?: (quote: ParsedQuote) => void;
 }
 
 interface HastNode {
@@ -63,8 +63,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               <QuoteCard
                 quote={parsedQuote}
                 codebook={codebook}
-                onClick={onQuoteClick}
-                onDoubleClick={onQuoteDoubleClick}
+                onClick={onQuoteClick || (() => {})}
+                onDoubleClick={onQuoteDoubleClick || (() => {})}
               />
             </li>
           );

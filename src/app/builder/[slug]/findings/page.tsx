@@ -328,7 +328,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
                     <MarkdownEditor
                       content={findingsContent || ""}
                       onChange={handleFindingsChange}
-                      onSave={() => handleFindingsChange(findingsContent || "")}
+                      onSave={handleFindingsChange}
                     />
                   </div>
                 )}

@@ -6,7 +6,7 @@ import { keymap } from "@codemirror/view";
 interface MarkdownEditorProps {
   content: string;
   onChange: (content: string) => void;
-  onSave: () => void;
+  onSave: (content: string) => void;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -48,9 +48,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   );
 
   const handleSaveKey = useCallback(() => {
-    onSave();
+    onSave(internalContent);
     return true; // indicate that the key event was handled
-  }, [onSave]);
+  }, [onSave, internalContent]);
 
   const saveKeymap: Extension = keymap.of([
     {
