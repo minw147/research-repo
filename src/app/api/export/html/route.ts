@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getProject } from "@/lib/projects";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
 
 /**
- * Task 6.1: Build the HTML Export API
+ * Task 6.1 Fix: Build the HTML Export API with robust parsing
  * Generates a self-contained, portable HTML report from MDX findings.
  */
 export async function POST(req: NextRequest) {
@@ -27,12 +32,11 @@ export async function POST(req: NextRequest) {
       fs.mkdirSync(exportDir, { recursive: true });
     }
 
-    // Step 2: Generate self-contained HTML
-    const html = generateReportHtml(project, reportMdx);
+    // Generate self-contained HTML
+    const html = await generateReportHtml(project, reportMdx);
     fs.writeFileSync(path.join(exportDir, "index.html"), html);
 
-    // Step 2: Copy necessary assets (CSS, JS) from repo-viewer if they exist
-    // These are optional but helpful for the final portable folder
+    // Copy necessary assets (CSS, JS) from repo-viewer if they exist
     const repoViewerDir = path.join(process.cwd(), "repo-viewer");
     if (fs.existsSync(repoViewerDir)) {
       const assets = ["viewer.js", "viewer.css", "index.html"];
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      path: `content/projects/${slug}/export/index.html` 
+      path: `/api/projects/${slug}/files/export/index.html` 
     });
   } catch (error: any) {
     console.error("HTML Export API error:", error);
@@ -55,8 +59,18 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function generateReportHtml(project: any, mdx: string): string {
-  const content = preprocessMarkdown(mdx);
+async function generateReportHtml(project: any, mdx: string): Promise<string> {
+  // Pre-process custom components into HTML snippets so they can be passed through the remark/rehype pipeline
+  const preprocessed = preprocessCustomComponentsToHtml(mdx);
+
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeStringify, { allowDangerousHtml: true })
+    .process(preprocessed);
+
+  const content = String(result);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -109,61 +123,57 @@ function generateReportHtml(project: any, mdx: string): string {
 </html>`;
 }
 
-function preprocessMarkdown(md: string): string {
-  const lines = md.split('\n');
-  const result: string[] = [];
-  let inList = false;
+function preprocessCustomComponentsToHtml(md: string): string {
+  // Replace custom Clip component and Quote format with raw HTML snippets
+  // remark-rehype with allowDangerousHtml will pass these through to the final HTML
+  
+  let processed = md;
 
-  for (const line of lines) {
-    // Detect quote format: - **"text"** @ MM:SS (seconds) | duration: 20s | session: X
-    const quoteMatch = line.match(/^-\s+\*\*"(.+?)"\*\*\s+@\s+(\d{1,2}:\d{2})\s+\((\d+)\s*(?:seconds|s)\)/);
+  // Detect and replace <Clip /> components
+  const CLIP_COMPONENT_RE = /<Clip\s+([\s\S]+?)\s*\/>/g;
+  processed = processed.replace(CLIP_COMPONENT_RE, (_, attrs) => {
+    const getAttr = (name: string) => {
+      const m = attrs.match(new RegExp(`${name}=(?:"(.*?)"|{(.*?)})`));
+      return m ? (m[1] || m[2]) : null;
+    };
     
-    // Detect <Clip ... /> component
-    const clipMatch = line.match(/<Clip\s+([\s\S]+?)\s*\/>/);
+    const text = getAttr('label') || getAttr('text') || "Clip";
+    const startStr = getAttr('start');
+    const startSec = startStr ? parseInt(startStr, 10) : 0;
+    const durStr = getAttr('duration') || getAttr('clipDuration');
+    const durationSec = durStr ? parseInt(durStr, 10) : 20;
+    const sessStr = getAttr('sessionIndex');
+    const sessionIndex = sessStr ? parseInt(sessStr, 10) : 1;
+    
+    const m = Math.floor(startSec / 60).toString().padStart(2, "0");
+    const s = (startSec % 60).toString().padStart(2, "0");
+    const timestamp = `${m}:${s}`;
+    
+    return generateClipCardHtml(sessionIndex, startSec, durationSec, text, timestamp);
+  });
 
-    if (quoteMatch || clipMatch) {
-      if (inList) {
-        result.push('</ul>');
-        inList = false;
-      }
-      
-      let text = "", timestamp = "", startSec = 0, sessionIndex = 1, durationSec = 20;
+  // Detect and replace Markdown quotes
+  // Format: - **"text"** @ MM:SS (seconds) | duration: 20s | session: X
+  const QUOTE_MD_RE = /^-\s+\*\*"(.+?)"\*\*\s+@\s+(\d{1,2}:\d{2})\s+\((\d+)\s*(?:seconds|s)\)(.*)/gm;
+  processed = processed.replace(QUOTE_MD_RE, (_, text, timestamp, startSeconds, rest) => {
+    const durationMatch = rest.match(/duration:\s*(\d+)s/);
+    const durationSec = durationMatch ? parseInt(durationMatch[1], 10) : 20;
+    
+    const sessionMatch = rest.match(/session:\s*(\d+)/);
+    const sessionIndex = sessionMatch ? parseInt(sessionMatch[1], 10) : 1;
+    
+    return generateClipCardHtml(sessionIndex, parseInt(startSeconds, 10), durationSec, text, timestamp);
+  });
 
-      if (quoteMatch) {
-        text = quoteMatch[1];
-        timestamp = quoteMatch[2];
-        startSec = parseInt(quoteMatch[3], 10);
-        
-        const durationMatch = line.match(/duration:\s*(\d+)s/);
-        durationSec = durationMatch ? parseInt(durationMatch[1], 10) : 20;
-        
-        const sessionMatch = line.match(/session:\s*(\d+)/);
-        sessionIndex = sessionMatch ? parseInt(sessionMatch[1], 10) : 1;
-      } else if (clipMatch) {
-        const attrs = clipMatch[1];
-        const getAttr = (name: string) => {
-          const m = attrs.match(new RegExp(`${name}=(?:"(.*?)"|{(.*?)})`));
-          return m ? (m[1] || m[2]) : null;
-        };
-        
-        text = getAttr('label') || getAttr('text') || "Clip";
-        const startStr = getAttr('start');
-        startSec = startStr ? parseInt(startStr, 10) : 0;
-        const durStr = getAttr('duration') || getAttr('clipDuration');
-        durationSec = durStr ? parseInt(durStr, 10) : 20;
-        const sessStr = getAttr('sessionIndex');
-        sessionIndex = sessStr ? parseInt(sessStr, 10) : 1;
-        
-        const m = Math.floor(startSec / 60).toString().padStart(2, "0");
-        const s = (startSec % 60).toString().padStart(2, "0");
-        timestamp = `${m}:${s}`;
-      }
-      
-      const clipFilename = `clip-${sessionIndex}-${startSec}s.mp4`;
-      const clipPath = `../clips/${clipFilename}`;
-      const timeRange = `${timestamp} – ${formatTime(startSec + durationSec)}`;
-      
-      result.push(`
+  return processed;
+}
+
+function generateClipCardHtml(sessionIndex: number, startSec: number, durationSec: number, text: string, timestamp: string): string {
+  const clipFilename = `clip-${sessionIndex}-${startSec}s.mp4`;
+  const clipPath = `../clips/${clipFilename}`;
+  const timeRange = `${timestamp} – ${formatTime(startSec + durationSec)}`;
+  
+  return `
 <div class="clip-card">
   <div class="clip-container">
     <div class="clip-video">
@@ -179,38 +189,7 @@ function preprocessMarkdown(md: string): string {
     </div>
   </div>
 </div>
-      `);
-      continue;
-    }
-
-    // Standard markdown elements
-    if (line.startsWith('# ')) {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push(`<h1>${line.slice(2)}</h1>`);
-    } else if (line.startsWith('## ')) {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push(`<h2>${line.slice(3)}</h2>`);
-    } else if (line.startsWith('### ')) {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push(`<h3>${line.slice(4)}</h3>`);
-    } else if (line.startsWith('- ')) {
-      if (!inList) { result.push('<ul>'); inList = true; }
-      result.push(`<li>${line.slice(2)}</li>`);
-    } else if (line.trim() === '') {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push('<br>');
-    } else if (line.startsWith('> ')) {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push(`<blockquote>${line.slice(2)}</blockquote>`);
-    } else {
-      if (inList) { result.push('</ul>'); inList = false; }
-      result.push(`<p>${line}</p>`);
-    }
-  }
-
-  if (inList) result.push('</ul>');
-
-  return result.join('\n');
+`;
 }
 
 function formatTime(totalSeconds: number): string {

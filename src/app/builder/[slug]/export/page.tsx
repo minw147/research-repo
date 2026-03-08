@@ -72,19 +72,50 @@ export default function ExportPage() {
     setSliceError(null);
 
     try {
-      const res = await fetch("/api/export/slice", {
+      const response = await fetch("/api/export/slice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, quotes }),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
+      if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || "Failed to slice clips");
       }
 
-      setSlicingStatus("success");
-      setSliceProgress(100);
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.current && data.total) {
+                setSliceProgress((data.current / data.total) * 100);
+              }
+              if (data.error) {
+                setSliceError(data.error);
+                setSlicingStatus("error");
+              }
+              if (data.done) {
+                setSlicingStatus("success");
+                setSliceProgress(100);
+              }
+            } catch (e) {
+              console.error("Error parsing SSE chunk", e);
+            }
+          }
+        }
+      }
     } catch (err: any) {
       setSliceError(err.message);
       setSlicingStatus("error");
@@ -225,7 +256,7 @@ export default function ExportPage() {
               
               <div className="flex gap-3">
                 <a
-                  href={`/projects/${slug}/export/index.html`}
+                  href={`/api/projects/${slug}/files/export/index.html`}
                   target="_blank"
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
                 >

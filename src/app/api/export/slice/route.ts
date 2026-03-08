@@ -9,11 +9,12 @@ import type { ParsedQuote } from "@/types";
 
 const execAsync = promisify(exec);
 
-const CLIP_RE = /<Clip\s+([\s\S]+?)\s*\/>/g;
+export const dynamic = "force-dynamic";
 
 /**
  * Task 6.1: Build the Slice API
  * Extracts video segments from transcripts/findings/reports.
+ * Returns an SSE stream for progress tracking.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -31,71 +32,116 @@ export async function POST(req: NextRequest) {
 
     const projectDir = path.join(process.cwd(), "content/projects", slug);
     const clipsDir = path.join(projectDir, "clips");
+    const videosDir = path.join(projectDir, "videos");
+
     if (!fs.existsSync(clipsDir)) {
       fs.mkdirSync(clipsDir, { recursive: true });
     }
 
-    // If quotes aren't provided, try to extract them from report.mdx or findings.md
-    let quotesToSlice = providedQuotes || [];
-    if (quotesToSlice.length === 0) {
-      const reportPath = path.join(projectDir, "report.mdx");
-      const findingsPath = path.join(projectDir, "findings.md");
-      const contentPath = fs.existsSync(reportPath) ? reportPath : findingsPath;
-      
-      if (fs.existsSync(contentPath)) {
-        const content = fs.readFileSync(contentPath, "utf-8");
-        // We'll let the client handle the extraction and pass it in for better control,
-        // but this is a fallback.
-      }
-    }
-
+    const quotesToSlice = providedQuotes || [];
     if (quotesToSlice.length === 0) {
       return NextResponse.json({ error: "No quotes to slice" }, { status: 400 });
     }
 
-    const results = [];
+    const encoder = new TextEncoder();
     const total = quotesToSlice.length;
 
-    for (let i = 0; i < total; i++) {
-      const quote = quotesToSlice[i];
-      const sessionIndex = quote.sessionIndex;
-      // Session index is 1-based in quotes/tags
-      const session = project.sessions[sessionIndex - 1];
-      
-      if (!session) {
-        results.push({ quote, error: `Session ${sessionIndex} not found` });
-        continue;
+    const stream = new ReadableStream({
+      async start(controller) {
+        const sendProgress = (data: any) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        };
+
+        try {
+          for (let i = 0; i < total; i++) {
+            const quote = quotesToSlice[i];
+            const sessionIndex = quote.sessionIndex;
+            const session = project.sessions[sessionIndex - 1];
+            
+            if (!session) {
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: `Session ${sessionIndex} not found`,
+                message: `Error: Session ${sessionIndex} not found` 
+              });
+              continue;
+            }
+
+            // Path Sanitization: Ensure videoFile is just a filename or relative to videosDir
+            const videoFile = session.videoFile;
+            const videoPath = path.join(videosDir, videoFile);
+            const resolvedVideoPath = path.resolve(videoPath);
+            const resolvedVideosDir = path.resolve(videosDir);
+
+            if (!resolvedVideoPath.startsWith(resolvedVideosDir)) {
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: `Invalid video path: ${videoFile}`,
+                message: `Error: Invalid video path` 
+              });
+              continue;
+            }
+
+            if (!fs.existsSync(resolvedVideoPath)) {
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: `Video file not found: ${videoFile}`,
+                message: `Error: Video file not found` 
+              });
+              continue;
+            }
+
+            const start = quote.startSeconds;
+            const duration = quote.durationSeconds || 20;
+            const filename = `clip-${sessionIndex}-${start}s.mp4`;
+            const outputPath = path.join(clipsDir, filename);
+
+            sendProgress({ 
+              current: i + 1, 
+              total, 
+              message: `Slicing clip ${i + 1} of ${total}...` 
+            });
+
+            // Slicing command
+            const command = `"${ffmpeg}" -y -ss ${start} -t ${duration} -i "${resolvedVideoPath}" -c:v libx264 -c:a aac -strict experimental "${outputPath}"`;
+            
+            try {
+              await execAsync(command);
+            } catch (error: any) {
+              console.error(`ffmpeg error for clip at ${start}s:`, error);
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: error.message,
+                message: `Error slicing clip ${i + 1}` 
+              });
+              continue;
+            }
+          }
+
+          sendProgress({ 
+            current: total, 
+            total, 
+            done: true, 
+            message: "Slicing complete!" 
+          });
+          controller.close();
+        } catch (error: any) {
+          sendProgress({ error: error.message, message: "Critical error in slice stream" });
+          controller.error(error);
+        }
       }
+    });
 
-      const videoPath = path.join(projectDir, "videos", session.videoFile);
-      if (!fs.existsSync(videoPath)) {
-        results.push({ quote, error: `Video file not found: ${session.videoFile}` });
-        continue;
-      }
-
-      const start = quote.startSeconds;
-      const duration = quote.durationSeconds || 20;
-      const filename = `clip-${sessionIndex}-${start}s.mp4`;
-      const outputPath = path.join(clipsDir, filename);
-
-      // Slicing command: fast and precise enough for most use cases
-      // Using -c:v libx264 -c:a aac for widest compatibility in the exported HTML
-      const command = `"${ffmpeg}" -y -ss ${start} -t ${duration} -i "${videoPath}" -c:v libx264 -c:a aac -strict experimental "${outputPath}"`;
-      
-      try {
-        await execAsync(command);
-        results.push({ quote, success: true, filename });
-      } catch (error: any) {
-        console.error(`ffmpeg error for clip at ${start}s:`, error);
-        results.push({ quote, error: error.message });
-      }
-    }
-
-    const successCount = results.filter(r => r.success).length;
-    return NextResponse.json({ 
-      success: true, 
-      results,
-      summary: `Successfully sliced ${successCount} of ${total} clips.`
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     });
   } catch (error: any) {
     console.error("Slice API error:", error);
