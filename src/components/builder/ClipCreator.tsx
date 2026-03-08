@@ -97,10 +97,11 @@ export const ClipCreator: React.FC<ClipCreatorProps> = ({
             e.stopPropagation();
             createClip();
           }}
-          className="clip-creator-button absolute z-50 flex items-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95"
+          aria-label="Create Clip"
+          className="clip-creator-button fixed z-50 flex items-center gap-1.5 rounded-full bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95"
           style={{
-            top: selection.rect.top + window.scrollY - 40,
-            left: selection.rect.left + window.scrollX + selection.rect.width / 2,
+            top: selection.rect.top - 40,
+            left: selection.rect.left + selection.rect.width / 2,
             transform: "translateX(-50%)",
           }}
         >
