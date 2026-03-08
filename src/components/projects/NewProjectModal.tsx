@@ -15,6 +15,7 @@ export function NewProjectModal() {
     persona: "",
     product: "",
     researchPlan: "",
+    codebook: null as string | null,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +39,7 @@ export function NewProjectModal() {
           persona: "",
           product: "",
           researchPlan: "",
+          codebook: null,
         });
         router.push(`/builder/${project.id}/findings`);
       }
@@ -154,6 +156,37 @@ export function NewProjectModal() {
                     setFormData({ ...formData, researchPlan: e.target.value })
                   }
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Codebook
+                </label>
+                <div className="relative">
+                  <select
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 appearance-none cursor-pointer"
+                    value={formData.codebook || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        codebook: e.target.value || null,
+                      })
+                    }
+                  >
+                    <option value="">Global Only</option>
+                    <option value="custom" disabled>
+                      Upload Custom (JSON) — Coming Soon
+                    </option>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <svg
+                      className="w-4 h-4 fill-current"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-6 flex items-center justify-end gap-4 border-t border-slate-100 mt-6">
