@@ -6,10 +6,13 @@ export interface TranscriptLine {
 export function parseTranscript(raw: string): TranscriptLine[] {
   const lines: TranscriptLine[] = [];
   raw.split("\n").forEach((line) => {
-    const m = line.match(/\[(\d{1,2}):(\d{2})\]\s*(.*)/);
+    const m = line.match(/\[(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\]\s*(.*)/);
     if (m) {
-      const sec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
-      const text = m[3].trim();
+      const hours = m[1] ? parseInt(m[1], 10) : 0;
+      const minutes = parseInt(m[2], 10);
+      const seconds = parseInt(m[3], 10);
+      const sec = hours * 3600 + minutes * 60 + seconds;
+      const text = m[4].trim();
       if (text) lines.push({ sec, text });
     } else if (line.trim() && lines.length > 0) {
       lines[lines.length - 1].text += " " + line.trim();
