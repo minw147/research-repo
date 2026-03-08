@@ -42,6 +42,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
   return (
     <div
       draggable="true"
+      data-testid="quote-card"
       onDragStart={handleDragStart}
       onClick={() => onClick?.(quote)}
       onDoubleClick={() => onDoubleClick?.(quote)}
