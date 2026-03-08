@@ -63,25 +63,31 @@ describe("ai-bridge", () => {
   });
 
   describe("runClaudePrompt", () => {
+    const workingDir = "/test/dir";
+
     it("returns trimmed stdout when exit code is 0", async () => {
       const mockProcess = createMockProcess();
       vi.mocked(spawn).mockReturnValue(mockProcess);
 
-      const promise = runClaudePrompt("Hello Claude");
+      const promise = runClaudePrompt("Hello Claude", workingDir);
       
       mockProcess.stdout.emit("data", Buffer.from("  Hello from Claude  \n"));
       mockProcess.emit("exit", 0);
       
       const result = await promise;
       expect(result).toBe("Hello from Claude");
-      expect(spawn).toHaveBeenCalledWith("claude", ["Hello Claude"], { shell: true });
+      expect(spawn).toHaveBeenCalledWith(
+        "claude",
+        ["-p", "Hello Claude", "--output-format", "text"],
+        { cwd: workingDir, shell: true }
+      );
     });
 
     it("rejects with stderr when exit code is non-zero", async () => {
       const mockProcess = createMockProcess();
       vi.mocked(spawn).mockReturnValue(mockProcess);
 
-      const promise = runClaudePrompt("Hello Claude");
+      const promise = runClaudePrompt("Hello Claude", workingDir);
       
       mockProcess.stderr.emit("data", Buffer.from("Error occurred"));
       mockProcess.emit("exit", 1);
@@ -93,7 +99,7 @@ describe("ai-bridge", () => {
       const mockProcess = createMockProcess();
       vi.mocked(spawn).mockReturnValue(mockProcess);
 
-      const promise = runClaudePrompt("Hello Claude");
+      const promise = runClaudePrompt("Hello Claude", workingDir);
       
       mockProcess.emit("exit", 1);
       
@@ -104,7 +110,7 @@ describe("ai-bridge", () => {
       const mockProcess = createMockProcess();
       vi.mocked(spawn).mockReturnValue(mockProcess);
 
-      const promise = runClaudePrompt("Hello Claude");
+      const promise = runClaudePrompt("Hello Claude", workingDir);
       
       mockProcess.emit("error", new Error("Fatal spawn error"));
       

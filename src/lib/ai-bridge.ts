@@ -15,11 +15,15 @@ export async function detectClaudeCli(): Promise<boolean> {
 /**
  * Runs a prompt through the Claude CLI and returns the output.
  * @param prompt The prompt to send to Claude
+ * @param workingDir The working directory to run the command in
  * @returns The stdout from the Claude CLI, trimmed
  */
-export async function runClaudePrompt(prompt: string): Promise<string> {
+export async function runClaudePrompt(prompt: string, workingDir: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = spawn("claude", [prompt], { shell: true });
+    const proc = spawn("claude", ["-p", prompt, "--output-format", "text"], {
+      cwd: workingDir,
+      shell: true,
+    });
     let stdout = "";
     let stderr = "";
 
