@@ -2,24 +2,30 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, Sparkles, Copy, Check, Plus, Terminal, AlertCircle } from "lucide-react";
-import { Codebook } from "@/types";
+import { Codebook, Project } from "@/types";
+import {
+  buildAnalyzeTranscriptsPrompt,
+  buildAnalyzeFindingsPrompt,
+  buildGenerateTagsPrompt,
+} from "@/lib/prompts";
 
 interface PromptModalProps {
-  projectSlug: string;
+  project: Project;
   codebook: Codebook;
   onAppend: (content: string) => void;
   onClose: () => void;
 }
 
-type AIAction = "thematic" | "tagging";
+type AIAction = "thematic-transcripts" | "thematic-findings" | "tagging";
 
 export const PromptModal: React.FC<PromptModalProps> = ({
-  projectSlug,
+  project,
   codebook,
   onAppend,
   onClose,
 }) => {
-  const [selectedAction, setSelectedAction] = useState<AIAction>("thematic");
+  const projectSlug = project.id;
+  const [selectedAction, setSelectedAction] = useState<AIAction>("thematic-findings");
   const [isDetecting, setIsDetecting] = useState(true);
   const [cliAvailable, setCliAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,26 +52,14 @@ export const PromptModal: React.FC<PromptModalProps> = ({
 
   // 2. Generate Prompt based on action
   const generatePrompt = useCallback(() => {
-    if (selectedAction === "thematic") {
-      return `Analyze 'findings.md' in the current directory.
-1. Identify 3-5 key themes/patterns.
-2. For each theme, provide a 1-paragraph summary.
-3. Include relevant quotes from 'findings.md' (formatted as \`> quote (Session X)\`) as evidence.
-4. Suggest potential design improvements or next steps.
-Format your response as a professional research report section in Markdown.`;
+    if (selectedAction === "thematic-transcripts") {
+      return buildAnalyzeTranscriptsPrompt(project, codebook);
+    } else if (selectedAction === "thematic-findings") {
+      return buildAnalyzeFindingsPrompt(project, codebook);
     } else {
-      const tagList = codebook.tags.map(t => t.label).join(", ");
-      return `Review the excerpts in 'findings.md' in the current directory.
-Available tags for this project are: ${tagList || "None defined"}.
-
-For each excerpt in 'findings.md', suggest the best-fitting tags from the list above.
-Provide your response as a list of suggestions, including:
-- The original excerpt (truncated if long)
-- Suggested tags
-- Brief reasoning for each suggestion.
-Format as Markdown.`;
+      return buildGenerateTagsPrompt(project, codebook, "findings");
     }
-  }, [selectedAction, codebook]);
+  }, [selectedAction, project, codebook]);
 
   const prompt = generatePrompt();
 
@@ -141,35 +135,50 @@ Format as Markdown.`;
           {/* Action Selection */}
           {!result && !isLoading && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <button
-                  onClick={() => setSelectedAction("thematic")}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${
-                    selectedAction === "thematic"
+                  onClick={() => setSelectedAction("thematic-transcripts")}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    selectedAction === "thematic-transcripts"
                       ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
                       : "border-slate-100 hover:border-slate-200 bg-white"
                   }`}
                 >
-                  <h3 className={`font-bold ${selectedAction === "thematic" ? "text-indigo-700" : "text-slate-700"}`}>
-                    Thematic Analysis
+                  <h3 className={`font-bold text-xs ${selectedAction === "thematic-transcripts" ? "text-indigo-700" : "text-slate-700"}`}>
+                    Initial Findings
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Identify key patterns, themes and recurring insights across your findings.
+                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
+                    Analyze raw transcripts to generate initial themes.
+                  </p>
+                </button>
+                <button
+                  onClick={() => setSelectedAction("thematic-findings")}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    selectedAction === "thematic-findings"
+                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
+                      : "border-slate-100 hover:border-slate-200 bg-white"
+                  }`}
+                >
+                  <h3 className={`font-bold text-xs ${selectedAction === "thematic-findings" ? "text-indigo-700" : "text-slate-700"}`}>
+                    Refine Findings
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
+                    Analyze existing findings to identify key patterns.
                   </p>
                 </button>
                 <button
                   onClick={() => setSelectedAction("tagging")}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
                     selectedAction === "tagging"
                       ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
                       : "border-slate-100 hover:border-slate-200 bg-white"
                   }`}
                 >
-                  <h3 className={`font-bold ${selectedAction === "tagging" ? "text-indigo-700" : "text-slate-700"}`}>
-                    Tag Excerpts
+                  <h3 className={`font-bold text-xs ${selectedAction === "tagging" ? "text-indigo-700" : "text-slate-700"}`}>
+                    Suggest Tags
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Analyze your excerpts and suggest tags from your project codebook.
+                  <p className="text-[10px] text-slate-500 mt-1 leading-tight">
+                    Analyze excerpts and suggest codebook tags.
                   </p>
                 </button>
               </div>

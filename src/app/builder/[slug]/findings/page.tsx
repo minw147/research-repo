@@ -349,7 +349,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
 
       {showPromptModal && (
         <PromptModal
-          projectSlug={slug}
+          project={project}
           codebook={codebook}
           onAppend={handleAppendAnalysis}
           onClose={() => setShowPromptModal(false)}
