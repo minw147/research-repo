@@ -22,19 +22,19 @@ describe("AI Analysis Prompts", () => {
   const mockTranscript = "00:01|Hello there\n00:05|This is a test";
 
   test("generateThematicAnalysisPrompt returns formatted prompt", () => {
-    const prompt = generateThematicAnalysisPrompt(mockProject, mockTranscript);
+    const prompt = generateThematicAnalysisPrompt(mockProject, mockTranscript, 2);
     expect(prompt).toContain('Analyze this UX research transcript for the project "Test Project".');
     expect(prompt).toContain('Context: A busy professional testing Task App.');
-    expect(prompt).toContain('session: 1');
+    expect(prompt).toContain('session: 2');
     expect(prompt).toContain(mockTranscript);
   });
 
   test("generateTaggingPrompt returns formatted prompt", () => {
     const codebook = "tag1: Feature A\ntag2: Bug";
-    const prompt = generateTaggingPrompt(mockTranscript, codebook);
+    const prompt = generateTaggingPrompt(mockTranscript, codebook, 3);
     expect(prompt).toContain("Using this codebook:");
     expect(prompt).toContain(codebook);
     expect(prompt).toContain(mockTranscript);
-    expect(prompt).toContain("session: 1 | tags: tag1, tag2");
+    expect(prompt).toContain("session: 3 | tags: tag1, tag2");
   });
 });
