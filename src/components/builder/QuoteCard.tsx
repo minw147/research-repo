@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ParsedQuote, Codebook } from "@/types";
 import { formatQuoteAsMarkdown } from "@/lib/quote-parser";
+import { EyeOff } from "lucide-react";
 
 interface QuoteCardProps {
   quote: ParsedQuote;
@@ -23,7 +24,8 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
       quote.startSeconds,
       quote.durationSeconds,
       quote.sessionIndex,
-      quote.tags
+      quote.tags,
+      quote.hidden
     );
     e.dataTransfer.setData("text/plain", markdown);
     e.dataTransfer.effectAllowed = "copy";
@@ -79,8 +81,15 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
         </div>
       </div>
       
-      <div className="absolute right-3 top-3 text-[10px] font-mono text-gray-400">
-        {quote.timestampDisplay}
+      <div className="absolute right-3 top-3 flex items-center gap-2">
+        {quote.hidden && (
+          <div className="text-amber-500" title="Hidden from transcript">
+            <EyeOff className="h-3 w-3" />
+          </div>
+        )}
+        <div className="text-[10px] font-mono text-gray-400">
+          {quote.timestampDisplay}
+        </div>
       </div>
     </div>
   );

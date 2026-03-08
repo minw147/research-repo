@@ -10,7 +10,8 @@ import VideoPlayer, { VideoPlayerRef } from "@/components/builder/VideoPlayer";
 import { ClipCreator } from "@/components/builder/ClipCreator";
 import { MarkdownEditor } from "@/components/builder/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
-import { parseQuotesFromMarkdown } from "@/lib/quote-parser";
+import { QuoteEditModal } from "@/components/builder/QuoteEditModal";
+import { parseQuotesFromMarkdown, formatQuoteAsMarkdown } from "@/lib/quote-parser";
 import { parseTranscript } from "@/lib/transcript";
 import type { Project, Session, TranscriptLine, Codebook, ParsedQuote } from "@/types";
 
@@ -28,6 +29,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [activeSecond, setActiveSecond] = useState(0);
   const [viewMode, setViewMode] = useState<"formatted" | "raw">("formatted");
+  const [editingQuote, setEditingQuote] = useState<ParsedQuote | null>(null);
 
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -99,8 +101,9 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   }, [findingsContent]);
 
   // Filter quotes for the active session (q.sessionIndex is 1-based)
+  // and exclude hidden ones for the transcript view
   const sessionQuotes = useMemo(() => {
-    return quotes.filter((q) => q.sessionIndex === activeSessionIndex + 1);
+    return quotes.filter((q) => q.sessionIndex === activeSessionIndex + 1 && !q.hidden);
   }, [quotes, activeSessionIndex]);
 
   // 6. Callbacks
@@ -116,9 +119,33 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   }, []);
 
   const handleQuoteDoubleClick = useCallback((quote: ParsedQuote) => {
-    // TODO: Open edit modal (Phase 2 requirement)
-    console.log("Edit quote:", quote);
+    setEditingQuote(quote);
   }, []);
+
+  const handleQuoteSave = useCallback(
+    (updatedQuote: ParsedQuote) => {
+      if (!findingsContent) return;
+
+      const newRawLine = formatQuoteAsMarkdown(
+        updatedQuote.text,
+        updatedQuote.startSeconds,
+        updatedQuote.durationSeconds,
+        updatedQuote.sessionIndex,
+        updatedQuote.tags,
+        updatedQuote.hidden
+      );
+
+      // Find and replace the old rawLine with the new one
+      const lines = findingsContent.split("\n");
+      const updatedLines = lines.map((line) =>
+        line === updatedQuote.rawLine ? newRawLine : line
+      );
+
+      saveFindings(updatedLines.join("\n"));
+      setEditingQuote(null);
+    },
+    [findingsContent, saveFindings]
+  );
 
   const handleSessionChange = useCallback((index: number) => {
     setActiveSessionIndex(index);
@@ -270,6 +297,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
                       content={findingsContent || "# No findings yet"}
                       codebook={codebook}
                       onQuoteClick={handleQuoteClick}
+                      onQuoteDoubleClick={handleQuoteDoubleClick}
                     />
                   </div>
                 ) : (
@@ -286,6 +314,15 @@ export default function FindingsPage({ params }: FindingsPageProps) {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {editingQuote && (
+        <QuoteEditModal
+          quote={editingQuote}
+          codebook={codebook}
+          onSave={handleQuoteSave}
+          onClose={() => setEditingQuote(null)}
+        />
+      )}
     </div>
   );
 }

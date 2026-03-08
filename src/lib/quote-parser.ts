@@ -16,6 +16,7 @@ export function parseQuote(line: string): ParsedQuote | null {
 
   const sessionMatch = line.match(/session:\s*(\d+)/);
   const sessionIndex = sessionMatch ? parseInt(sessionMatch[1], 10) : 1;
+  const hidden = line.includes("| hidden: true");
 
   const tagsMatch = line.match(/tags:\s*(.+?)$/);
   const tags = tagsMatch
@@ -30,6 +31,7 @@ export function parseQuote(line: string): ParsedQuote | null {
     sessionIndex,
     tags,
     rawLine: line,
+    hidden,
   };
 }
 
@@ -45,11 +47,15 @@ export function formatQuoteAsMarkdown(
   startSeconds: number,
   durationSeconds: number,
   sessionIndex: number,
-  tags: string[]
+  tags: string[],
+  hidden?: boolean
 ): string {
   const min = Math.floor(startSeconds / 60).toString().padStart(2, "0");
   const sec = (startSeconds % 60).toString().padStart(2, "0");
   let line = `- **"${text}"** @ ${min}:${sec} (${startSeconds}s) | duration: ${durationSeconds}s | session: ${sessionIndex}`;
+  if (hidden) {
+    line += ` | hidden: true`;
+  }
   if (tags.length > 0) {
     line += ` | tags: ${tags.join(", ")}`;
   }

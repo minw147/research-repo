@@ -50,6 +50,7 @@ export interface ParsedQuote {
   sessionIndex: number;
   tags: string[];
   rawLine: string;
+  hidden?: boolean;
 }
 
 export interface TranscriptLine {
