@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "react-resizable-panels";
-import { FileText, Eye, Code, RefreshCw, Loader2 } from "lucide-react";
+import { FileText, Eye, Code, RefreshCw, Loader2, Sparkles } from "lucide-react";
 
 import { useFileContent } from "@/hooks/useFileContent";
 import { useFileWatcher } from "@/hooks/useFileWatcher";
@@ -11,6 +11,7 @@ import { ClipCreator } from "@/components/builder/ClipCreator";
 import { MarkdownEditor } from "@/components/builder/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
 import { QuoteEditModal } from "@/components/builder/QuoteEditModal";
+import { PromptModal } from "@/components/builder/PromptModal";
 import { parseQuotesFromMarkdown, formatQuoteAsMarkdown } from "@/lib/quote-parser";
 import { parseTranscript } from "@/lib/transcript";
 import type { Project, Session, TranscriptLine, Codebook, ParsedQuote } from "@/types";
@@ -30,6 +31,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   const [activeSecond, setActiveSecond] = useState(0);
   const [viewMode, setViewMode] = useState<"formatted" | "raw">("formatted");
   const [editingQuote, setEditingQuote] = useState<ParsedQuote | null>(null);
+  const [showPromptModal, setShowPromptModal] = useState(false);
 
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -159,6 +161,16 @@ export default function FindingsPage({ params }: FindingsPageProps) {
     [saveFindings]
   );
 
+  const handleAppendAnalysis = useCallback(
+    (analysis: string) => {
+      const baseContent = findingsContent || "";
+      const separator = baseContent ? "\n\n---\n\n## AI Analysis Findings\n\n" : "## AI Analysis Findings\n\n";
+      const newContent = baseContent + separator + analysis;
+      saveFindings(newContent);
+    },
+    [findingsContent, saveFindings]
+  );
+
   const handleRefresh = useCallback(() => {
     refetchFindings();
   }, [refetchFindings]);
@@ -265,6 +277,17 @@ export default function FindingsPage({ params }: FindingsPageProps) {
 
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setShowPromptModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-all border border-indigo-100 shadow-sm"
+                  title="Run AI Analysis"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  AI Analyze
+                </button>
+
+                <div className="w-px h-4 bg-slate-200 mx-1" />
+
+                <button
                   onClick={handleRefresh}
                   className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
                   title="Manual refresh"
@@ -321,6 +344,15 @@ export default function FindingsPage({ params }: FindingsPageProps) {
           codebook={codebook}
           onSave={handleQuoteSave}
           onClose={() => setEditingQuote(null)}
+        />
+      )}
+
+      {showPromptModal && (
+        <PromptModal
+          projectSlug={slug}
+          codebook={codebook}
+          onAppend={handleAppendAnalysis}
+          onClose={() => setShowPromptModal(false)}
         />
       )}
     </div>
