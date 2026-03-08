@@ -1,34 +1,93 @@
-export interface Study {
+// src/types/index.ts
+
+export interface Session {
+  id: string;
+  participant: string;
+  videoFile: string;
+  transcriptFile: string;
+}
+
+export interface Project {
   id: string;
   title: string;
   date: string;
+  researcher: string;
   persona: string;
   product?: string;
-  videoUrl: string;
-  transcriptFile?: string;
-  reportFile: string;
+  status: ProjectStatus;
+  researchPlan?: string;
+  codebook: string | null;
+  sessions: Session[];
+  publishedUrl: string | null;
 }
 
-export interface StudyWithContent extends Study {
-  searchText: string;
-}
+export type ProjectStatus =
+  | "setup"
+  | "findings"
+  | "tagged"
+  | "report"
+  | "exported"
+  | "published";
 
-export interface ReportFrontmatter {
-  title: string;
-  date?: string;
-  studyId?: string;
-  [key: string]: unknown;
-}
-
-export interface Report {
-  frontmatter: ReportFrontmatter;
-  content: string;
-}
-
-export interface ClipProps {
-  src: string;
+export interface CodebookTag {
+  id: string;
   label: string;
-  start?: number;
-  participant?: string;
-  duration?: string;
+  color: string;
+  category: string;
+}
+
+export interface Codebook {
+  tags: CodebookTag[];
+  categories: string[];
+}
+
+export interface ParsedQuote {
+  text: string;
+  timestampDisplay: string;
+  startSeconds: number;
+  durationSeconds: number;
+  sessionIndex: number;
+  tags: string[];
+  rawLine: string;
+}
+
+export interface TranscriptLine {
+  sec: number;
+  text: string;
+}
+
+export interface AppConfig {
+  aiMode: "auto" | "claude-cli" | "copy-paste";
+  adapters: Record<string, Record<string, unknown>>;
+}
+
+export interface PublishPayload {
+  projectDir: string;
+  project: Project;
+  htmlPath: string;
+  clipsDir: string;
+  tagsHtmlPath?: string;
+}
+
+export interface PublishResult {
+  success: boolean;
+  url?: string;
+  message: string;
+}
+
+export interface AdapterConfigField {
+  key: string;
+  label: string;
+  type: "text" | "password" | "path" | "select";
+  required: boolean;
+  placeholder?: string;
+  options?: { label: string; value: string }[];
+}
+
+export interface PublishAdapter {
+  id: string;
+  name: string;
+  icon: string;
+  configSchema: AdapterConfigField[];
+  publish(payload: PublishPayload): Promise<PublishResult>;
 }
