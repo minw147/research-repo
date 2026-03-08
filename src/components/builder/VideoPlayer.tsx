@@ -8,6 +8,7 @@ interface VideoPlayerProps {
   sessions: Session[];
   activeSessionIndex: number;
   onSessionChange: (index: number) => void;
+  onTimeUpdate?: (seconds: number) => void;
   slug: string;
 }
 
@@ -17,7 +18,7 @@ export interface VideoPlayerRef {
 }
 
 const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
-  ({ sessions, activeSessionIndex, onSessionChange, slug }, ref) => {
+  ({ sessions, activeSessionIndex, onSessionChange, onTimeUpdate, slug }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const rangeEndRef = useRef<number | null>(null);
 
@@ -26,6 +27,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const handleTimeUpdate = () => {
       const video = videoRef.current;
       if (!video) return;
+
+      if (onTimeUpdate) {
+        onTimeUpdate(video.currentTime);
+      }
 
       if (rangeEndRef.current !== null && video.currentTime >= rangeEndRef.current) {
         video.pause();
