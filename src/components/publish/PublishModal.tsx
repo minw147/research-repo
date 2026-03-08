@@ -5,22 +5,7 @@ import React, { useState, useEffect } from "react";
 import { X, Loader2, CheckCircle, AlertCircle, ExternalLink, Share2, Box } from "lucide-react";
 import * as Icons from "lucide-react";
 
-interface AdapterConfigField {
-  key: string;
-  label: string;
-  type: "text" | "password" | "path" | "select";
-  required: boolean;
-  placeholder?: string;
-  options?: { label: string; value: string }[];
-}
-
-interface PublishAdapter {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  configSchema: AdapterConfigField[];
-}
+import { AdapterConfigField, PublishAdapter } from "@/adapters/types";
 
 interface PublishModalProps {
   slug: string;
