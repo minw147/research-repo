@@ -1,6 +1,6 @@
 // src/types/index.test.ts
 import { describe, it, expect } from 'vitest';
-import { Project, Session, Codebook, ParsedQuote, AppConfig, PublishAdapter } from './index';
+import { Project, Session, Codebook, ParsedQuote, AppConfig } from './index';
 
 describe('Core Types Compilation', () => {
   it('should allow creating a Session object', () => {

@@ -14,6 +14,7 @@ describe("parseQuote", () => {
       sessionIndex: 2,
       tags: ["checkout", "friction"],
       rawLine: line,
+      hidden: false,
     });
   });
 
@@ -28,6 +29,7 @@ describe("parseQuote", () => {
       sessionIndex: 1,
       tags: [],
       rawLine: line,
+      hidden: false,
     });
   });
 

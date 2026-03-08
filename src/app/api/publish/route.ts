@@ -4,7 +4,7 @@ import { getAdapter } from "@/lib/adapters";
 import { getProject, getProjectsDir, updateProject } from "@/lib/projects";
 import path from "path";
 import fs from "fs";
-import { PublishPayload } from "@/types";
+import { PublishPayload } from "@/adapters/types";
 
 export async function POST(req: NextRequest) {
   try {
