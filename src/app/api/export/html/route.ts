@@ -11,6 +11,11 @@ import rehypeStringify from "rehype-stringify";
 /**
  * Task 6.1 Fix: Build the HTML Export API with robust parsing
  * Generates a self-contained, portable HTML report from MDX findings.
+ * 
+ * FIXES:
+ * 1. Portability: Copies clips into the export folder.
+ * 2. Portability: Updates HTML to use relative paths.
+ * 3. Security: Sanitized slug and validated paths.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -21,15 +26,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "slug and reportMdx required" }, { status: 400 });
     }
 
-    const project = getProject(slug);
+    // 1. Sanitize Slug: allow only alphanumeric and hyphens
+    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, "");
+    if (sanitizedSlug !== slug) {
+      return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
+    }
+
+    const project = getProject(sanitizedSlug);
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const projectDir = path.join(process.cwd(), "content/projects", slug);
-    const exportDir = path.join(projectDir, "export");
+    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
+    const exportDir = path.resolve(projectDir, "export");
+    const exportClipsDir = path.resolve(exportDir, "clips");
+    const projectClipsDir = path.resolve(projectDir, "clips");
+
+    // Ensure paths are within the workspace
+    const workspaceRoot = path.resolve(process.cwd());
+    if (!projectDir.startsWith(workspaceRoot) || !exportDir.startsWith(workspaceRoot)) {
+      return NextResponse.json({ error: "Invalid path configuration" }, { status: 400 });
+    }
+
     if (!fs.existsSync(exportDir)) {
       fs.mkdirSync(exportDir, { recursive: true });
+    }
+    if (!fs.existsSync(exportClipsDir)) {
+      fs.mkdirSync(exportClipsDir, { recursive: true });
+    }
+
+    // Step 2: Copy necessary clips from project clips folder to export clips folder
+    // We only copy clips that are referenced in the reportMdx
+    const clipFilenames = extractClipFilenames(reportMdx);
+    for (const filename of clipFilenames) {
+      const srcPath = path.join(projectClipsDir, filename);
+      const destPath = path.join(exportClipsDir, filename);
+      if (fs.existsSync(srcPath)) {
+        fs.copyFileSync(srcPath, destPath);
+      }
     }
 
     // Generate self-contained HTML
@@ -57,6 +91,37 @@ export async function POST(req: NextRequest) {
     console.error("HTML Export API error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+function extractClipFilenames(mdx: string): string[] {
+  const filenames: string[] = [];
+  
+  // From <Clip /> components
+  const CLIP_COMPONENT_RE = /<Clip\s+([\s\S]+?)\s*\/>/g;
+  let match;
+  while ((match = CLIP_COMPONENT_RE.exec(mdx)) !== null) {
+    const attrs = match[1];
+    const startMatch = attrs.match(/start=(?:"(.*?)"|{(.*?)})/);
+    const sessionMatch = attrs.match(/sessionIndex=(?:"(.*?)"|{(.*?)})/);
+    
+    if (startMatch && sessionMatch) {
+      const start = startMatch[1] || startMatch[2];
+      const session = sessionMatch[1] || sessionMatch[2];
+      filenames.push(`clip-${session}-${start}s.mp4`);
+    }
+  }
+
+  // From Markdown quotes
+  const QUOTE_MD_RE = /^-\s+\*\*"(.+?)"\*\*\s+@\s+(\d{1,2}:\d{2})\s+\((\d+)\s*(?:seconds|s)\)(.*)/gm;
+  while ((match = QUOTE_MD_RE.exec(mdx)) !== null) {
+    const startSeconds = match[3];
+    const rest = match[4];
+    const sessionMatch = rest.match(/session:\s*(\d+)/);
+    const sessionIndex = sessionMatch ? sessionMatch[1] : "1";
+    filenames.push(`clip-${sessionIndex}-${startSeconds}s.mp4`);
+  }
+
+  return [...new Set(filenames)];
 }
 
 async function generateReportHtml(project: any, mdx: string): Promise<string> {
@@ -170,7 +235,8 @@ function preprocessCustomComponentsToHtml(md: string): string {
 
 function generateClipCardHtml(sessionIndex: number, startSec: number, durationSec: number, text: string, timestamp: string): string {
   const clipFilename = `clip-${sessionIndex}-${startSec}s.mp4`;
-  const clipPath = `../clips/${clipFilename}`;
+  // Relative path for portability
+  const clipPath = `./clips/${clipFilename}`;
   const timeRange = `${timestamp} – ${formatTime(startSec + durationSec)}`;
   
   return `

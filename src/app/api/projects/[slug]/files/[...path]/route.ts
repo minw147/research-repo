@@ -12,9 +12,16 @@ export async function GET(
 ) {
   try {
     const { slug, path: filePathParts } = params;
+    
+    // 1. Sanitize Slug: allow only alphanumeric and hyphens
+    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, "");
+    if (sanitizedSlug !== slug) {
+      return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
+    }
+
     const filePath = filePathParts.join("/");
 
-    const projectDir = path.join(process.cwd(), "content/projects", slug);
+    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
     const absolutePath = path.join(projectDir, filePath);
     const resolvedPath = path.resolve(absolutePath);
     const resolvedProjectDir = path.resolve(projectDir);

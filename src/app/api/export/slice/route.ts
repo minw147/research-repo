@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import ffmpeg from "ffmpeg-static";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import { getProject } from "@/lib/projects";
 import type { ParsedQuote } from "@/types";
-
-const execAsync = promisify(exec);
 
 export const dynamic = "force-dynamic";
 
@@ -15,24 +12,37 @@ export const dynamic = "force-dynamic";
  * Task 6.1: Build the Slice API
  * Extracts video segments from transcripts/findings/reports.
  * Returns an SSE stream for progress tracking.
+ * 
+ * FIXES:
+ * 1. Security: Replaced exec with spawn to prevent shell injection.
+ * 2. Security: Sanitized slug and validated paths.
+ * 3. Type Safety: Used ParsedQuote interface.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, quotes: providedQuotes } = body;
+    const { slug, quotes: providedQuotes }: { slug: string; quotes: ParsedQuote[] } = body;
 
-    if (!slug) {
-      return NextResponse.json({ error: "slug required" }, { status: 400 });
+    // 1. Sanitize Slug: allow only alphanumeric and hyphens
+    const sanitizedSlug = slug?.replace(/[^a-zA-Z0-9-]/g, "");
+    if (!sanitizedSlug || sanitizedSlug !== slug) {
+      return NextResponse.json({ error: "Invalid project slug" }, { status: 400 });
     }
 
-    const project = getProject(slug);
+    const project = getProject(sanitizedSlug);
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const projectDir = path.join(process.cwd(), "content/projects", slug);
-    const clipsDir = path.join(projectDir, "clips");
-    const videosDir = path.join(projectDir, "videos");
+    const projectDir = path.resolve(process.cwd(), "content/projects", sanitizedSlug);
+    const clipsDir = path.resolve(projectDir, "clips");
+    const videosDir = path.resolve(projectDir, "videos");
+
+    // Ensure paths are within the workspace
+    const workspaceRoot = path.resolve(process.cwd());
+    if (!projectDir.startsWith(workspaceRoot) || !clipsDir.startsWith(workspaceRoot) || !videosDir.startsWith(workspaceRoot)) {
+      return NextResponse.json({ error: "Invalid path configuration" }, { status: 400 });
+    }
 
     if (!fs.existsSync(clipsDir)) {
       fs.mkdirSync(clipsDir, { recursive: true });
@@ -41,6 +51,10 @@ export async function POST(req: NextRequest) {
     const quotesToSlice = providedQuotes || [];
     if (quotesToSlice.length === 0) {
       return NextResponse.json({ error: "No quotes to slice" }, { status: 400 });
+    }
+
+    if (!ffmpeg) {
+      return NextResponse.json({ error: "FFmpeg not found" }, { status: 500 });
     }
 
     const encoder = new TextEncoder();
@@ -55,7 +69,7 @@ export async function POST(req: NextRequest) {
         try {
           for (let i = 0; i < total; i++) {
             const quote = quotesToSlice[i];
-            const sessionIndex = quote.sessionIndex;
+            const sessionIndex = Number(quote.sessionIndex);
             const session = project.sessions[sessionIndex - 1];
             
             if (!session) {
@@ -68,13 +82,11 @@ export async function POST(req: NextRequest) {
               continue;
             }
 
-            // Path Sanitization: Ensure videoFile is just a filename or relative to videosDir
+            // Path Sanitization: Ensure videoFile is within videosDir
             const videoFile = session.videoFile;
-            const videoPath = path.join(videosDir, videoFile);
-            const resolvedVideoPath = path.resolve(videoPath);
-            const resolvedVideosDir = path.resolve(videosDir);
+            const videoPath = path.resolve(videosDir, videoFile);
 
-            if (!resolvedVideoPath.startsWith(resolvedVideosDir)) {
+            if (!videoPath.startsWith(videosDir)) {
               sendProgress({ 
                 current: i + 1, 
                 total, 
@@ -84,7 +96,7 @@ export async function POST(req: NextRequest) {
               continue;
             }
 
-            if (!fs.existsSync(resolvedVideoPath)) {
+            if (!fs.existsSync(videoPath)) {
               sendProgress({ 
                 current: i + 1, 
                 total, 
@@ -94,10 +106,31 @@ export async function POST(req: NextRequest) {
               continue;
             }
 
-            const start = quote.startSeconds;
-            const duration = quote.durationSeconds || 20;
+            const start = Number(quote.startSeconds);
+            const duration = Number(quote.durationSeconds) || 20;
+            
+            if (isNaN(start) || isNaN(duration)) {
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: `Invalid timestamp or duration for quote ${i + 1}`,
+                message: `Error: Invalid quote data` 
+              });
+              continue;
+            }
+
             const filename = `clip-${sessionIndex}-${start}s.mp4`;
-            const outputPath = path.join(clipsDir, filename);
+            const outputPath = path.resolve(clipsDir, filename);
+
+            if (!outputPath.startsWith(clipsDir)) {
+              sendProgress({ 
+                current: i + 1, 
+                total, 
+                error: `Invalid output path for clip ${i + 1}`,
+                message: `Error: Invalid output path` 
+              });
+              continue;
+            }
 
             sendProgress({ 
               current: i + 1, 
@@ -105,12 +138,30 @@ export async function POST(req: NextRequest) {
               message: `Slicing clip ${i + 1} of ${total}...` 
             });
 
-            // Slicing command
-            const command = `"${ffmpeg}" -y -ss ${start} -t ${duration} -i "${resolvedVideoPath}" -c:v libx264 -c:a aac -strict experimental "${outputPath}"`;
-            
-            try {
-              await execAsync(command);
-            } catch (error: any) {
+            // Slicing command using spawn to prevent shell injection
+            await new Promise<void>((resolve, reject) => {
+              const args = [
+                "-y",
+                "-ss", start.toString(),
+                "-t", duration.toString(),
+                "-i", videoPath,
+                "-c:v", "libx264",
+                "-c:a", "aac",
+                "-strict", "experimental",
+                outputPath
+              ];
+
+              const proc = spawn(ffmpeg, args);
+
+              proc.on("close", (code) => {
+                if (code === 0) resolve();
+                else reject(new Error(`FFmpeg exited with code ${code}`));
+              });
+
+              proc.on("error", (err) => {
+                reject(err);
+              });
+            }).catch((error: any) => {
               console.error(`ffmpeg error for clip at ${start}s:`, error);
               sendProgress({ 
                 current: i + 1, 
@@ -118,8 +169,7 @@ export async function POST(req: NextRequest) {
                 error: error.message,
                 message: `Error slicing clip ${i + 1}` 
               });
-              continue;
-            }
+            });
           }
 
           sendProgress({ 

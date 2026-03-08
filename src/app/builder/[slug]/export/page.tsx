@@ -147,6 +147,11 @@ export default function ExportPage() {
     }
   };
 
+  const handleDownloadMarkdown = () => {
+    // Open the raw findings.md in a new tab using the preview API
+    window.open(`/api/projects/${slug}/files/findings.md`, "_blank");
+  };
+
   if (loadingReport && loadingFindings) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -215,9 +220,7 @@ export default function ExportPage() {
         </section>
 
         {/* Step 2: Generate HTML Report */}
-        <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-opacity ${
-          slicingStatus !== "success" ? "opacity-60" : ""
-        }`}>
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
@@ -227,16 +230,35 @@ export default function ExportPage() {
               </div>
               <div>
                 <h2 className="font-semibold text-slate-900">Generate HTML Report</h2>
-                <p className="text-sm text-slate-500">Create a self-contained HTML file with embedded clips.</p>
+                <p className="text-sm text-slate-500">Create a self-contained HTML file.</p>
               </div>
             </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportHtml}
+                disabled={exportStatus === "running"}
+                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
+              >
+                {exportStatus === "running" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                {exportStatus === "success" ? "Regenerate HTML" : "Generate HTML"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <button
               onClick={handleExportHtml}
-              disabled={exportStatus === "running" || slicingStatus !== "success"}
-              className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
+              className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
             >
-              {exportStatus === "running" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-              {exportStatus === "success" ? "Regenerate HTML" : "Generate HTML"}
+              <span className="font-semibold text-slate-900">HTML (with clips)</span>
+              <span className="text-xs text-slate-500">Includes sliced video files. Slicing required first.</span>
+            </button>
+            <button
+              onClick={handleExportHtml}
+              className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
+            >
+              <span className="font-semibold text-slate-900">HTML (timestamps only)</span>
+              <span className="text-xs text-slate-500">Instant generation. Links to original videos.</span>
             </button>
           </div>
 
@@ -254,15 +276,22 @@ export default function ExportPage() {
                 <span>HTML report ready! You can find it in <code>content/projects/{slug}/export/index.html</code>.</span>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <a
                   href={`/api/projects/${slug}/files/export/index.html`}
                   target="_blank"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                  className="flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
                 >
                   <Download className="h-4 w-4" />
                   Preview Exported HTML
                 </a>
+                <button
+                  onClick={handleDownloadMarkdown}
+                  className="flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Raw Markdown
+                </button>
               </div>
             </div>
           )}
