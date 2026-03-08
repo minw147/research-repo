@@ -17,6 +17,7 @@ export interface Project {
   status: ProjectStatus;
   researchPlan?: string;
   codebook: string | null;
+  codebookData?: Codebook; // Merged codebook object
   sessions: Session[];
   publishedUrl: string | null;
 }

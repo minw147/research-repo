@@ -53,4 +53,20 @@ describe("useFileContent", () => {
       body: JSON.stringify({ slug: "test-project", file: "findings.md", content: "# New Content" }),
     }));
   });
+
+  it("sets error when fetch fails", async () => {
+    (fetch as any).mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+
+    const { result } = renderHook(() => useFileContent("test-project", "findings.md"));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe("Failed to fetch findings.md");
+    expect(result.current.content).toBeNull();
+  });
 });

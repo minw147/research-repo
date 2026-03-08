@@ -11,6 +11,7 @@ import { ClipCreator } from "@/components/builder/ClipCreator";
 import { MarkdownEditor } from "@/components/builder/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
 import { parseQuotesFromMarkdown } from "@/lib/quote-parser";
+import { parseTranscript } from "@/lib/transcript";
 import type { Project, Session, TranscriptLine, Codebook, ParsedQuote } from "@/types";
 
 interface FindingsPageProps {
@@ -32,10 +33,13 @@ export default function FindingsPage({ params }: FindingsPageProps) {
 
   useEffect(() => {
     async function fetchProject() {
-      const res = await fetch(`/api/projects/${slug}`);
-      if (res.ok) {
+      try {
+        const res = await fetch(`/api/projects/${slug}`);
+        if (!res.ok) throw new Error("Failed to fetch project");
         const data = await res.json();
         setProject(data);
+      } catch (err) {
+        console.error("Error fetching project:", err);
       }
     }
     fetchProject();
@@ -47,6 +51,7 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   const {
     content: findingsContent,
     loading: findingsLoading,
+    error: findingsError,
     refetch: refetchFindings,
     saveContent: saveFindings,
   } = useFileContent(slug, "findings.md");
@@ -54,39 +59,24 @@ export default function FindingsPage({ params }: FindingsPageProps) {
   // 3. Fetch active transcript
   const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([]);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeSession?.transcriptFile) return;
 
     async function fetchTranscript() {
       setTranscriptLoading(true);
+      setTranscriptError(null);
       try {
         const res = await fetch(
           `/api/files?slug=${slug}&file=transcripts/${activeSession!.transcriptFile}`
         );
-        if (res.ok) {
-          const data = await res.json();
-          // Parse transcript lines: [MM:SS] text
-          const lines: TranscriptLine[] = data.content
-            .split("\n")
-            .filter((l: string) => l.trim())
-            .map((line: string) => {
-              const match = line.match(/^\[(\d+):(\d+)\] (.*)$/);
-              if (match) {
-                const mins = parseInt(match[1], 10);
-                const secs = parseInt(match[2], 10);
-                return {
-                  sec: mins * 60 + secs,
-                  text: match[3],
-                };
-              }
-              return null;
-            })
-            .filter(Boolean) as TranscriptLine[];
-          setTranscriptLines(lines);
-        }
-      } catch (err) {
+        if (!res.ok) throw new Error("Failed to fetch transcript");
+        const data = await res.json();
+        setTranscriptLines(parseTranscript(data.content));
+      } catch (err: any) {
         console.error("Failed to fetch transcript:", err);
+        setTranscriptError(err.message);
       } finally {
         setTranscriptLoading(false);
       }
@@ -108,9 +98,9 @@ export default function FindingsPage({ params }: FindingsPageProps) {
     return parseQuotesFromMarkdown(findingsContent);
   }, [findingsContent]);
 
-  // Filter quotes for the active session
+  // Filter quotes for the active session (q.sessionIndex is 1-based)
   const sessionQuotes = useMemo(() => {
-    return quotes.filter((q) => q.sessionIndex === activeSessionIndex);
+    return quotes.filter((q) => q.sessionIndex === activeSessionIndex + 1);
   }, [quotes, activeSessionIndex]);
 
   // 6. Callbacks
@@ -182,13 +172,27 @@ export default function FindingsPage({ params }: FindingsPageProps) {
                 <div className="absolute inset-0 flex items-center justify-center bg-white/50">
                   <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
                 </div>
+              ) : transcriptError ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-4 text-center">
+                  <p className="text-red-500 mb-2">Error: {transcriptError}</p>
+                  <button
+                    onClick={() => {
+                      // Trigger re-fetch by toggling a local state if needed,
+                      // but for now, we'll just use a simple message.
+                      window.location.reload();
+                    }}
+                    className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  >
+                    Reload Page
+                  </button>
+                </div>
               ) : (
                 <ClipCreator
                   lines={transcriptLines}
                   quotes={sessionQuotes}
                   codebook={codebook}
                   activeSecond={activeSecond}
-                  sessionIndex={activeSessionIndex}
+                  sessionIndex={activeSessionIndex + 1}
                   onTimestampClick={handleTimestampClick}
                   onQuoteClick={handleQuoteClick}
                   onQuoteDoubleClick={handleQuoteDoubleClick}
@@ -249,6 +253,16 @@ export default function FindingsPage({ params }: FindingsPageProps) {
                 {findingsLoading ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+                  </div>
+                ) : findingsError ? (
+                  <div className="flex h-full flex-col items-center justify-center bg-white rounded-xl border p-8 shadow-sm">
+                    <p className="text-red-500 mb-4">Error loading findings: {findingsError}</p>
+                    <button
+                      onClick={() => refetchFindings()}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
+                    >
+                      Retry
+                    </button>
                   </div>
                 ) : viewMode === "formatted" ? (
                   <div className="bg-white rounded-xl border p-8 shadow-sm prose prose-slate max-w-none">
