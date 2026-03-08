@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useFileContent } from "@/hooks/useFileContent";
 import { WorkspaceNav } from "@/components/builder/WorkspaceNav";
 import { CodebookEditor } from "@/components/builder/CodebookEditor";
@@ -31,7 +31,15 @@ export default function TagsPage({ params }: TagsPageProps) {
     error: findingsError 
   } = useFileContent(slug, "findings.md");
 
-  const projectCodebook: Codebook | null = codebookContent ? JSON.parse(codebookContent) : null;
+  const projectCodebook = useMemo(() => {
+    if (!codebookContent) return null;
+    try {
+      return JSON.parse(codebookContent) as Codebook;
+    } catch (err) {
+      console.error("Error parsing codebook JSON:", err);
+      return null;
+    }
+  }, [codebookContent]);
 
   const handleSave = async (newCodebook: Codebook) => {
     await saveCodebook(JSON.stringify(newCodebook, null, 2));
