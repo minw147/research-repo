@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { getProject, sanitizeSlug } from "@/lib/projects";
+import { getProject, sanitizeSlug, updateProject } from "@/lib/projects";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    // Update project status to exported
+    updateProject(slug, { status: "exported" });
 
     return NextResponse.json({ 
       success: true, 

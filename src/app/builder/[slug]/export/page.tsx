@@ -1,14 +1,35 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useFileContent } from "@/hooks/useFileContent";
 import { parseQuotesFromMarkdown } from "@/lib/quote-parser";
-import { CheckCircle, Play, FileText, Download, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle, Play, FileText, Download, Loader2, AlertCircle, Share2, ExternalLink } from "lucide-react";
+import { PublishModal } from "@/components/publish/PublishModal";
+import { Project } from "@/types";
 
 export default function ExportPage() {
   const params = useParams();
   const slug = params.slug as string;
+
+  const [project, setProject] = useState<Project | null>(null);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchProject();
+  }, [slug]);
+
+  const fetchProject = async () => {
+    try {
+      const res = await fetch(`/api/projects/${slug}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProject(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch project", err);
+    }
+  };
 
   // We primarily export from report.mdx, falling back to findings.md if needed
   const { content: reportMdx, loading: loadingReport } = useFileContent(slug, "report.mdx");
@@ -141,6 +162,7 @@ export default function ExportPage() {
       const data = await res.json();
       setExportPath(data.path);
       setExportStatus("success");
+      fetchProject();
     } catch (err: any) {
       setExportError(err.message);
       setExportStatus("error");
@@ -298,12 +320,71 @@ export default function ExportPage() {
           )}
         </section>
 
+        {/* Step 3: Publish to Destination */}
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
+                project?.status === "published" ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-600"
+              }`}>
+                {project?.status === "published" ? <CheckCircle className="h-5 w-5" /> : "3"}
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-900">Publish to Destination</h2>
+                <p className="text-sm text-slate-500">Share your report with stakeholders.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsPublishModalOpen(true)}
+              disabled={exportStatus !== "success" && project?.status !== "exported" && project?.status !== "published"}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Share2 className="h-4 w-4" />
+              {project?.status === "published" ? "Re-publish" : "Publish Report"}
+            </button>
+          </div>
+
+          {project?.status === "published" && project.publishedUrl && (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+                <CheckCircle className="h-4 w-4" />
+                <span>Currently published to:</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <code className="text-xs text-slate-600 truncate mr-4">{project.publishedUrl}</code>
+                <a 
+                  href={project.publishedUrl.startsWith('http') ? project.publishedUrl : `file://${project.publishedUrl}`}
+                  target="_blank"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 whitespace-nowrap"
+                >
+                  View Report <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          )}
+
+          {(exportStatus !== "success" && project?.status !== "exported" && project?.status !== "published") && (
+            <p className="mt-4 text-xs text-slate-400">
+              Note: You must generate the HTML report (Step 2) before you can publish.
+            </p>
+          )}
+        </section>
+
         {/* Info Box */}
         <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
           <h3 className="mb-1 font-semibold text-slate-900">Pro Tip</h3>
           <p>The exported <code>/export</code> folder is fully portable. You can zip it and share it with stakeholders, and they'll be able to watch the clips right in their browser.</p>
         </div>
       </div>
+
+      <PublishModal 
+        slug={slug} 
+        isOpen={isPublishModalOpen} 
+        onClose={() => setIsPublishModalOpen(false)}
+        onSuccess={() => {
+          fetchProject();
+        }}
+      />
     </div>
   );
 }
