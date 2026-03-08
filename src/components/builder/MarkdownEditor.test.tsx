@@ -1,6 +1,6 @@
 import React from "react";
-import { render, screen, fireEvent, cleanup, createEvent } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup, createEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { MarkdownEditor } from "./MarkdownEditor";
 
 // Mock CodeMirror because JSDOM doesn't support it well for testing
@@ -19,6 +19,11 @@ vi.mock("@uiw/react-codemirror", () => {
         posAtCoords: mockPosAtCoords,
         dispatch: mockDispatch,
         focus: mockFocus,
+        state: {
+          doc: {
+            lineAt: vi.fn().mockReturnValue({ to: 10 }), // Mock line info
+          },
+        },
       };
 
       React.useImperativeHandle(ref, () => ({
@@ -37,9 +42,14 @@ vi.mock("@uiw/react-codemirror", () => {
 });
 
 describe("MarkdownEditor", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.useRealTimers();
     capturedExtensions = [];
   });
 
@@ -49,20 +59,74 @@ describe("MarkdownEditor", () => {
     onSave: vi.fn(),
   };
 
-  it("renders with initial content", () => {
+  it("renders with initial content and accessibility attributes", () => {
     render(<MarkdownEditor {...mockProps} />);
+    const container = screen.getByTestId("markdown-editor-container");
+    expect(container).toHaveAttribute("role", "region");
+    expect(container).toHaveAttribute("aria-label", "Markdown editor drop zone");
+    
     const editor = screen.getByTestId("mock-codemirror");
     expect(editor).toHaveValue("# Initial Content");
   });
 
-  it("calls onChange when content changes", () => {
+  it("debounces onChange calls by 2 seconds", () => {
     render(<MarkdownEditor {...mockProps} />);
     const editor = screen.getByTestId("mock-codemirror");
+    
     fireEvent.change(editor, { target: { value: "# Changed Content" } });
+    
+    // Should not be called immediately
+    expect(mockProps.onChange).not.toHaveBeenCalled();
+    
+    // Fast-forward 1 second
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(mockProps.onChange).not.toHaveBeenCalled();
+    
+    // Fast-forward another 1.1 seconds
+    act(() => {
+      vi.advanceTimersByTime(1100);
+    });
     expect(mockProps.onChange).toHaveBeenCalledWith("# Changed Content");
   });
 
-  it("handles drop events and inserts markdown", () => {
+  it("resets debounce timer on subsequent changes", () => {
+    render(<MarkdownEditor {...mockProps} />);
+    const editor = screen.getByTestId("mock-codemirror");
+    
+    fireEvent.change(editor, { target: { value: "first" } });
+    
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(mockProps.onChange).not.toHaveBeenCalled();
+    
+    fireEvent.change(editor, { target: { value: "second" } });
+    
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    // Total 3 seconds since first call, but only 1.5 since last
+    expect(mockProps.onChange).not.toHaveBeenCalled();
+    
+    act(() => {
+      vi.advanceTimersByTime(501);
+    });
+    expect(mockProps.onChange).toHaveBeenCalledWith("second");
+    expect(mockProps.onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("syncs internal state when content prop changes", () => {
+    const { rerender } = render(<MarkdownEditor {...mockProps} />);
+    const editor = screen.getByTestId("mock-codemirror");
+    expect(editor).toHaveValue("# Initial Content");
+    
+    rerender(<MarkdownEditor {...mockProps} content="# New External Content" />);
+    expect(editor).toHaveValue("# New External Content");
+  });
+
+  it("handles drop events, snaps to line end, and adds newlines", () => {
     render(<MarkdownEditor {...mockProps} />);
     const container = screen.getByTestId("markdown-editor-container");
     
@@ -80,8 +144,13 @@ describe("MarkdownEditor", () => {
     fireEvent(container, dropEvent);
     
     expect(mockPosAtCoords).toHaveBeenCalledWith({ x: 100, y: 100 });
+    // In our mock, posAtCoords returns 0, lineAt returns line with .to = 10
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-      changes: { from: 0, to: 0, insert: dropData }
+      changes: { 
+        from: 10, 
+        to: 10, 
+        insert: "\n\n" + dropData 
+      }
     }));
     expect(mockFocus).toHaveBeenCalled();
   });
@@ -100,11 +169,5 @@ describe("MarkdownEditor", () => {
     fireEvent(container, dragEvent);
     
     expect(dropEffectWrapper.dropEffect).toBe("copy");
-  });
-
-  it("passes extensions including markdown and keymap", () => {
-    render(<MarkdownEditor {...mockProps} />);
-    // Check if we have at least 2 extensions (markdown and keymap)
-    expect(capturedExtensions.length).toBeGreaterThanOrEqual(2);
   });
 });

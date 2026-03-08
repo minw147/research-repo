@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import CodeMirror, { ReactCodeMirrorRef, Extension } from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { keymap } from "@codemirror/view";
@@ -15,6 +15,37 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSave,
 }) => {
   const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const [internalContent, setInternalContent] = useState(content);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync internal state with content prop (e.g. from file watcher)
+  useEffect(() => {
+    setInternalContent(content);
+  }, [content]);
+
+  // Handle cleanup of debounce timer
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleContentChange = useCallback(
+    (value: string) => {
+      setInternalContent(value);
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      debounceTimerRef.current = setTimeout(() => {
+        onChange(value);
+      }, 2000);
+    },
+    [onChange]
+  );
 
   const handleSaveKey = useCallback(() => {
     onSave();
@@ -36,12 +67,19 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       event.preventDefault();
       
       const view = editorRef.current.view;
-      const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+      const coords = view.posAtCoords({ x: event.clientX, y: event.clientY });
 
-      if (pos !== null) {
+      if (coords !== null) {
+        // Snap to line end
+        const line = view.state.doc.lineAt(coords);
+        const insertPos = line.to;
+
+        // Ensure there is a newline before the quote
+        const textToInsert = "\n\n" + data;
+
         view.dispatch({
-          changes: { from: pos, to: pos, insert: data },
-          selection: { anchor: pos + data.length },
+          changes: { from: insertPos, to: insertPos, insert: textToInsert },
+          selection: { anchor: insertPos + textToInsert.length },
         });
         view.focus();
       }
@@ -60,10 +98,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       data-testid="markdown-editor-container"
+      role="region"
+      aria-label="Markdown editor drop zone"
     >
       <CodeMirror
         ref={editorRef}
-        value={content}
+        value={internalContent}
         height="100%"
         width="100%"
         theme="light"
@@ -71,7 +111,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           markdown({ base: markdownLanguage }),
           saveKeymap,
         ]}
-        onChange={onChange}
+        onChange={handleContentChange}
         basicSetup={{
           lineNumbers: true,
           foldGutter: true,
