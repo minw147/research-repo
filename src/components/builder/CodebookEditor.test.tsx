@@ -85,4 +85,41 @@ describe("CodebookEditor", () => {
       ])
     }));
   });
+
+  it("renames a category and updates associated tags", async () => {
+    const onSave = vi.fn();
+    render(
+      <CodebookEditor 
+        slug="test-project" 
+        projectCodebook={mockProjectCodebook} 
+        onSave={onSave} 
+      />
+    );
+
+    await waitFor(() => screen.getByText("Global Tag 1"));
+
+    // Click Edit on Project category
+    fireEvent.click(screen.getByRole("button", { name: /Edit Project/i }));
+
+    // Change category name
+    const renameInput = screen.getByDisplayValue("Project");
+    fireEvent.change(renameInput, { target: { value: "New Category Name" } });
+
+    // Click Save
+    fireEvent.click(screen.getByRole("button", { name: /^Save$/ }));
+
+    // Click Save Codebook
+    fireEvent.click(screen.getByRole("button", { name: /Save Codebook/i }));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      categories: expect.arrayContaining(["New Category Name"]),
+      tags: expect.arrayContaining([
+        expect.objectContaining({ id: "project-1", category: "New Category Name" })
+      ])
+    }));
+    
+    // Verify old category is gone
+    const savedCodebook = onSave.mock.calls[0][0];
+    expect(savedCodebook.categories).not.toContain("Project");
+  });
 });

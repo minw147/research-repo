@@ -31,6 +31,8 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryValue, setEditCategoryValue] = useState("");
 
   const [loading, setLoading] = useState(true);
 
@@ -98,6 +100,38 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
     setIsAddingCategory(false);
   };
 
+  const handleStartCategoryEdit = (cat: string) => {
+    if (globalCodebook?.categories.includes(cat)) {
+      alert("Cannot edit global category");
+      return;
+    }
+    setEditingCategory(cat);
+    setEditCategoryValue(cat);
+  };
+
+  const handleSaveCategoryRename = () => {
+    if (!editingCategory || !editCategoryValue || editingCategory === editCategoryValue) {
+      setEditingCategory(null);
+      return;
+    }
+
+    if (allCategories.includes(editCategoryValue)) {
+      alert("Category name already exists");
+      return;
+    }
+
+    // Update category name
+    setCustomCategories(customCategories.map(c => c === editingCategory ? editCategoryValue : c));
+
+    // Update all tags with this category
+    setCustomTags(customTags.map(tag => 
+      tag.category === editingCategory ? { ...tag, category: editCategoryValue } : tag
+    ));
+
+    setEditingCategory(null);
+    setEditCategoryValue("");
+  };
+
   const handleDeleteCategory = (cat: string) => {
     if (globalCodebook?.categories.includes(cat)) {
       alert("Cannot delete global category");
@@ -154,15 +188,57 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
             </div>
             <div className="p-2 space-y-1">
               {allCategories.map(cat => (
-                <div key={cat} className="group flex items-center justify-between px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                  <span>{cat}</span>
-                  {!globalCodebook?.categories.includes(cat) && (
-                    <button 
-                      onClick={() => handleDeleteCategory(cat)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                <div key={cat} className="group flex flex-col px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                  {editingCategory === cat ? (
+                    <div className="space-y-2 py-1">
+                      <input
+                        autoFocus
+                        type="text"
+                        className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        value={editCategoryValue}
+                        onChange={e => setEditCategoryValue(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleSaveCategoryRename();
+                          if (e.key === 'Escape') setEditingCategory(null);
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleSaveCategoryRename}
+                          className="flex-1 py-1 text-[10px] font-bold bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Save
+                        </button>
+                        <button 
+                          onClick={() => setEditingCategory(null)}
+                          className="flex-1 py-1 text-[10px] font-bold bg-slate-100 text-slate-600 rounded hover:bg-slate-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between w-full">
+                      <span>{cat}</span>
+                      {!globalCodebook?.categories.includes(cat) && (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => handleStartCategoryEdit(cat)}
+                            className="p-1 text-slate-400 hover:text-blue-500 transition-colors"
+                            aria-label={`Edit ${cat}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCategory(cat)}
+                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                            aria-label={`Delete ${cat}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
