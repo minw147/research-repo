@@ -108,7 +108,7 @@ export default function HomePage() {
                   <Search className="w-8 h-8 text-slate-300" />
                 </div>
                 <p className="text-slate-500 font-bold text-xl">
-                  No projects found matching "{search}"
+                  No projects found matching &quot;{search}&quot;
                 </p>
                 <button
                   onClick={() => setSearch("")}

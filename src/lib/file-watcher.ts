@@ -1,4 +1,4 @@
-import chokidar from "chokidar";
+import { watch, FSWatcher } from "chokidar";
 import path from "path";
 
 const PROJECTS_DIR = path.join(process.cwd(), "content/projects");
@@ -6,11 +6,11 @@ const PROJECTS_DIR = path.join(process.cwd(), "content/projects");
 type FileChangeCallback = (data: { slug: string; file: string; event: string }) => void;
 
 const listeners = new Set<FileChangeCallback>();
-let watcher: chokidar.FSWatcher | null = null;
+let watcher: FSWatcher | null = null;
 
 export function startWatcher() {
   if (watcher) return;
-  watcher = chokidar.watch(PROJECTS_DIR, {
+  watcher = watch(PROJECTS_DIR, {
     ignored: /(^|[\/\\])\../,
     persistent: true,
     ignoreInitial: true,
@@ -24,9 +24,9 @@ export function startWatcher() {
     const slug = parts[0];
     const file = parts.slice(1).join("/");
     if (!/\.(md|mdx|json)$/.test(file)) return;
-    for (const cb of listeners) {
+    listeners.forEach((cb) => {
       cb({ slug, file, event: "change" });
-    }
+    });
   });
 }
 

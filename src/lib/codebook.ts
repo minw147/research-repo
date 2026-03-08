@@ -11,9 +11,9 @@ export function mergeCodebooks(
   for (const tag of global.tags) tagMap.set(tag.id, tag);
   for (const tag of custom.tags) tagMap.set(tag.id, tag);
 
-  const categories = [
-    ...new Set([...global.categories, ...custom.categories]),
-  ];
+  const categories = Array.from(
+    new Set([...global.categories, ...custom.categories])
+  );
 
   return { tags: Array.from(tagMap.values()), categories };
 }

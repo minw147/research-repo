@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo } from "react";
-import { useTranscript } from "@/context/TranscriptContext";
-import { getTranscriptExcerpt, getClipVtt } from "@/lib/transcript";
+import { TranscriptLine, getTranscriptExcerpt, getClipVtt } from "@/lib/transcript";
 
 interface ClipProps {
   src: string;
@@ -12,6 +11,8 @@ interface ClipProps {
   clipDuration?: number; // seconds per clip, default 20
   participant?: string;
   duration?: string; // e.g. "04:12" for display
+  transcriptLines?: TranscriptLine[];
+  vttUrl?: string;
 }
 
 function formatTime(totalSeconds: number): string {
@@ -61,9 +62,11 @@ export default function Clip({
   clipDuration = 20,
   participant,
   duration,
+  transcriptLines = [],
+  vttUrl,
 }: ClipProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { lines, vttUrl } = useTranscript();
+  const lines = transcriptLines;
   const clipEnd = end ?? start + clipDuration;
   const transcriptExcerpt = lines.length > 0 ? getTranscriptExcerpt(lines, start, clipEnd) : null;
 
