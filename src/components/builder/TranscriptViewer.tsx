@@ -6,17 +6,24 @@ import { QuoteCard } from "./QuoteCard";
 interface TranscriptViewerProps {
   lines: TranscriptLine[];
   quotes: ParsedQuote[];
+  pendingQuotes?: ParsedQuote[];
   codebook: Codebook;
   activeSecond: number;
   onTimestampClick: (sec: number) => void;
   onQuoteClick: (quote: ParsedQuote) => void;
   onQuoteDoubleClick: (quote: ParsedQuote) => void;
-  onTextSelect: (data: { text: string; startSec: number; endSec: number }) => void;
+  onTextSelect: (data: { 
+    text: string; 
+    startSec: number; 
+    endSec: number;
+    rect: { top: number; left: number; width: number; height: number };
+  }) => void;
 }
 
 export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
   lines,
   quotes,
+  pendingQuotes = [],
   codebook,
   activeSecond,
   onTimestampClick,
@@ -28,7 +35,8 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
 
   // Combine lines and quotes, replacing lines covered by quotes
   const displayItems = useMemo(() => {
-    const sortedQuotes = [...quotes].sort((a, b) => a.startSeconds - b.startSeconds);
+    const allQuotes = [...quotes, ...pendingQuotes];
+    const sortedQuotes = allQuotes.sort((a, b) => a.startSeconds - b.startSeconds);
     const result: Array<{ type: "line"; data: TranscriptLine } | { type: "quote"; data: ParsedQuote }> = [];
     
     // Tracks lines already replaced by a quote
@@ -70,7 +78,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
     }
 
     return result;
-  }, [lines, quotes]);
+  }, [lines, quotes, pendingQuotes]);
 
   const handleMouseUp = () => {
     const selection = window.getSelection();
@@ -83,6 +91,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
     // We can use data-attributes on the rendered elements.
     
     const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
     const startNode = range.startContainer.parentElement;
     const endNode = range.endContainer.parentElement;
 
@@ -111,10 +120,18 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
         actualEnd += 2; // Default 2s for lines
       }
 
+      // Provide coordinates relative to the viewport. 
+      // ClipCreator can use these for fixed/absolute positioning.
       onTextSelect({
         text: selectedText,
         startSec: actualStart,
         endSec: actualEnd,
+        rect: {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        }
       });
       
       // Clear selection after handling
