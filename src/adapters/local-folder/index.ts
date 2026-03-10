@@ -2,6 +2,7 @@
 import { PublishAdapter } from "../types";
 import fs from "fs";
 import path from "path";
+import { generateViewerHtml } from "@/lib/viewer-template";
 
 export const LocalFolderAdapter: PublishAdapter = {
   id: "local-folder",
@@ -72,19 +73,9 @@ export const LocalFolderAdapter: PublishAdapter = {
 
       fs.writeFileSync(indexPath, JSON.stringify(repoIndex, null, 2));
 
-      // 3. Ensure viewer assets exist at the root
-      const repoViewerDir = path.join(process.cwd(), "repo-viewer");
-      if (fs.existsSync(repoViewerDir)) {
-        const assets = ["index.html", "viewer.js", "viewer.css"];
-        for (const asset of assets) {
-          const srcPath = path.join(repoViewerDir, asset);
-          const destPath = path.join(targetPath, asset);
-          // Only copy if it doesn't exist or we want to ensure latest
-          if (!fs.existsSync(destPath)) {
-            fs.copyFileSync(srcPath, destPath);
-          }
-        }
-      }
+      // 3. Write viewer index.html to root of target
+      const viewerHtml = generateViewerHtml();
+      fs.writeFileSync(path.join(targetPath, "index.html"), viewerHtml, "utf-8");
 
       return { 
         success: true, 
