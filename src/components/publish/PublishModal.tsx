@@ -27,6 +27,8 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
   const [oauthStatus, setOauthStatus] = useState<Record<string, boolean>>({});
   const directoryInputRef = useRef<HTMLInputElement>(null);
   const pendingDirectoryFieldKeyRef = useRef<string | null>(null);
+  const oauthPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const oauthTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function startOAuth(provider: string) {
     // Build query string from current config values
@@ -44,16 +46,19 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
     window.open(authUrl, "_blank");
 
     // Poll for connection status every 2 seconds for up to 2 minutes
-    const interval = setInterval(async () => {
+    oauthPollRef.current = setInterval(async () => {
       const statusRes = await fetch(`/api/auth/${provider}/status`);
       const { connected } = await statusRes.json();
       if (connected) {
         setOauthStatus(prev => ({ ...prev, [provider]: true }));
-        clearInterval(interval);
+        if (oauthPollRef.current) clearInterval(oauthPollRef.current);
+        if (oauthTimeoutRef.current) clearTimeout(oauthTimeoutRef.current);
       }
     }, 2000);
 
-    setTimeout(() => clearInterval(interval), 120_000);
+    oauthTimeoutRef.current = setTimeout(() => {
+      if (oauthPollRef.current) clearInterval(oauthPollRef.current);
+    }, 120_000);
   }
 
   // Refined directory picker: prefer server-side native picker for real absolute paths
@@ -156,6 +161,8 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
       setError(null);
       setPublishedUrl(null);
       setPathCopied(false);
+      if (oauthPollRef.current) clearInterval(oauthPollRef.current);
+      if (oauthTimeoutRef.current) clearTimeout(oauthTimeoutRef.current);
     }
   }, [isOpen]);
 
