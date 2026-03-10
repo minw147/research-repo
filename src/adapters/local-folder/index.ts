@@ -6,20 +6,26 @@ import path from "path";
 export const LocalFolderAdapter: PublishAdapter = {
   id: "local-folder",
   name: "Local Folder",
-  description: "Copy the report to another folder on this computer.",
+  description: "Choose a folder (or location) where the exported report will be stored.",
   icon: "Folder",
   configSchema: [
-    { key: "targetPath", label: "Target Directory", type: "path", required: true, placeholder: "/Users/name/Reports" }
+    { key: "targetPath", label: "Destination folder", type: "path", required: true, placeholder: "e.g. C:\\Reports or /Users/name/Reports" }
   ],
   async publish(payload, config) {
     const { projectDir, project } = payload;
     const { targetPath } = config;
 
     if (!targetPath) {
-      return { success: false, message: "Target directory is required" };
+      return { success: false, message: "Please choose a folder or location to store the export." };
     }
 
     try {
+      const exportDir = path.join(projectDir, "export");
+
+      if (!fs.existsSync(exportDir)) {
+        return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
+      }
+
       if (!fs.existsSync(targetPath)) {
         fs.mkdirSync(targetPath, { recursive: true });
       }
@@ -28,12 +34,6 @@ export const LocalFolderAdapter: PublishAdapter = {
       const destDir = path.join(targetPath, project.id);
       if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true });
-      }
-
-      const exportDir = path.join(projectDir, "export");
-      
-      if (!fs.existsSync(exportDir)) {
-        return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
       }
 
       // 1. Copy project files

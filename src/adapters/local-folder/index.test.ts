@@ -41,9 +41,9 @@ describe("LocalFolderAdapter", () => {
     expect(result.success).toBe(true);
     expect(result.message).toContain(tempTargetDir);
 
-    expect(fs.existsSync(path.join(tempTargetDir, "index.html"))).toBe(true);
-    expect(fs.existsSync(path.join(tempTargetDir, "clips/clip1.mp4"))).toBe(true);
-    expect(fs.readFileSync(path.join(tempTargetDir, "index.html"), "utf-8")).toBe("<html>Test</html>");
+    expect(fs.existsSync(path.join(tempTargetDir, "test-project", "index.html"))).toBe(true);
+    expect(fs.existsSync(path.join(tempTargetDir, "test-project", "clips", "clip1.mp4"))).toBe(true);
+    expect(fs.readFileSync(path.join(tempTargetDir, "test-project", "index.html"), "utf-8")).toBe("<html>Test</html>");
   });
 
   it("should fail if target directory is not provided", async () => {
@@ -57,7 +57,7 @@ describe("LocalFolderAdapter", () => {
     const result = await LocalFolderAdapter.publish(payload, {});
 
     expect(result.success).toBe(false);
-    expect(result.message).toContain("Target directory is required");
+    expect(result.message).toContain("Please choose a folder or location to store the export");
   });
 
   it("should fail if export directory does not exist", async () => {
