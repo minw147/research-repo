@@ -28,9 +28,12 @@ export async function GET(
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "private, max-age=3600",
         "X-Content-Type-Options": "nosniff",
+        // Sandbox the proxied HTML to limit same-origin script execution risk.
+        "Content-Security-Policy": "sandbox allow-scripts allow-same-origin",
       },
     });
   } catch (err: any) {
-    return new Response(`Error: ${err.message}`, { status: 500 });
+    console.error("[drive/report] Unexpected error:", err);
+    return new Response("Internal error", { status: 500 });
   }
 }

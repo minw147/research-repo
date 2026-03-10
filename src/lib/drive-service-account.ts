@@ -38,10 +38,14 @@ export async function getDriveToken(): Promise<string> {
   });
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Service account token exchange failed: ${err}`);
+    const errText = await res.text();
+    console.error("[drive-service-account] Token exchange failed:", errText);
+    throw new Error("Service account token exchange failed");
   }
 
   const data = await res.json();
-  return data.access_token as string;
+  if (typeof data.access_token !== "string") {
+    throw new Error("Service account token exchange returned no access_token");
+  }
+  return data.access_token;
 }

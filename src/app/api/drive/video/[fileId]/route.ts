@@ -22,7 +22,7 @@ export async function GET(
 
     const driveRes = await fetch(driveUrl, { headers });
 
-    if (!driveRes.ok && driveRes.status !== 206) {
+    if (!driveRes.ok) {
       return new Response(`Drive error: ${driveRes.status}`, { status: driveRes.status });
     }
 
@@ -41,6 +41,7 @@ export async function GET(
       headers: responseHeaders,
     });
   } catch (err: any) {
-    return new Response(`Error: ${err.message}`, { status: 500 });
+    console.error("[drive/video] Unexpected error:", err);
+    return new Response("Internal error", { status: 500 });
   }
 }

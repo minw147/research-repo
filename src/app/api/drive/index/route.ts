@@ -1,40 +1,52 @@
 // src/app/api/drive/index/route.ts
-import { NextResponse } from "next/server";
-import { google } from "googleapis";
+export const runtime = "edge";
+
+import { getDriveToken } from "@/lib/drive-service-account";
+
+const FOLDER_ID_RE = /^[-\w]+$/;
 
 export async function GET() {
   const rootFolderId = process.env.DRIVE_ROOT_FOLDER_ID;
   if (!rootFolderId) {
-    return NextResponse.json({ error: "DRIVE_ROOT_FOLDER_ID is not configured" }, { status: 503 });
+    return Response.json({ error: "DRIVE_ROOT_FOLDER_ID is not configured" }, { status: 503 });
   }
-
-  const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!json) {
-    return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_JSON is not configured" }, { status: 503 });
+  if (!FOLDER_ID_RE.test(rootFolderId)) {
+    return Response.json({ error: "DRIVE_ROOT_FOLDER_ID is misconfigured" }, { status: 503 });
   }
 
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(json),
-      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-    });
-    const drive = google.drive({ version: "v3", auth });
+    const token = await getDriveToken();
 
-    const listRes = await drive.files.list({
-      q: `name='repo-index.json' and '${rootFolderId}' in parents and trashed=false`,
-      fields: "files(id)",
-    });
-
-    if (!listRes.data.files?.length) return NextResponse.json([]);
-
-    const fileId = listRes.data.files[0].id!;
-    const content = await drive.files.get(
-      { fileId, alt: "media" } as any,
-      { responseType: "text" }
+    // Find repo-index.json in the root folder
+    const q = encodeURIComponent(
+      `name='repo-index.json' and '${rootFolderId}' in parents and trashed=false`
     );
+    const listRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!listRes.ok) {
+      console.error("[drive/index] Drive list error:", listRes.status);
+      return Response.json({ error: "Failed to query Drive" }, { status: 502 });
+    }
 
-    return NextResponse.json(JSON.parse(content.data as string));
+    const listData = await listRes.json();
+    if (!listData.files?.length) return Response.json([]);
+
+    const fileId: string = listData.files[0].id;
+    const contentRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!contentRes.ok) {
+      console.error("[drive/index] Drive get error:", contentRes.status);
+      return Response.json({ error: "Failed to read index file" }, { status: 502 });
+    }
+
+    const text = await contentRes.text();
+    return Response.json(JSON.parse(text));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("[drive/index] Unexpected error:", err);
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }
