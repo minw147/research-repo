@@ -6,6 +6,11 @@ import { PublishAdapter, PublishPayload, PublishResult } from "../types";
 import { tokenStore } from "@/lib/token-store";
 import { generateViewerHtml } from "@/lib/viewer-template";
 
+/** Escape a value for use inside a Google Drive API query string. */
+function driveEsc(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
 function bufferToStream(buffer: Buffer): Readable {
   const r = new Readable();
   r.push(buffer);
@@ -15,7 +20,7 @@ function bufferToStream(buffer: Buffer): Readable {
 
 async function getOrCreateFolder(drive: any, name: string, parentId: string): Promise<string> {
   const res = await drive.files.list({
-    q: `name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    q: `name='${driveEsc(name)}' and '${driveEsc(parentId)}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
     fields: "files(id)",
   });
   if (res.data.files.length > 0) return res.data.files[0].id;
@@ -34,7 +39,7 @@ async function uploadOrUpdateFile(
   mimeType = "application/octet-stream"
 ): Promise<string> {
   const res = await drive.files.list({
-    q: `name='${name}' and '${parentId}' in parents and trashed=false`,
+    q: `name='${driveEsc(name)}' and '${driveEsc(parentId)}' in parents and trashed=false`,
     fields: "files(id)",
   });
   const media = { mimeType, body: bufferToStream(content) };
@@ -55,11 +60,11 @@ export const GoogleDriveAdapter: PublishAdapter = {
   id: "google-drive",
   name: "Google Drive",
   description: "Upload reports to a shared Google Drive folder. Team members can download and open HTML reports locally.",
-  icon: "Cloud",
+  icon: "HardDrive",
   configSchema: [
     { key: "clientId", label: "Google OAuth client ID", type: "text", required: true, placeholder: "xxxxx.apps.googleusercontent.com" },
     { key: "clientSecret", label: "Google OAuth client secret", type: "password", required: true },
-    { key: "folderId", label: "Drive folder ID", type: "text", required: true, placeholder: "Paste from the folder URL: /folders/{this-part}" },
+    { key: "targetFolderId", label: "Drive folder ID", type: "text", required: true, placeholder: "Paste from the folder URL: /folders/{this-part}" },
     { key: "_oauth", label: "Sign in to Google Drive", type: "oauth", required: true },
   ],
 
@@ -68,11 +73,18 @@ export const GoogleDriveAdapter: PublishAdapter = {
     if (!stored) {
       return { success: false, message: "Not connected to Google Drive. Click 'Sign in to Google Drive' first." };
     }
-    if (!config.folderId) {
-      return { success: false, message: "folderId is required" };
+    if (!config.targetFolderId) {
+      return { success: false, message: "targetFolderId is required" };
+    }
+    if (!config.clientId || !config.clientSecret) {
+      return { success: false, message: "Google OAuth client ID and client secret are required" };
     }
 
     const { project, projectDir } = payload;
+
+    if (!project.id || path.basename(project.id) !== project.id) {
+      return { success: false, message: `Invalid project ID: "${project.id}"` };
+    }
 
     try {
       const { google } = await import("googleapis");
@@ -86,7 +98,7 @@ export const GoogleDriveAdapter: PublishAdapter = {
       }
 
       // 1. Create or get project subfolder
-      const projectFolderId = await getOrCreateFolder(drive, project.id, config.folderId);
+      const projectFolderId = await getOrCreateFolder(drive, project.id, config.targetFolderId);
 
       // 2. Upload index.html
       const htmlContent = fs.readFileSync(path.join(exportDir, "index.html"));
@@ -106,7 +118,7 @@ export const GoogleDriveAdapter: PublishAdapter = {
       // 4. Update repo-index.json in root folder
       let repoIndex: any[] = [];
       const existing = await drive.files.list({
-        q: `name='repo-index.json' and '${config.folderId}' in parents and trashed=false`,
+        q: `name='repo-index.json' and '${driveEsc(config.targetFolderId)}' in parents and trashed=false`,
         fields: "files(id)",
       });
       if (existing.data.files.length > 0) {
@@ -136,7 +148,7 @@ export const GoogleDriveAdapter: PublishAdapter = {
       await uploadOrUpdateFile(
         drive,
         "repo-index.json",
-        config.folderId,
+        config.targetFolderId,
         Buffer.from(JSON.stringify(repoIndex, null, 2)),
         "application/json"
       );
@@ -145,12 +157,12 @@ export const GoogleDriveAdapter: PublishAdapter = {
       await uploadOrUpdateFile(
         drive,
         "index.html",
-        config.folderId,
+        config.targetFolderId,
         Buffer.from(generateViewerHtml()),
         "text/html"
       );
 
-      const folderUrl = `https://drive.google.com/drive/folders/${config.folderId}`;
+      const folderUrl = `https://drive.google.com/drive/folders/${config.targetFolderId}`;
       return { success: true, message: `Published to Google Drive`, url: folderUrl };
     } catch (err: any) {
       return { success: false, message: `Google Drive publish failed: ${err instanceof Error ? err.message : String(err)}` };
