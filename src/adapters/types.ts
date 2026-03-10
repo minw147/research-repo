@@ -18,7 +18,7 @@ export interface PublishResult {
 export interface AdapterConfigField {
   key: string;
   label: string;
-  type: "text" | "password" | "path" | "select";
+  type: "text" | "password" | "path" | "select" | "oauth";
   required: boolean;
   placeholder?: string;
   options?: { label: string; value: string }[];
