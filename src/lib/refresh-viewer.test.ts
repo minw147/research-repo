@@ -59,6 +59,14 @@ describe("syncDir", () => {
     expect(result.copied).toHaveLength(0);
     expect(result.skipped).toHaveLength(0);
   });
+
+  it("copies files in subdirectories and reports relative paths", () => {
+    fs.mkdirSync(path.join(src, "clips"));
+    fs.writeFileSync(path.join(src, "clips", "clip1.mp4"), "video-data");
+    const result = syncDir(src, dst);
+    expect(result.copied).toContain("clips/clip1.mp4");
+    expect(fs.existsSync(path.join(dst, "clips", "clip1.mp4"))).toBe(true);
+  });
 });
 
 describe("buildRepoIndex", () => {

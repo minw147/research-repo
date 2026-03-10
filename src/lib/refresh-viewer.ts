@@ -39,25 +39,26 @@ export function syncDir(srcDir: string, dstDir: string): SyncResult {
 
   fs.mkdirSync(dstDir, { recursive: true });
 
-  function walk(src: string, dst: string) {
+  function walk(src: string, dst: string, relPrefix: string = "") {
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
       const srcPath = path.join(src, entry.name);
       const dstPath = path.join(dst, entry.name);
+      const relPath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
       if (entry.isDirectory()) {
         fs.mkdirSync(dstPath, { recursive: true });
-        walk(srcPath, dstPath);
+        walk(srcPath, dstPath, relPath);
       } else {
         try {
           const srcHash = hashFile(srcPath);
           const dstHash = hashFile(dstPath);
           if (srcHash === dstHash) {
-            result.skipped.push(entry.name);
+            result.skipped.push(relPath);
           } else {
             fs.copyFileSync(srcPath, dstPath);
-            result.copied.push(entry.name);
+            result.copied.push(relPath);
           }
         } catch (e: any) {
-          result.errors.push(`${entry.name}: ${e.message}`);
+          result.errors.push(`${relPath}: ${e instanceof Error ? e.message : String(e)}`);
         }
       }
     }
