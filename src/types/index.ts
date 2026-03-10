@@ -7,6 +7,13 @@ export interface Session {
   transcriptFile: string;
 }
 
+export interface PublishRecord {
+  adapterId: string;
+  adapterName: string;
+  url: string;
+  publishedAt: string; // ISO date string
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -19,7 +26,8 @@ export interface Project {
   codebook: string | null;
   codebookData?: Codebook; // Merged codebook object
   sessions: Session[];
-  publishedUrl: string | null;
+  publishedUrl: string | null; // kept for backward compat — last published URL
+  publishedUrls?: PublishRecord[]; // full history, one record per destination
 }
 
 export type ProjectStatus =

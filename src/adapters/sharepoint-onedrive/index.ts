@@ -2,7 +2,6 @@
 import { PublishAdapter, PublishPayload, PublishResult } from "../types";
 import fs from "fs";
 import path from "path";
-import { generateViewerHtml } from "@/lib/viewer-template";
 
 export const SharePointOneDriveAdapter: PublishAdapter = {
   id: "sharepoint-onedrive",
@@ -75,9 +74,6 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
       }
 
       fs.writeFileSync(indexPath, JSON.stringify(repoIndex, null, 2));
-
-      // Write viewer HTML
-      fs.writeFileSync(path.join(targetPath, "index.html"), generateViewerHtml(), "utf-8");
 
       return {
         success: true,

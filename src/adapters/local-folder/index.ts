@@ -2,7 +2,6 @@
 import { PublishAdapter } from "../types";
 import fs from "fs";
 import path from "path";
-import { generateViewerHtml } from "@/lib/viewer-template";
 
 export const LocalFolderAdapter: PublishAdapter = {
   id: "local-folder",
@@ -73,14 +72,10 @@ export const LocalFolderAdapter: PublishAdapter = {
 
       fs.writeFileSync(indexPath, JSON.stringify(repoIndex, null, 2));
 
-      // 3. Write viewer index.html to root of target
-      const viewerHtml = generateViewerHtml();
-      fs.writeFileSync(path.join(targetPath, "index.html"), viewerHtml, "utf-8");
-
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: `Published to ${destDir}`,
-        url: path.join(targetPath, "index.html") // Link to the repo viewer
+        url: path.join(destDir, "index.html"), // Project report (not the repo viewer at target root)
       };
     } catch (error) {
       console.error("Publishing to local folder failed:", error);

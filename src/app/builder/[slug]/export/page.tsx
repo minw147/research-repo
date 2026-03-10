@@ -1,12 +1,30 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { useFileContent } from "@/hooks/useFileContent";
-import { parseQuotesFromMarkdown } from "@/lib/quote-parser";
-import { CheckCircle, Play, FileText, Download, Loader2, AlertCircle, Share2, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import {
+  CheckCircle2,
+  Loader2,
+  Share2,
+  ExternalLink,
+  FolderOpen,
+  Trash2,
+  AlertCircle,
+  CloudUpload,
+} from "lucide-react";
 import { PublishModal } from "@/components/publish/PublishModal";
-import { Project } from "@/types";
+import { Project, PublishRecord } from "@/types";
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function ExportPage() {
   const params = useParams();
@@ -14,376 +32,210 @@ export default function ExportPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchProject();
-  }, [slug]);
-
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     try {
       const res = await fetch(`/api/projects/${slug}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProject(data);
-      }
+      if (res.ok) setProject(await res.json());
     } catch (err) {
       console.error("Failed to fetch project", err);
     }
-  };
+  }, [slug]);
 
-  // We primarily export from report.mdx, falling back to findings.md if needed
-  const { content: reportMdx, loading: loadingReport } = useFileContent(slug, "report.mdx");
-  const { content: findingsMd, loading: loadingFindings } = useFileContent(slug, "findings.md");
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
 
-  const [slicingStatus, setSlicingStatus] = useState<"idle" | "running" | "success" | "error">("idle");
-  const [sliceProgress, setSliceProgress] = useState(0);
-  const [sliceError, setSliceError] = useState<string | null>(null);
-
-  const [exportStatus, setExportStatus] = useState<"idle" | "running" | "success" | "error">("idle");
-  const [exportPath, setExportPath] = useState<string | null>(null);
-  const [exportError, setExportError] = useState<string | null>(null);
-
-  const activeContent = reportMdx || findingsMd || "";
-  
-  const quotes = useMemo(() => {
-    const parsed = parseQuotesFromMarkdown(activeContent);
-    
-    // Also extract from <Clip /> components
-    const clipMatches = activeContent.matchAll(/<Clip\s+(.*?)\s*\/>/g);
-    for (const match of clipMatches) {
-      const attrs = match[1];
-      const getAttr = (name: string) => {
-        const m = attrs.match(new RegExp(`${name}=["{](.*?)["}]`));
-        return m ? m[1] : null;
-      };
-      
-      const startStr = getAttr('start');
-      const startSec = startStr ? parseInt(startStr, 10) : 0;
-      const durStr = getAttr('duration') || getAttr('clipDuration');
-      const durationSec = durStr ? parseInt(durStr, 10) : 20;
-      const sessStr = getAttr('sessionIndex');
-      const sessionIndex = sessStr ? parseInt(sessStr, 10) : 1;
-      
-      // Only add if not already present (based on session and start)
-      if (!parsed.some(q => q.sessionIndex === sessionIndex && q.startSeconds === startSec)) {
-        parsed.push({
-          text: getAttr('label') || "Clip",
-          timestampDisplay: "", // Not needed for slicing
-          startSeconds: startSec,
-          durationSeconds: durationSec,
-          sessionIndex: sessionIndex,
-          tags: [],
-          rawLine: match[0]
-        });
-      }
-    }
-    
-    return parsed;
-  }, [activeContent]);
-
-  const handleSlice = async () => {
-    if (quotes.length === 0) {
-      setSliceError("No clips found in report or findings.");
-      setSlicingStatus("error");
-      return;
-    }
-
-    setSlicingStatus("running");
-    setSliceProgress(0);
-    setSliceError(null);
-
+  const handleDeleteRecord = async (url: string) => {
+    setDeletingUrl(url);
     try {
-      const response = await fetch("/api/export/slice", {
-        method: "POST",
+      await fetch("/api/publish", {
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, quotes }),
+        body: JSON.stringify({ slug, url }),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to slice clips");
-      }
-
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.current && data.total) {
-                setSliceProgress((data.current / data.total) * 100);
-              }
-              if (data.error) {
-                setSliceError(data.error);
-                setSlicingStatus("error");
-              }
-              if (data.done) {
-                setSlicingStatus("success");
-                setSliceProgress(100);
-              }
-            } catch (e) {
-              console.error("Error parsing SSE chunk", e);
-            }
-          }
-        }
-      }
-    } catch (err: any) {
-      setSliceError(err.message);
-      setSlicingStatus("error");
+      await fetchProject();
+    } finally {
+      setDeletingUrl(null);
     }
   };
 
-  const handleExportHtml = async (timestampsOnly: boolean = false) => {
-    setExportStatus("running");
-    setExportError(null);
+  const canPublish = project?.status === "exported" || project?.status === "published";
+  const records: PublishRecord[] = project?.publishedUrls ?? [];
+  const isPublished = records.length > 0;
 
-    try {
-      const res = await fetch("/api/export/html", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, reportMdx: activeContent, quotes, timestampsOnly }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to generate HTML report");
-      }
-
-      const data = await res.json();
-      setExportPath(data.path);
-      setExportStatus("success");
-      fetchProject();
-    } catch (err: any) {
-      setExportError(err.message);
-      setExportStatus("error");
-    }
-  };
-
-  const handleDownloadMarkdown = () => {
-    // Download report.mdx if it exists, otherwise findings.md
-    const filename = reportMdx ? "report.mdx" : "findings.md";
-    window.open(`/api/projects/${slug}/files/${filename}`, "_blank");
-  };
-
-  if (loadingReport && loadingFindings) {
+  if (!project) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Finalize & Export</h1>
-        <p className="text-slate-500">Turn your research findings into a portable HTML report with video evidence.</p>
-      </header>
+    <div className="mx-auto max-w-2xl px-6 py-10">
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Cloud Storage</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Publish your exported report to a destination for stakeholders to access.
+        </p>
+      </div>
 
-      <div className="space-y-6">
-        {/* Step 1: Slice Video Clips */}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
-                slicingStatus === "success" ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-600"
-              }`}>
-                {slicingStatus === "success" ? <CheckCircle className="h-5 w-5" /> : "1"}
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-900">Slice Video Clips</h2>
-                <p className="text-sm text-slate-500">Extract {quotes.length} clips as standalone MP4 files.</p>
-              </div>
-            </div>
-            <button
-              onClick={handleSlice}
-              disabled={slicingStatus === "running"}
-              className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
-            >
-              {slicingStatus === "running" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-              {slicingStatus === "success" ? "Re-slice Clips" : "Start Slicing"}
-            </button>
-          </div>
-
-          {slicingStatus === "running" && (
-            <div className="mt-4">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                <div 
-                  className="h-full bg-slate-900 transition-all duration-500" 
-                  style={{ width: `${sliceProgress}%` }}
-                />
-              </div>
-              <p className="mt-2 text-center text-xs text-slate-400 font-medium">Processing video segments... (this may take a minute)</p>
-            </div>
-          )}
-
-          {slicingStatus === "error" && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              <span>{sliceError}</span>
-            </div>
-          )}
-
-          {slicingStatus === "success" && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-              <CheckCircle className="h-4 w-4" />
-              <span>Successfully sliced {quotes.length} clips to project folder.</span>
-            </div>
-          )}
-        </section>
-
-        {/* Step 2: Generate HTML Report */}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
-                exportStatus === "success" ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-600"
-              }`}>
-                {exportStatus === "success" ? <CheckCircle className="h-5 w-5" /> : "2"}
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-900">Generate HTML Report</h2>
-                <p className="text-sm text-slate-500">Create a self-contained HTML file.</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleExportHtml(false)}
-                disabled={exportStatus === "running"}
-                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
+      <div className="space-y-4">
+        {/* Export required notice */}
+        {!canPublish && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            <p className="text-sm text-amber-800">
+              You need to{" "}
+              <Link
+                href={`/builder/${slug}/report`}
+                className="font-semibold underline underline-offset-2 hover:text-amber-900"
               >
-                {exportStatus === "running" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                {exportStatus === "success" ? "Regenerate HTML" : "Generate HTML"}
-              </button>
-            </div>
+                export your report
+              </Link>{" "}
+              from the Report tab before publishing.
+            </p>
           </div>
+        )}
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <button
-              onClick={() => handleExportHtml(false)}
-              className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
-            >
-              <span className="font-semibold text-slate-900">HTML (with clips)</span>
-              <span className="text-xs text-slate-500">Includes sliced video files. Slicing required first.</span>
-            </button>
-            <button
-              onClick={() => handleExportHtml(true)}
-              className="flex flex-col items-start gap-1 rounded-lg border border-slate-200 p-4 text-left transition-hover hover:bg-slate-50"
-            >
-              <span className="font-semibold text-slate-900">HTML (timestamps only)</span>
-              <span className="text-xs text-slate-500">Instant generation. Links to original videos.</span>
-            </button>
-          </div>
-
-          {exportStatus === "error" && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              <span>{exportError}</span>
-            </div>
-          )}
-
-          {exportStatus === "success" && (
-            <div className="mt-6 flex flex-col gap-4">
-              <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                <span>HTML report ready! You can find it in <code>content/projects/{slug}/export/index.html</code>.</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={`/api/projects/${slug}/files/export/index.html`}
-                  target="_blank"
-                  className="flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
-                >
-                  <Download className="h-4 w-4" />
-                  Preview Exported HTML
-                </a>
-                <button
-                  onClick={handleDownloadMarkdown}
-                  className="flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Raw Markdown
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Step 3: Publish to Destination */}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
+        {/* Publish card */}
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold ${
-                project?.status === "published" ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-600"
-              }`}>
-                {project?.status === "published" ? <CheckCircle className="h-5 w-5" /> : "3"}
+              <div
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                  isPublished
+                    ? "bg-green-100 text-green-600"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {isPublished ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <CloudUpload className="h-5 w-5" />
+                )}
               </div>
               <div>
-                <h2 className="font-semibold text-slate-900">Publish to Destination</h2>
-                <p className="text-sm text-slate-500">Share your report with stakeholders.</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {isPublished ? "Published" : "Publish report"}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {isPublished
+                    ? `${records.length} destination${records.length > 1 ? "s" : ""}`
+                    : "Choose where to store your export"}
+                </p>
               </div>
             </div>
             <button
               onClick={() => setIsPublishModalOpen(true)}
-              disabled={exportStatus !== "success" && project?.status !== "exported" && project?.status !== "published"}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              disabled={!canPublish}
+              className="flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Share2 className="h-4 w-4" />
-              {project?.status === "published" ? "Re-publish" : "Publish Report"}
+              {isPublished ? "Re-publish" : "Publish Report"}
             </button>
           </div>
 
-          {project?.status === "published" && project.publishedUrl && (
-            <div className="mt-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
-                <CheckCircle className="h-4 w-4" />
-                <span>Currently published to:</span>
-              </div>
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <code className="text-xs text-slate-600 truncate mr-4">{project.publishedUrl}</code>
-                <a 
-                  href={project.publishedUrl.startsWith('http') ? project.publishedUrl : `file://${project.publishedUrl}`}
-                  target="_blank"
-                  className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 whitespace-nowrap"
-                >
-                  View Report <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
+          {/* Destination records */}
+          {records.length > 0 && (
+            <ul className="divide-y divide-slate-100">
+              {records.map((record) => (
+                <li key={record.url} className="flex items-center gap-4 px-6 py-4">
+                  {/* Adapter badge */}
+                  <div className="w-24 shrink-0">
+                    <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      {record.adapterName}
+                    </span>
+                  </div>
+
+                  {/* URL + date */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-700">{record.url}</p>
+                    {record.publishedAt && (
+                      <p className="mt-0.5 text-xs text-slate-400">{formatDate(record.publishedAt)}</p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {record.url.startsWith("http") ? (
+                      <a
+                        href={record.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                      >
+                        View <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await fetch("/api/utils/open-folder", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ path: record.url }),
+                            });
+                          } catch (e) {
+                            console.warn("Open folder failed:", e);
+                          }
+                        }}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                      >
+                        <FolderOpen className="h-3 w-3" />
+                        Open
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRecord(record.url)}
+                      disabled={deletingUrl === record.url}
+                      aria-label="Remove publish record"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                    >
+                      {deletingUrl === record.url ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Empty state when can publish but not yet */}
+          {canPublish && !isPublished && (
+            <div className="px-6 py-8 text-center">
+              <p className="text-sm text-slate-400">
+                No destinations yet — click <strong className="text-slate-500">Publish Report</strong> to get started.
+              </p>
             </div>
           )}
+        </div>
 
-          {(exportStatus !== "success" && project?.status !== "exported" && project?.status !== "published") && (
-            <p className="mt-4 text-xs text-slate-400">
-              Note: You must generate the HTML report (Step 2) before you can publish.
-            </p>
-          )}
-        </section>
-
-        {/* Info Box */}
-        <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-          <h3 className="mb-1 font-semibold text-slate-900">Pro Tip</h3>
-          <p>The exported <code>/export</code> folder is fully portable. You can zip it and share it with stakeholders, and they'll be able to watch the clips right in their browser.</p>
+        {/* Pro tip */}
+        <div className="rounded-xl border border-slate-100 bg-slate-50 px-5 py-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Pro Tip</p>
+          <p className="text-sm leading-relaxed text-slate-600">
+            The exported <code className="rounded bg-slate-200 px-1 py-0.5 text-xs">/export</code> folder is
+            fully portable. Zip it and upload to SharePoint, OneDrive, or Google Drive — stakeholders can view
+            the report and watch video clips directly in their browser.
+          </p>
         </div>
       </div>
 
-      <PublishModal 
-        slug={slug} 
-        isOpen={isPublishModalOpen} 
+      <PublishModal
+        slug={slug}
+        isOpen={isPublishModalOpen}
         onClose={() => setIsPublishModalOpen(false)}
-        onSuccess={() => {
-          fetchProject();
-        }}
+        onSuccess={() => fetchProject()}
       />
     </div>
   );

@@ -4,7 +4,6 @@ import path from "path";
 import { Readable } from "stream";
 import { PublishAdapter, PublishPayload, PublishResult } from "../types";
 import { tokenStore } from "@/lib/token-store";
-import { generateViewerHtml } from "@/lib/viewer-template";
 
 /** Escape a value for use inside a Google Drive API query string. */
 function driveEsc(value: string): string {
@@ -62,10 +61,29 @@ export const GoogleDriveAdapter: PublishAdapter = {
   description: "Upload reports to a shared Google Drive folder. Team members can download and open HTML reports locally.",
   icon: "HardDrive",
   configSchema: [
-    { key: "clientId", label: "Google OAuth client ID", type: "text", required: true, placeholder: "xxxxx.apps.googleusercontent.com" },
+    {
+      key: "clientId",
+      label: "Google OAuth client ID",
+      type: "text",
+      required: true,
+      placeholder: "xxxxx.apps.googleusercontent.com",
+      help: {
+        title: "How to create Google OAuth credentials",
+        steps: [
+          { text: "Open Google Cloud Console", url: "https://console.cloud.google.com/" },
+          { text: "Create a new project (or select an existing one) from the project dropdown at the top." },
+          { text: 'Go to APIs & Services → Library, search for "Google Drive API", and click Enable.' },
+          { text: "Go to APIs & Services → Credentials → + Create Credentials → OAuth client ID." },
+          { text: "If prompted, configure the OAuth consent screen first — set User Type to External, fill in the app name, and add your email as a test user." },
+          { text: "Set Application type to Web application." },
+          { text: "Under Authorized redirect URIs, add: http://localhost:3000/api/auth/google/callback" },
+          { text: "Click Create. Copy the Client ID and Client Secret into the fields here." },
+        ],
+      },
+    },
     { key: "clientSecret", label: "Google OAuth client secret", type: "password", required: true },
     { key: "targetFolderId", label: "Drive folder ID", type: "text", required: true, placeholder: "Paste from the folder URL: /folders/{this-part}" },
-    { key: "_oauth", label: "Sign in to Google Drive", type: "oauth", required: true },
+    { key: "_oauth", label: "Sign in to Google Drive", type: "oauth", required: true, provider: "google" },
   ],
 
   async publish(payload: PublishPayload, config: Record<string, any>): Promise<PublishResult> {
@@ -153,14 +171,6 @@ export const GoogleDriveAdapter: PublishAdapter = {
         "application/json"
       );
 
-      // 5. Upload viewer index.html to root folder
-      await uploadOrUpdateFile(
-        drive,
-        "index.html",
-        config.targetFolderId,
-        Buffer.from(generateViewerHtml()),
-        "text/html"
-      );
 
       const folderUrl = `https://drive.google.com/drive/folders/${config.targetFolderId}`;
       return { success: true, message: `Published to Google Drive`, url: folderUrl };
