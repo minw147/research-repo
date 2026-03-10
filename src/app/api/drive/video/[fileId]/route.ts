@@ -23,7 +23,8 @@ export async function GET(
     const driveRes = await fetch(driveUrl, { headers });
 
     if (!driveRes.ok) {
-      return new Response(`Drive error: ${driveRes.status}`, { status: driveRes.status });
+      console.error("[drive/video] Drive error:", driveRes.status);
+      return new Response("Drive error", { status: driveRes.status });
     }
 
     const responseHeaders: Record<string, string> = {

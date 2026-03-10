@@ -20,7 +20,8 @@ export async function GET(
     );
 
     if (!driveRes.ok) {
-      return new Response(`Drive error: ${driveRes.status}`, { status: driveRes.status });
+      console.error("[drive/report] Drive error:", driveRes.status);
+      return new Response("Drive error", { status: driveRes.status });
     }
 
     return new Response(driveRes.body, {
