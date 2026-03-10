@@ -18,6 +18,14 @@ yarn-error.log*
 .env
 .env*.local
 
+# Google OAuth / service account credential files — never commit
+client_secret*.json
+*service-account*.json
+*credentials*.json
+
+# Adapter config with secrets — lives in ~/.research-repo/ (outside repo), gitignored as safety net
+.research-repo/
+
 # Vercel
 .vercel
 
