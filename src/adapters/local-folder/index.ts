@@ -19,6 +19,10 @@ export const LocalFolderAdapter: PublishAdapter = {
       return { success: false, message: "Please choose a folder or location to store the export." };
     }
 
+    if (!project.id || path.basename(project.id) !== project.id) {
+      return { success: false, message: `Invalid project ID: "${project.id}"` };
+    }
+
     try {
       const exportDir = path.join(projectDir, "export");
 
@@ -26,15 +30,11 @@ export const LocalFolderAdapter: PublishAdapter = {
         return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
       }
 
-      if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
-      }
+      fs.mkdirSync(targetPath, { recursive: true });
 
       // Publish to a project-specific subdirectory
       const destDir = path.join(targetPath, project.id);
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-      }
+      fs.mkdirSync(destDir, { recursive: true });
 
       // 1. Copy project files
       // Using cpSync for recursive copy
@@ -91,9 +91,9 @@ export const LocalFolderAdapter: PublishAdapter = {
         message: `Published to ${destDir}`,
         url: path.join(targetPath, "index.html") // Link to the repo viewer
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Publishing to local folder failed:", error);
-      return { success: false, message: `Publish failed: ${error.message}` };
+      return { success: false, message: `Publish failed: ${error instanceof Error ? error.message : String(error)}` };
     }
   }
 };

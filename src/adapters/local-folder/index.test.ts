@@ -49,7 +49,7 @@ describe("LocalFolderAdapter", () => {
   it("should fail if target directory is not provided", async () => {
     const payload = {
       projectDir: tempProjectDir,
-      project: {} as any,
+      project: { id: "test-project", title: "Test" } as any,
       htmlPath: "",
       clipsDir: "",
     };
@@ -65,7 +65,7 @@ describe("LocalFolderAdapter", () => {
 
     const payload = {
       projectDir: tempProjectDir,
-      project: {} as any,
+      project: { id: "test-project", title: "Test" } as any,
       htmlPath: "",
       clipsDir: "",
     };
@@ -74,5 +74,48 @@ describe("LocalFolderAdapter", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toContain("Export directory not found");
+  });
+
+  it("should create repo-index.json with project entry on first publish", async () => {
+    const payload = {
+      projectDir: tempProjectDir,
+      project: { id: "test-project", title: "Test Project", date: "2026-03-09", researcher: "Alice", persona: "Admin", product: "Dashboard" } as any,
+      htmlPath: path.join(tempExportDir, "index.html"),
+      clipsDir: path.join(tempExportDir, "clips"),
+    };
+
+    await LocalFolderAdapter.publish(payload, { targetPath: tempTargetDir });
+
+    const indexPath = path.join(tempTargetDir, "repo-index.json");
+    expect(fs.existsSync(indexPath)).toBe(true);
+    const index = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+    expect(index).toHaveLength(1);
+    expect(index[0].id).toBe("test-project");
+    expect(index[0].findingsHtml).toBe("test-project/index.html");
+  });
+
+  it("should upsert existing entry in repo-index.json on re-publish", async () => {
+    const base = { id: "test-project", title: "Old Title" } as any;
+    const updated = { id: "test-project", title: "New Title" } as any;
+
+    await LocalFolderAdapter.publish({ projectDir: tempProjectDir, project: base, htmlPath: "", clipsDir: "" }, { targetPath: tempTargetDir });
+    await LocalFolderAdapter.publish({ projectDir: tempProjectDir, project: updated, htmlPath: "", clipsDir: "" }, { targetPath: tempTargetDir });
+
+    const index = JSON.parse(fs.readFileSync(path.join(tempTargetDir, "repo-index.json"), "utf-8"));
+    expect(index).toHaveLength(1);
+    expect(index[0].title).toBe("New Title");
+  });
+
+  it("should fail if project.id is invalid (path traversal attempt)", async () => {
+    const payload = {
+      projectDir: tempProjectDir,
+      project: { id: "../other", title: "Bad" } as any,
+      htmlPath: "",
+      clipsDir: "",
+    };
+
+    const result = await LocalFolderAdapter.publish(payload, { targetPath: tempTargetDir });
+    expect(result.success).toBe(false);
+    expect(result.message).toContain("Invalid project ID");
   });
 });
