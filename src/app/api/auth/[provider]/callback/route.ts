@@ -24,7 +24,9 @@ export async function GET(
       let clientId = "", clientSecret = "";
       try {
         ({ clientId, clientSecret } = JSON.parse(decodeURIComponent(state)));
-      } catch {}
+      } catch (parseErr) {
+        console.error("[auth callback] Failed to parse OAuth state:", parseErr);
+      }
 
       const body = new URLSearchParams({
         code,
