@@ -2,16 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design tokens (burnt orange accent) ─────────────────────────────── */
+
+@layer base {
+  :root {
+    --color-primary: #f59f0a;
+    --color-primary-dark: #d97706;
+    --color-background-light: #f8f7f5;
+    --color-background-dark: #221c10;
+  }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ─── Report prose (blog layout) ────────────────────────────────────── */
 
 .report-prose a {
-  color: #137fec;
+  color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
   transition: color 0.15s;
 }
 .report-prose a:hover {
-  color: #0b5db0;
+  color: var(--color-primary-dark);
 }
 .report-prose .report-callout-content p {
   margin-bottom: 0.5rem;

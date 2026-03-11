@@ -47,30 +47,30 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
       <div className="space-y-3 text-sm text-slate-600">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-400" />
+          <Calendar className="w-4 h-4 text-slate-500" />
           <span>{displayDate}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-slate-400" />
+          <User className="w-4 h-4 text-slate-500" />
           <span>{project.researcher}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-slate-400" />
+          <Users className="w-4 h-4 text-slate-500" />
           <span>Persona: {project.persona}</span>
         </div>
 
         {project.product && (
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-slate-400" />
+            <Layers className="w-4 h-4 text-slate-500" />
             <span>Product: {project.product}</span>
           </div>
         )}
 
         <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-slate-500 font-medium">
           <div className="flex items-center gap-1.5 text-xs">
-            <Users className="w-4 h-4 text-slate-400" />
+            <Users className="w-4 h-4 text-slate-500" />
             <span>{project.sessions?.length || 0} sessions</span>
           </div>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-primary text-xs">

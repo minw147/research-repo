@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, FolderPlus } from "lucide-react";
 
 export function NewProjectModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,42 +54,48 @@ export function NewProjectModal() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="group flex flex-col items-center justify-center p-6 h-full min-h-[250px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
+        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
       >
-        <div className="w-12 h-12 rounded-full bg-slate-200 group-hover:bg-blue-200 flex items-center justify-center mb-4 transition-colors">
-          <Plus className="w-6 h-6 text-slate-500 group-hover:text-blue-600" />
+        <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
+          <Plus className="w-5 h-5 text-slate-500 group-hover:text-primary" />
         </div>
-        <span className="text-slate-600 group-hover:text-blue-700 font-medium">
+          <span className="text-sm text-slate-600 group-hover:text-primary-dark font-medium">
           New Project
         </span>
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div
             className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-xl font-semibold text-slate-900">
-                Create New Project
-              </h2>
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                  <FolderPlus className="w-4 h-4" />
+                </div>
+                <h2 className="text-lg font-semibold text-slate-900">Create New Project</h2>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh] overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label htmlFor="project-title" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Project Title *
                 </label>
                 <input
+                  id="project-title"
                   required
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400"
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
                   placeholder="e.g. Checkout Flow Usability"
                   value={formData.title}
                   onChange={(e) =>
@@ -100,12 +106,13 @@ export function NewProjectModal() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <label htmlFor="project-researcher" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Researcher *
                   </label>
                   <input
+                    id="project-researcher"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400"
+                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
                     placeholder="Your Name"
                     value={formData.researcher}
                     onChange={(e) =>
@@ -114,12 +121,13 @@ export function NewProjectModal() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <label htmlFor="project-persona" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Persona *
                   </label>
                   <input
+                    id="project-persona"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400"
+                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
                     placeholder="e.g. New User"
                     value={formData.persona}
                     onChange={(e) =>
@@ -130,11 +138,12 @@ export function NewProjectModal() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label htmlFor="project-product" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Product (optional)
                 </label>
                 <input
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400"
+                  id="project-product"
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
                   placeholder="e.g. Mobile App"
                   value={formData.product}
                   onChange={(e) =>
@@ -144,12 +153,13 @@ export function NewProjectModal() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label htmlFor="project-research-plan" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Research Plan (optional)
                 </label>
                 <textarea
+                  id="project-research-plan"
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400 resize-none"
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400 resize-none"
                   placeholder="Study goals and questions..."
                   value={formData.researchPlan}
                   onChange={(e) =>
@@ -159,12 +169,13 @@ export function NewProjectModal() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label htmlFor="project-codebook" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Codebook
                 </label>
                 <div className="relative">
                   <select
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 appearance-none cursor-pointer"
+                    id="project-codebook"
+                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 appearance-none cursor-pointer"
                     value={formData.codebook || ""}
                     onChange={(e) =>
                       setFormData({
@@ -189,18 +200,19 @@ export function NewProjectModal() {
                 </div>
               </div>
 
-              <div className="pt-6 flex items-center justify-end gap-4 border-t border-slate-100 mt-6">
+              </div>
+              <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-slate-500 hover:text-slate-800 font-medium px-2 py-1 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all shadow-md shadow-blue-500/20"
+                  className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                 >
                   {isLoading ? (
                     <>
