@@ -118,4 +118,24 @@ describe("SharePointOneDriveAdapter", () => {
     expect(result.success).toBe(false);
     expect(result.message).toContain("Invalid project ID");
   });
+
+  it("should include quotes and codebook when tags.md exists", async () => {
+    const tagsMd = `## Delight\n- **"A great moment"** @ 00:10 (10s) | duration: 5s | session: 1 | tags: delight`;
+    fs.writeFileSync(path.join(tempProjectDir, "tags.md"), tagsMd);
+    const payload = { projectDir: tempProjectDir, project: { id: "test-project", title: "T" } as any, htmlPath: "", clipsDir: "" };
+    await SharePointOneDriveAdapter.publish(payload, { syncedPath: tempSyncedDir });
+    const index = JSON.parse(fs.readFileSync(path.join(tempSyncedDir, "repo-index.json"), "utf-8"));
+    expect(Array.isArray(index[0].quotes)).toBe(true);
+    expect(index[0].quotes.length).toBeGreaterThan(0);
+    expect(index[0].quotes[0].clipFile).toMatch(/^clip-\d+-\d+s\.mp4$/);
+    expect(Array.isArray(index[0].codebook)).toBe(true);
+  });
+
+  it("should include empty quotes when tags.md does not exist", async () => {
+    const payload = { projectDir: tempProjectDir, project: { id: "test-project", title: "T" } as any, htmlPath: "", clipsDir: "" };
+    await SharePointOneDriveAdapter.publish(payload, { syncedPath: tempSyncedDir });
+    const index = JSON.parse(fs.readFileSync(path.join(tempSyncedDir, "repo-index.json"), "utf-8"));
+    expect(index[0].quotes).toEqual([]);
+    expect(index[0].codebook).toEqual([]);
+  });
 });

@@ -2,6 +2,8 @@
 import { PublishAdapter, PublishPayload, PublishResult } from "../types";
 import fs from "fs";
 import path from "path";
+import { generateViewerHtml } from "@/lib/viewer-template";
+import { extractProjectTagData } from "@/lib/extract-project-tags";
 
 export const SharePointOneDriveAdapter: PublishAdapter = {
   id: "sharepoint-onedrive",
@@ -55,6 +57,7 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
         }
       }
 
+      const tagData = extractProjectTagData(projectDir, project);
       const entry = {
         id: project.id,
         title: project.title,
@@ -64,6 +67,8 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
         product: project.product,
         findingsHtml: `${project.id}/index.html`,
         publishedUrl: project.publishedUrl ?? null,
+        quotes: tagData.quotes,
+        codebook: tagData.codebook,
       };
 
       const idx = repoIndex.findIndex((p: any) => p.id === project.id);
@@ -74,6 +79,10 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
       }
 
       fs.writeFileSync(indexPath, JSON.stringify(repoIndex, null, 2));
+
+      // Keep the viewer HTML up to date. Data is inlined so stakeholders can
+      // double-click index.html directly from the SharePoint folder (file:// protocol).
+      fs.writeFileSync(path.join(targetPath, "index.html"), generateViewerHtml({ data: repoIndex }), "utf-8");
 
       return {
         success: true,
