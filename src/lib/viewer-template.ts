@@ -1,11 +1,14 @@
 export interface ViewerConfig {
   title?: string;
   subtitle?: string;
+  /** When provided, data is inlined into the HTML so it works via file:// without a server. */
+  data?: object[];
 }
 
 export function generateViewerHtml(config?: ViewerConfig): string {
   const title = config?.title ?? "Research Repository";
   const subtitle = config?.subtitle ?? "Published UX research studies";
+  const inlineData = config?.data ?? null;
 
   const css = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -36,6 +39,32 @@ header p {
   color: #475569;
   font-size: 0.875rem;
 }
+
+.tabs {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 2rem;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+
+.tab-btn.active { color: #0f172a; border-bottom-color: #f59f0a; }
+.tab-btn:hover:not(.active) { color: #0f172a; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 
 .toolbar {
   background: #ffffff;
@@ -188,19 +217,105 @@ select:focus {
   padding: 3rem 1rem;
   font-size: 0.9375rem;
 }
+
+/* Tag board */
+.tag-pill {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  padding: 1.25rem 2rem 2rem;
+}
+
+.quote-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s;
+}
+
+.quote-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+.clip-video {
+  width: 100%;
+  display: block;
+  background: #0f172a;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.quote-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  flex: 1;
+}
+
+.quote-text {
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.quote-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+.quote-meta {
+  font-size: 0.8125rem;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.tb-status { padding: 0.75rem 2rem; color: #64748b; font-size: 0.8125rem; }
+.tb-empty { text-align: center; color: #64748b; padding: 3rem 1rem; font-size: 0.9375rem; grid-column: 1/-1; }
 `.trim();
+
+  const inlineDataScript = inlineData !== null
+    ? `const INLINE_DATA = ${JSON.stringify(inlineData)};`
+    : `const INLINE_DATA = null;`;
 
   const js = `
 const PRIMARY = '#f59f0a';
 let all = [];
 
 async function loadProjects() {
+  // Always try to fetch live data first (works over HTTP/SharePoint URLs).
+  // Fall back to inlined snapshot only if fetch fails (e.g. file:// protocol).
   try {
     const res = await fetch('repo-index.json');
-    all = await res.json();
+    if (res.ok) {
+      all = await res.json();
+      populateSelects();
+      applyFilters();
+      populateTagBoard();
+      return;
+    }
+  } catch(e) {
+    // fetch blocked (file:// protocol) or network error — use inline data below
+  }
+  if (INLINE_DATA !== null) {
+    all = INLINE_DATA;
     populateSelects();
     applyFilters();
-  } catch(e) {
+    populateTagBoard();
+  } else {
     document.getElementById('project-grid').innerHTML =
       '<div class="empty">Failed to load projects.</div>';
   }
@@ -277,6 +392,102 @@ function clearFilters() {
   applyFilters();
 }
 
+// ---- Tag Board ----
+
+function switchTab(name) {
+  ['projects','tagboard'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('active', n === name);
+    document.getElementById('panel-' + n).classList.toggle('active', n === name);
+  });
+  if (name === 'tagboard') renderTagBoard();
+}
+
+function buildTagIndex() {
+  const quotes = [];
+  const codebookMap = {};
+  for (const p of all) {
+    if (!p.quotes) continue;
+    for (const q of p.quotes) {
+      quotes.push({ ...q, projectId: p.id, projectTitle: p.title,
+        researcher: p.researcher, persona: p.persona, product: p.product });
+    }
+    if (p.codebook) {
+      for (const tag of p.codebook) codebookMap[tag.id] = tag;
+    }
+  }
+  return { quotes, codebookMap };
+}
+
+function populateTagBoard() {
+  const { codebookMap } = buildTagIndex();
+  const tagSel = document.getElementById('tb-tag');
+  while (tagSel.options.length > 1) tagSel.remove(1);
+  Object.values(codebookMap).sort((a, b) => a.label.localeCompare(b.label)).forEach(tag => {
+    const o = document.createElement('option');
+    o.value = tag.id; o.textContent = tag.label;
+    tagSel.appendChild(o);
+  });
+  [['tb-project', [...new Set(all.map(p => p.id))].map(id => ({ v: id, t: (all.find(p=>p.id===id)||{}).title||id }))],
+   ['tb-persona', [...new Set(all.map(p => p.persona).filter(Boolean))].sort().map(v=>({v,t:v}))],
+   ['tb-product', [...new Set(all.map(p => p.product).filter(Boolean))].sort().map(v=>({v,t:v}))]
+  ].forEach(([selId, items]) => {
+    const sel = document.getElementById(selId);
+    while (sel.options.length > 1) sel.remove(1);
+    items.forEach(({v, t}) => { const o = document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); });
+  });
+}
+
+function renderTagBoard() {
+  const { quotes, codebookMap } = buildTagIndex();
+  const q = document.getElementById('tb-search').value.toLowerCase();
+  const activeTag = document.getElementById('tb-tag').value;
+  const activeProject = document.getElementById('tb-project').value;
+  const activePersona = document.getElementById('tb-persona').value;
+  const activeProduct = document.getElementById('tb-product').value;
+
+  const filtered = quotes.filter(qt => {
+    if (q && !qt.text.toLowerCase().includes(q)) return false;
+    if (activeTag !== 'all' && !qt.tags.includes(activeTag)) return false;
+    if (activeProject !== 'all' && qt.projectId !== activeProject) return false;
+    if (activePersona !== 'all' && qt.persona !== activePersona) return false;
+    if (activeProduct !== 'all' && qt.product !== activeProduct) return false;
+    return true;
+  });
+
+  document.getElementById('tb-count').textContent =
+    filtered.length + ' ' + (filtered.length === 1 ? 'quote' : 'quotes');
+
+  const grid = document.getElementById('quote-grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="tb-empty">No quotes match your filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(qt => {
+    const clipSrc = qt.clipFile ? escAttr(qt.projectId + '/clips/' + qt.clipFile) : null;
+    const tagPills = (qt.tags||[]).map(tagId => {
+      const tag = codebookMap[tagId];
+      if (!tag) return '';
+      return \`<span class="tag-pill" style="background:\${escAttr(tag.color)}">\${escHtml(tag.label)}</span>\`;
+    }).join('');
+    return \`
+      <div class="quote-card">
+        \${clipSrc ? \`<video class="clip-video" controls preload="none"><source src="\${clipSrc}" type="video/mp4"></video>\` : ''}
+        <div class="quote-body">
+          <div class="quote-text">"\${escHtml(qt.text)}"</div>
+          \${tagPills ? \`<div class="quote-tags">\${tagPills}</div>\` : ''}
+          <div class="quote-meta">
+            \${qt.projectTitle ? \`<span><strong>\${escHtml(qt.projectTitle)}</strong></span>\` : ''}
+            \${qt.researcher ? \`<span>Researcher: \${escHtml(qt.researcher)}</span>\` : ''}
+            \${qt.persona ? \`<span>Persona: \${escHtml(qt.persona)}</span>\` : ''}
+            \${qt.product ? \`<span>Product: \${escHtml(qt.product)}</span>\` : ''}
+            \${qt.timestampDisplay ? \`<span>\${escHtml(qt.timestampDisplay)}</span>\` : ''}
+          </div>
+        </div>
+      </div>\`;
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('search').addEventListener('input', applyFilters);
   document.getElementById('f-researcher').addEventListener('change', applyFilters);
@@ -284,6 +495,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('f-product').addEventListener('change', applyFilters);
   document.getElementById('f-sort').addEventListener('change', applyFilters);
   document.getElementById('btn-clear').addEventListener('click', clearFilters);
+
+  document.getElementById('tb-search').addEventListener('input', renderTagBoard);
+  document.getElementById('tb-tag').addEventListener('change', renderTagBoard);
+  document.getElementById('tb-project').addEventListener('change', renderTagBoard);
+  document.getElementById('tb-persona').addEventListener('change', renderTagBoard);
+  document.getElementById('tb-product').addEventListener('change', renderTagBoard);
+  document.getElementById('tb-clear').addEventListener('click', () => {
+    document.getElementById('tb-search').value = '';
+    ['tb-tag','tb-project','tb-persona','tb-product'].forEach(id =>
+      document.getElementById(id).value = 'all'
+    );
+    renderTagBoard();
+  });
+
   loadProjects();
 });
 `.trim();
@@ -304,36 +529,55 @@ ${css}
     <p>${escapeHtmlText(subtitle)}</p>
   </header>
 
-  <div class="toolbar">
-    <div class="search-wrap">
-      <input type="search" id="search" placeholder="Search studies…" autocomplete="off">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-projects" onclick="switchTab('projects')">Projects</button>
+    <button class="tab-btn" id="tab-tagboard" onclick="switchTab('tagboard')">Tag Board</button>
+  </div>
+
+  <!-- Projects panel -->
+  <div class="tab-panel active" id="panel-projects">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input type="search" id="search" placeholder="Search studies…" autocomplete="off">
+      </div>
+      <select id="f-researcher">
+        <option value="all">All researchers</option>
+      </select>
+      <select id="f-persona">
+        <option value="all">All personas</option>
+      </select>
+      <select id="f-product">
+        <option value="all">All products</option>
+      </select>
+      <select id="f-sort">
+        <option value="date-desc">Newest first</option>
+        <option value="date-asc">Oldest first</option>
+        <option value="title-asc">Title A–Z</option>
+      </select>
+      <button class="btn-clear" id="btn-clear">Clear filters</button>
     </div>
-    <select id="f-researcher">
-      <option value="all">All researchers</option>
-    </select>
-    <select id="f-persona">
-      <option value="all">All personas</option>
-    </select>
-    <select id="f-product">
-      <option value="all">All products</option>
-    </select>
-    <select id="f-sort">
-      <option value="date-desc">Newest first</option>
-      <option value="date-asc">Oldest first</option>
-      <option value="title-asc">Title A–Z</option>
-    </select>
-    <button class="btn-clear" id="btn-clear">Clear filters</button>
+    <div class="status-bar"><span id="count">0 studies</span></div>
+    <div class="grid" id="project-grid"><div class="empty">Loading studies…</div></div>
   </div>
 
-  <div class="status-bar">
-    <span id="count">0 studies</span>
-  </div>
-
-  <div class="grid" id="project-grid">
-    <div class="empty">Loading studies…</div>
+  <!-- Tag Board panel -->
+  <div class="tab-panel" id="panel-tagboard">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input type="search" id="tb-search" placeholder="Search quotes…" autocomplete="off">
+      </div>
+      <select id="tb-tag"><option value="all">All tags</option></select>
+      <select id="tb-project"><option value="all">All projects</option></select>
+      <select id="tb-persona"><option value="all">All personas</option></select>
+      <select id="tb-product"><option value="all">All products</option></select>
+      <button class="btn-clear" id="tb-clear">Clear filters</button>
+    </div>
+    <div class="tb-status"><span id="tb-count">0 quotes</span></div>
+    <div class="quote-grid" id="quote-grid"><div class="tb-empty">Loading…</div></div>
   </div>
 
   <script>
+${inlineDataScript}
 ${js}
   </script>
 </body>
