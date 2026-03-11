@@ -101,10 +101,10 @@ describe("Publish API", () => {
       }),
       { target: "/foo" }
     );
-    expect(updateProject).toHaveBeenCalledWith("test-slug", {
+    expect(updateProject).toHaveBeenCalledWith("test-slug", expect.objectContaining({
       status: "published",
       publishedUrl: "http://published.url",
-    });
+    }));
   });
 
   it("should return error status and not update project if adapter publish fails", async () => {

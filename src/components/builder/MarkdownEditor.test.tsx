@@ -11,17 +11,18 @@ let capturedExtensions: any[] = [];
 
 vi.mock("@uiw/react-codemirror", () => {
   return {
-    default: React.forwardRef((props: any, ref: any) => {
+    default: React.forwardRef(function MockCodeMirror(props: any, ref: any) {
       const { value, onChange, extensions } = props;
       capturedExtensions = extensions;
-      
+
       const mockView = {
         posAtCoords: mockPosAtCoords,
         dispatch: mockDispatch,
         focus: mockFocus,
         state: {
           doc: {
-            lineAt: vi.fn().mockReturnValue({ to: 10 }), // Mock line info
+            lineAt: vi.fn().mockReturnValue({ to: 10 }),
+            toString: () => value, // Return current editor value so valueToPass logic stays correct
           },
         },
       };
@@ -44,6 +45,11 @@ vi.mock("@uiw/react-codemirror", () => {
 describe("MarkdownEditor", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.stubGlobal("ResizeObserver", class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    });
   });
 
   afterEach(() => {
@@ -64,29 +70,29 @@ describe("MarkdownEditor", () => {
     const container = screen.getByTestId("markdown-editor-container");
     expect(container).toHaveAttribute("role", "region");
     expect(container).toHaveAttribute("aria-label", "Markdown editor drop zone");
-    
+
     const editor = screen.getByTestId("mock-codemirror");
     expect(editor).toHaveValue("# Initial Content");
   });
 
-  it("debounces onChange calls by 2 seconds", () => {
+  it("debounces onChange calls by 6 seconds", () => {
     render(<MarkdownEditor {...mockProps} />);
     const editor = screen.getByTestId("mock-codemirror");
-    
+
     fireEvent.change(editor, { target: { value: "# Changed Content" } });
-    
+
     // Should not be called immediately
     expect(mockProps.onChange).not.toHaveBeenCalled();
-    
-    // Fast-forward 1 second
+
+    // Fast-forward 3 seconds — still within debounce window
     act(() => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(3000);
     });
     expect(mockProps.onChange).not.toHaveBeenCalled();
-    
-    // Fast-forward another 1.1 seconds
+
+    // Fast-forward another 3.1 seconds — past the 6s debounce
     act(() => {
-      vi.advanceTimersByTime(1100);
+      vi.advanceTimersByTime(3100);
     });
     expect(mockProps.onChange).toHaveBeenCalledWith("# Changed Content");
   });
@@ -94,24 +100,24 @@ describe("MarkdownEditor", () => {
   it("resets debounce timer on subsequent changes", () => {
     render(<MarkdownEditor {...mockProps} />);
     const editor = screen.getByTestId("mock-codemirror");
-    
+
     fireEvent.change(editor, { target: { value: "first" } });
-    
+
     act(() => {
-      vi.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(3000);
     });
     expect(mockProps.onChange).not.toHaveBeenCalled();
-    
+
     fireEvent.change(editor, { target: { value: "second" } });
-    
+
     act(() => {
-      vi.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(3000);
     });
-    // Total 3 seconds since first call, but only 1.5 since last
+    // 3s since second change, timer reset, not called yet
     expect(mockProps.onChange).not.toHaveBeenCalled();
-    
+
     act(() => {
-      vi.advanceTimersByTime(501);
+      vi.advanceTimersByTime(3001);
     });
     expect(mockProps.onChange).toHaveBeenCalledWith("second");
     expect(mockProps.onChange).toHaveBeenCalledTimes(1);
@@ -121,7 +127,7 @@ describe("MarkdownEditor", () => {
     const { rerender } = render(<MarkdownEditor {...mockProps} />);
     const editor = screen.getByTestId("mock-codemirror");
     expect(editor).toHaveValue("# Initial Content");
-    
+
     rerender(<MarkdownEditor {...mockProps} content="# New External Content" />);
     expect(editor).toHaveValue("# New External Content");
   });
@@ -129,10 +135,10 @@ describe("MarkdownEditor", () => {
   it("handles drop events, snaps to line end, and adds newlines", () => {
     render(<MarkdownEditor {...mockProps} />);
     const container = screen.getByTestId("markdown-editor-container");
-    
+
     const dropData = "> Quoted text";
     const dropEvent = createEvent.drop(container);
-    
+
     Object.defineProperty(dropEvent, 'clientX', { value: 100 });
     Object.defineProperty(dropEvent, 'clientY', { value: 100 });
     Object.defineProperty(dropEvent, 'dataTransfer', {
@@ -142,14 +148,14 @@ describe("MarkdownEditor", () => {
     });
 
     fireEvent(container, dropEvent);
-    
+
     expect(mockPosAtCoords).toHaveBeenCalledWith({ x: 100, y: 100 });
     // In our mock, posAtCoords returns 0, lineAt returns line with .to = 10
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-      changes: { 
-        from: 10, 
-        to: 10, 
-        insert: "\n\n" + dropData 
+      changes: {
+        from: 10,
+        to: 10,
+        insert: "\n\n" + dropData
       }
     }));
     expect(mockFocus).toHaveBeenCalled();
@@ -158,16 +164,16 @@ describe("MarkdownEditor", () => {
   it("handles dragOver and sets copy effect", () => {
     render(<MarkdownEditor {...mockProps} />);
     const container = screen.getByTestId("markdown-editor-container");
-    
+
     const dragEvent = createEvent.dragOver(container);
     const dropEffectWrapper = { dropEffect: "none" };
-    
+
     Object.defineProperty(dragEvent, 'dataTransfer', {
       value: dropEffectWrapper,
     });
 
     fireEvent(container, dragEvent);
-    
+
     expect(dropEffectWrapper.dropEffect).toBe("copy");
   });
 });

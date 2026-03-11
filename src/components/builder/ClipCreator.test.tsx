@@ -33,26 +33,26 @@ describe("ClipCreator", () => {
       />
     );
 
-    const line1 = screen.getByText("Line 1").parentElement;
-    line1?.setAttribute("data-timestamp", "10");
-    line1?.setAttribute("data-duration", "2");
+    const textNode = screen.getByText("Line 1").firstChild;
+    if (!textNode) throw new Error("DOM structure missing");
 
     const mockSelection = {
       toString: () => "selected text",
       rangeCount: 1,
       isCollapsed: false,
       getRangeAt: () => ({
-        startContainer: { parentElement: line1 },
-        endContainer: { parentElement: line1 },
+        startContainer: textNode,
+        endContainer: textNode,
+        commonAncestorContainer: textNode,
         getBoundingClientRect: () => ({ top: 100, left: 200, width: 50, height: 20 }),
       }),
       removeAllRanges: vi.fn(),
     };
     vi.stubGlobal("getSelection", () => mockSelection);
 
-    const container = screen.getByText("Line 1").parentElement?.parentElement?.parentElement;
+    const container = screen.getByText("Line 1").closest(".overflow-y-auto");
     if (!container) throw new Error("Could not find container");
-    
+
     fireEvent.mouseUp(container);
 
     const clipButton = await screen.findByRole("button", { name: /Create Clip/i });
@@ -77,23 +77,24 @@ describe("ClipCreator", () => {
       />
     );
 
-    const line1 = screen.getByText("Line 1").parentElement;
-    line1?.setAttribute("data-timestamp", "10");
+    const textNode = screen.getByText("Line 1").firstChild;
+    if (!textNode) throw new Error("DOM structure missing");
 
     const mockSelection = {
       toString: () => "selected text",
       rangeCount: 1,
       isCollapsed: false,
       getRangeAt: () => ({
-        startContainer: { parentElement: line1 },
-        endContainer: { parentElement: line1 },
+        startContainer: textNode,
+        endContainer: textNode,
+        commonAncestorContainer: textNode,
         getBoundingClientRect: () => ({ top: 100, left: 200, width: 50, height: 20 }),
       }),
       removeAllRanges: vi.fn(),
     };
     vi.stubGlobal("getSelection", () => mockSelection);
 
-    const container = screen.getByText("Line 1").parentElement?.parentElement?.parentElement;
+    const container = screen.getByText("Line 1").closest(".overflow-y-auto");
     if (!container) throw new Error("Could not find container");
 
     fireEvent.mouseUp(container);
@@ -101,7 +102,10 @@ describe("ClipCreator", () => {
     const clipButton = await screen.findByRole("button", { name: /Create Clip/i });
     expect(clipButton).toBeInTheDocument();
 
-    fireEvent.click(container);
+    // Click the outer ClipCreator wrapper (outside [data-transcript-root]) to clear selection
+    const outerWrapper = container.closest(".relative");
+    if (!outerWrapper) throw new Error("Could not find outer wrapper");
+    fireEvent.click(outerWrapper);
 
     expect(screen.queryByText("Clip")).not.toBeInTheDocument();
   });

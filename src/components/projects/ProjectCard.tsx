@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Calendar, User, Users, Layers, ExternalLink } from "lucide-react";
+import { Calendar, User, Users, Layers, ArrowRight } from "lucide-react";
 import type { Project, ProjectStatus } from "@/types";
 
 const statusColors: Record<ProjectStatus, string> = {
@@ -30,10 +30,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/builder/${project.id}/findings`}
-      className="group block p-6 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200"
+      className="group block p-4 bg-white border border-slate-200 rounded-xl hover:border-primary/40 hover:shadow-lg transition-all duration-200"
     >
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">
           {project.title}
         </h3>
         <span
@@ -68,13 +68,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         )}
 
-        <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-slate-500 font-medium">
+        <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-slate-500 font-medium">
           <div className="flex items-center gap-1.5 text-xs">
             <Users className="w-4 h-4 text-slate-400" />
             <span>{project.sessions?.length || 0} sessions</span>
           </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-blue-600 text-xs">
-            Open <ExternalLink className="w-3 h-3" />
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-primary text-xs">
+            Open <ArrowRight className="w-3 h-3" />
           </div>
         </div>
       </div>

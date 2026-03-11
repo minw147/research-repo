@@ -229,17 +229,85 @@ select:focus {
   line-height: 1.5;
 }
 
-.quote-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.25rem;
-  padding: 1.25rem 2rem 2rem;
-}
+.tb-status { padding: 0.75rem 2rem; color: #64748b; font-size: 0.8125rem; }
+.tb-empty { text-align: center; color: #64748b; padding: 3rem 1rem; font-size: 0.9375rem; }
 
-.quote-card {
+/* Tag sections */
+.tb-sections { padding: 1rem 2rem 2rem; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.tag-section {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.tag-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.tag-section-header:hover { background: #f8f7f5; }
+
+.tag-section-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tag-section-label { flex: 1; }
+
+.tag-section-count {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.tag-chevron {
+  color: #94a3b8;
+  font-size: 0.625rem;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.tag-section-header.open .tag-chevron { transform: rotate(90deg); }
+
+.tag-section-body {
+  display: none;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tag-section-body.open { display: block; }
+
+.quote-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.quote-card {
+  background: #f8f7f5;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.625rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -247,6 +315,33 @@ select:focus {
 }
 
 .quote-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+/* Click-to-play video thumb */
+.clip-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.clip-thumb:hover { background: #1e293b; }
+
+.clip-play-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
 
 .clip-video {
   width: 100%;
@@ -257,15 +352,15 @@ select:focus {
 }
 
 .quote-body {
-  padding: 1rem;
+  padding: 0.875rem;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.5rem;
   flex: 1;
 }
 
 .quote-text {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-style: italic;
   color: #0f172a;
   line-height: 1.5;
@@ -274,17 +369,14 @@ select:focus {
 .quote-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; }
 
 .quote-meta {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #64748b;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   margin-top: auto;
   padding-top: 0.5rem;
 }
-
-.tb-status { padding: 0.75rem 2rem; color: #64748b; font-size: 0.8125rem; }
-.tb-empty { text-align: center; color: #64748b; padding: 3rem 1rem; font-size: 0.9375rem; grid-column: 1/-1; }
 `.trim();
 
   const inlineDataScript = inlineData !== null
@@ -437,6 +529,21 @@ function populateTagBoard() {
   });
 }
 
+function toggleTagSection(header) {
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  header.nextElementSibling.classList.toggle('open', !isOpen);
+}
+
+function playClip(thumb, src) {
+  const video = document.createElement('video');
+  video.src = src;
+  video.controls = true;
+  video.autoplay = true;
+  video.className = 'clip-video';
+  thumb.replaceWith(video);
+}
+
 function renderTagBoard() {
   const { quotes, codebookMap } = buildTagIndex();
   const q = document.getElementById('tb-search').value.toLowerCase();
@@ -447,45 +554,86 @@ function renderTagBoard() {
 
   const filtered = quotes.filter(qt => {
     if (q && !qt.text.toLowerCase().includes(q)) return false;
-    if (activeTag !== 'all' && !qt.tags.includes(activeTag)) return false;
+    if (activeTag !== 'all' && !(qt.tags || []).includes(activeTag)) return false;
     if (activeProject !== 'all' && qt.projectId !== activeProject) return false;
     if (activePersona !== 'all' && qt.persona !== activePersona) return false;
     if (activeProduct !== 'all' && qt.product !== activeProduct) return false;
     return true;
   });
 
-  document.getElementById('tb-count').textContent =
-    filtered.length + ' ' + (filtered.length === 1 ? 'quote' : 'quotes');
+  const container = document.getElementById('quote-grid');
 
-  const grid = document.getElementById('quote-grid');
   if (!filtered.length) {
-    grid.innerHTML = '<div class="tb-empty">No quotes match your filters.</div>';
+    container.innerHTML = '<div class="tb-empty">No quotes match your filters.</div>';
+    document.getElementById('tb-count').textContent = '0 quotes';
     return;
   }
 
-  grid.innerHTML = filtered.map(qt => {
-    const clipSrc = qt.clipFile ? escAttr(qt.projectId + '/clips/' + qt.clipFile) : null;
-    const tagPills = (qt.tags||[]).map(tagId => {
-      const tag = codebookMap[tagId];
-      if (!tag) return '';
-      return \`<span class="tag-pill" style="background:\${escAttr(tag.color)}">\${escHtml(tag.label)}</span>\`;
+  document.getElementById('tb-count').textContent =
+    filtered.length + ' ' + (filtered.length === 1 ? 'quote' : 'quotes');
+
+  // Group quotes by tag — a quote with 2 tags appears in both sections
+  const byTag = {};
+  for (const [tagId, tag] of Object.entries(codebookMap)) {
+    byTag[tagId] = { tag, quotes: [] };
+  }
+  for (const qt of filtered) {
+    for (const tagId of (qt.tags || [])) {
+      if (!byTag[tagId]) byTag[tagId] = { tag: { id: tagId, label: tagId, color: '#94a3b8', category: '' }, quotes: [] };
+      byTag[tagId].quotes.push(qt);
+    }
+  }
+
+  const sections = Object.values(byTag)
+    .filter(({ quotes }) => quotes.length > 0)
+    .sort((a, b) => a.tag.label.localeCompare(b.tag.label));
+
+  // When a single tag is active, auto-expand it
+  const autoExpand = activeTag !== 'all';
+
+  container.innerHTML = '<div class="tb-sections">' + sections.map(({ tag, quotes: sectionQuotes }) => {
+    const isOpen = autoExpand;
+    const cards = sectionQuotes.map(qt => {
+      const clipSrc = qt.clipFile ? escAttr(qt.projectId + '/clips/' + qt.clipFile) : null;
+      const tagPills = (qt.tags||[]).map(tid => {
+        const t = codebookMap[tid];
+        return t ? \`<span class="tag-pill" style="background:\${escAttr(t.color)}">\${escHtml(t.label)}</span>\` : '';
+      }).join('');
+      return \`
+        <div class="quote-card">
+          \${clipSrc
+            ? \`<div class="clip-thumb" onclick="playClip(this, '\${clipSrc}')">
+                <div class="clip-play-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              </div>\`
+            : ''}
+          <div class="quote-body">
+            <div class="quote-text">"\${escHtml(qt.text)}"</div>
+            \${tagPills ? \`<div class="quote-tags">\${tagPills}</div>\` : ''}
+            <div class="quote-meta">
+              \${qt.projectTitle ? \`<span><strong>\${escHtml(qt.projectTitle)}</strong></span>\` : ''}
+              \${qt.researcher ? \`<span>Researcher: \${escHtml(qt.researcher)}</span>\` : ''}
+              \${qt.persona ? \`<span>Persona: \${escHtml(qt.persona)}</span>\` : ''}
+              \${qt.product ? \`<span>Product: \${escHtml(qt.product)}</span>\` : ''}
+              \${qt.timestampDisplay ? \`<span>\${escHtml(qt.timestampDisplay)}</span>\` : ''}
+            </div>
+          </div>
+        </div>\`;
     }).join('');
     return \`
-      <div class="quote-card">
-        \${clipSrc ? \`<video class="clip-video" controls preload="none"><source src="\${clipSrc}" type="video/mp4"></video>\` : ''}
-        <div class="quote-body">
-          <div class="quote-text">"\${escHtml(qt.text)}"</div>
-          \${tagPills ? \`<div class="quote-tags">\${tagPills}</div>\` : ''}
-          <div class="quote-meta">
-            \${qt.projectTitle ? \`<span><strong>\${escHtml(qt.projectTitle)}</strong></span>\` : ''}
-            \${qt.researcher ? \`<span>Researcher: \${escHtml(qt.researcher)}</span>\` : ''}
-            \${qt.persona ? \`<span>Persona: \${escHtml(qt.persona)}</span>\` : ''}
-            \${qt.product ? \`<span>Product: \${escHtml(qt.product)}</span>\` : ''}
-            \${qt.timestampDisplay ? \`<span>\${escHtml(qt.timestampDisplay)}</span>\` : ''}
-          </div>
+      <div class="tag-section">
+        <button class="tag-section-header\${isOpen ? ' open' : ''}" onclick="toggleTagSection(this)">
+          <span class="tag-section-dot" style="background:\${escAttr(tag.color)}"></span>
+          <span class="tag-section-label">\${escHtml(tag.label)}</span>
+          <span class="tag-section-count">\${sectionQuotes.length}</span>
+          <span class="tag-chevron">&#9654;</span>
+        </button>
+        <div class="tag-section-body\${isOpen ? ' open' : ''}">
+          <div class="quote-cards">\${cards}</div>
         </div>
       </div>\`;
-  }).join('');
+  }).join('') + '</div>';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -573,7 +721,7 @@ ${css}
       <button class="btn-clear" id="tb-clear">Clear filters</button>
     </div>
     <div class="tb-status"><span id="tb-count">0 quotes</span></div>
-    <div class="quote-grid" id="quote-grid"><div class="tb-empty">Loading…</div></div>
+    <div id="quote-grid"></div>
   </div>
 
   <script>

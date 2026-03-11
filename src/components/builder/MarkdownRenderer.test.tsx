@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { Codebook } from "@/types";
@@ -76,7 +76,10 @@ describe("MarkdownRenderer", () => {
     );
 
     const quoteCard = screen.getByTestId("quote-card");
+    vi.useFakeTimers();
     fireEvent.click(quoteCard);
+    act(() => { vi.advanceTimersByTime(300); });
+    vi.useRealTimers();
 
     expect(mockOnQuoteClick).toHaveBeenCalledWith(
       expect.objectContaining({
