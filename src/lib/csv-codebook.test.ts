@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseCsvCodebook, CsvRow } from "./csv-codebook";
+import { parseCsvCodebook } from "./csv-codebook";
 
 describe("parseCsvCodebook", () => {
   it("parses valid CSV with header row", () => {
