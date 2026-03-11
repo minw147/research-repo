@@ -5,6 +5,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
+// Note: these tests call the real sliceTagClips, which guards on getFfmpegPath().
+// When FFmpeg is absent (CI / dev without ffmpeg-static), sliceTagClips returns []
+// without error. Clip-slicing logic is therefore not exercised here; it is covered
+// by the slice-tag-clips unit tests which mock the ffmpeg binary directly.
 describe("LocalFolderAdapter", () => {
   let tempProjectDir: string;
   let tempExportDir: string;
@@ -16,9 +20,10 @@ describe("LocalFolderAdapter", () => {
     tempTargetDir = fs.mkdtempSync(path.join(os.tmpdir(), "target-"));
 
     fs.mkdirSync(tempExportDir, { recursive: true });
-    fs.mkdirSync(path.join(tempExportDir, "clips"), { recursive: true });
     fs.writeFileSync(path.join(tempExportDir, "index.html"), "<html>Test</html>");
-    fs.writeFileSync(path.join(tempExportDir, "clips/clip1.mp4"), "fake-video-content");
+    // Clips live in {projectDir}/clips/, not export/clips/
+    fs.mkdirSync(path.join(tempProjectDir, "clips"), { recursive: true });
+    fs.writeFileSync(path.join(tempProjectDir, "clips/clip1.mp4"), "fake-video-content");
   });
 
   afterEach(() => {
@@ -60,7 +65,7 @@ describe("LocalFolderAdapter", () => {
     expect(result.message).toContain("Please choose a folder or location to store the export");
   });
 
-  it("should fail if export directory does not exist", async () => {
+  it("should succeed without export directory (clips-only publish)", async () => {
     fs.rmSync(tempExportDir, { recursive: true, force: true });
 
     const payload = {
@@ -72,8 +77,10 @@ describe("LocalFolderAdapter", () => {
 
     const result = await LocalFolderAdapter.publish(payload, { targetPath: tempTargetDir });
 
-    expect(result.success).toBe(false);
-    expect(result.message).toContain("Export directory not found");
+    expect(result.success).toBe(true);
+    // No HTML report → findingsHtml should be null in the index
+    const index = JSON.parse(fs.readFileSync(path.join(tempTargetDir, "repo-index.json"), "utf-8"));
+    expect(index[0].findingsHtml).toBeNull();
   });
 
   it("should create repo-index.json with project entry on first publish", async () => {

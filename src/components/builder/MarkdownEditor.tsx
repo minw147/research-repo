@@ -71,7 +71,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       }
       debounceTimerRef.current = setTimeout(() => {
         onChange(value);
-      }, 6000);
+      }, 1500);
     },
     [onChange]
   );

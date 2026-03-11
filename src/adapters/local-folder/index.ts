@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { generateViewerHtml } from "@/lib/viewer-template";
 import { extractProjectTagData } from "@/lib/extract-project-tags";
+import { sliceTagClips } from "@/lib/slice-tag-clips";
 
 export const LocalFolderAdapter: PublishAdapter = {
   id: "local-folder",
@@ -26,10 +27,11 @@ export const LocalFolderAdapter: PublishAdapter = {
     }
 
     try {
-      const exportDir = path.join(projectDir, "export");
-
-      if (!fs.existsSync(exportDir)) {
-        return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
+      // Slice any clips referenced in tags.md that don't exist yet
+      const sliceResults = await sliceTagClips(projectDir, project);
+      const sliceErrors = sliceResults.filter((r) => r.status === "error");
+      if (sliceErrors.length) {
+        console.warn("[local-folder] Some clips could not be sliced:", sliceErrors);
       }
 
       fs.mkdirSync(targetPath, { recursive: true });
@@ -38,23 +40,36 @@ export const LocalFolderAdapter: PublishAdapter = {
       const destDir = path.join(targetPath, project.id);
       fs.mkdirSync(destDir, { recursive: true });
 
-      // 1. Copy project files
-      // Using cpSync for recursive copy
-      fs.cpSync(exportDir, destDir, { recursive: true, force: true });
+      // 1. Copy HTML report if it exists (optional — tag board works without it)
+      //    Copy only index.html, not export/clips/ — clips come from {projectDir}/clips/ below
+      const exportHtml = path.join(projectDir, "export", "index.html");
+      if (fs.existsSync(exportHtml)) {
+        fs.copyFileSync(exportHtml, path.join(destDir, "index.html"));
+      }
 
-      // 2. Update repo-index.json at the root of targetPath
+      // 2. Copy clips — {projectDir}/clips/ is the single source of truth
+      const projectClipsDir = path.join(projectDir, "clips");
+      if (fs.existsSync(projectClipsDir)) {
+        fs.mkdirSync(path.join(destDir, "clips"), { recursive: true });
+        fs.cpSync(projectClipsDir, path.join(destDir, "clips"), { recursive: true, force: true });
+      }
+
+      // 3. Update repo-index.json at the root of targetPath
       const indexPath = path.join(targetPath, "repo-index.json");
       let repoIndex: any[] = [];
       if (fs.existsSync(indexPath)) {
         try {
-          repoIndex = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+          const parsed = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+          repoIndex = Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           console.error("Failed to parse repo-index.json, starting fresh", e);
         }
       }
 
-      // Update or add entry
-      const tagData = extractProjectTagData(projectDir, project);
+      // Only link to the findings report if it was actually published
+      const hasReport = fs.existsSync(path.join(destDir, "index.html"));
+
+      const tagData = extractProjectTagData(projectDir, project, process.cwd());
       const entry = {
         id: project.id,
         title: project.title,
@@ -62,7 +77,7 @@ export const LocalFolderAdapter: PublishAdapter = {
         researcher: project.researcher,
         persona: project.persona,
         product: project.product,
-        findingsHtml: `${project.id}/index.html`,
+        findingsHtml: hasReport ? `${project.id}/index.html` : null,
         publishedUrl: project.publishedUrl,
         quotes: tagData.quotes,
         codebook: tagData.codebook,

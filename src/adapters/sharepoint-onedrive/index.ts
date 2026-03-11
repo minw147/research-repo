@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { generateViewerHtml } from "@/lib/viewer-template";
 import { extractProjectTagData } from "@/lib/extract-project-tags";
+import { sliceTagClips } from "@/lib/slice-tag-clips";
 
 export const SharePointOneDriveAdapter: PublishAdapter = {
   id: "sharepoint-onedrive",
@@ -33,10 +34,11 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
     }
 
     try {
-      const exportDir = path.join(projectDir, "export");
-
-      if (!fs.existsSync(exportDir)) {
-        return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
+      // Slice any clips referenced in tags.md that don't exist yet
+      const sliceResults = await sliceTagClips(projectDir, project);
+      const sliceErrors = sliceResults.filter((r) => r.status === "error");
+      if (sliceErrors.length) {
+        console.warn("[sharepoint-onedrive] Some clips could not be sliced:", sliceErrors);
       }
 
       fs.mkdirSync(targetPath, { recursive: true });
@@ -44,20 +46,35 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
       const destDir = path.join(targetPath, project.id);
       fs.mkdirSync(destDir, { recursive: true });
 
-      fs.cpSync(exportDir, destDir, { recursive: true, force: true });
+      // Copy HTML report if it exists (optional — tag board works without it)
+      // Copy only index.html, not export/clips/ — clips come from {projectDir}/clips/ below
+      const exportHtml = path.join(projectDir, "export", "index.html");
+      if (fs.existsSync(exportHtml)) {
+        fs.copyFileSync(exportHtml, path.join(destDir, "index.html"));
+      }
+
+      // Copy clips — {projectDir}/clips/ is the single source of truth
+      const projectClipsDir = path.join(projectDir, "clips");
+      if (fs.existsSync(projectClipsDir)) {
+        fs.mkdirSync(path.join(destDir, "clips"), { recursive: true });
+        fs.cpSync(projectClipsDir, path.join(destDir, "clips"), { recursive: true, force: true });
+      }
 
       // Update repo-index.json
       const indexPath = path.join(targetPath, "repo-index.json");
       let repoIndex: any[] = [];
       if (fs.existsSync(indexPath)) {
         try {
-          repoIndex = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+          const parsed = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+          repoIndex = Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           console.error("Failed to parse repo-index.json, starting fresh", e);
         }
       }
 
-      const tagData = extractProjectTagData(projectDir, project);
+      const hasReport = fs.existsSync(path.join(destDir, "index.html"));
+
+      const tagData = extractProjectTagData(projectDir, project, process.cwd());
       const entry = {
         id: project.id,
         title: project.title,
@@ -65,7 +82,7 @@ export const SharePointOneDriveAdapter: PublishAdapter = {
         researcher: project.researcher,
         persona: project.persona,
         product: project.product,
-        findingsHtml: `${project.id}/index.html`,
+        findingsHtml: hasReport ? `${project.id}/index.html` : null,
         publishedUrl: project.publishedUrl ?? null,
         quotes: tagData.quotes,
         codebook: tagData.codebook,

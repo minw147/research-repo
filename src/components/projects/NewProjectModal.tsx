@@ -7,6 +7,7 @@ import { Plus, X, Loader2, FolderPlus } from "lucide-react";
 export function NewProjectModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ export function NewProjectModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/projects", {
@@ -42,9 +44,13 @@ export function NewProjectModal() {
           codebook: null,
         });
         router.push(`/builder/${project.id}/findings`);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError((errData as { message?: string }).message || "Failed to create project. Please try again.");
       }
     } catch (err) {
       console.error("Failed to create project:", err);
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -201,6 +207,11 @@ export function NewProjectModal() {
               </div>
 
               </div>
+              {error && (
+                <div role="alert" className="mx-4 mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
                 <button
                   type="button"

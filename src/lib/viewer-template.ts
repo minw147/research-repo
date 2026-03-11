@@ -379,13 +379,17 @@ select:focus {
 }
 `.trim();
 
+  // Escape </script> sequences so user data cannot break out of the script block.
   const inlineDataScript = inlineData !== null
-    ? `const INLINE_DATA = ${JSON.stringify(inlineData)};`
+    ? `const INLINE_DATA = ${JSON.stringify(inlineData).replace(/<\//g, '<\\/')};`
     : `const INLINE_DATA = null;`;
 
   const js = `
 const PRIMARY = '#f59f0a';
 let all = [];
+
+// Only allow valid hex colors in style attributes to prevent CSS injection.
+function safeColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c || '') ? c : '#94a3b8'; }
 
 async function loadProjects() {
   // Always try to fetch live data first (works over HTTP/SharePoint URLs).
@@ -396,7 +400,6 @@ async function loadProjects() {
       all = await res.json();
       populateSelects();
       applyFilters();
-      populateTagBoard();
       return;
     }
   } catch(e) {
@@ -406,7 +409,6 @@ async function loadProjects() {
     all = INLINE_DATA;
     populateSelects();
     applyFilters();
-    populateTagBoard();
   } else {
     document.getElementById('project-grid').innerHTML =
       '<div class="empty">Failed to load projects.</div>';
@@ -488,10 +490,15 @@ function clearFilters() {
 
 function switchTab(name) {
   ['projects','tagboard'].forEach(n => {
-    document.getElementById('tab-' + n).classList.toggle('active', n === name);
-    document.getElementById('panel-' + n).classList.toggle('active', n === name);
+    const isActive = n === name;
+    document.getElementById('tab-' + n).classList.toggle('active', isActive);
+    document.getElementById('tab-' + n).setAttribute('aria-selected', isActive ? 'true' : 'false');
+    document.getElementById('panel-' + n).classList.toggle('active', isActive);
   });
-  if (name === 'tagboard') renderTagBoard();
+  if (name === 'tagboard') {
+    populateTagBoard();
+    renderTagBoard();
+  }
 }
 
 function buildTagIndex() {
@@ -570,7 +577,7 @@ function renderTagBoard() {
   }
 
   document.getElementById('tb-count').textContent =
-    filtered.length + ' ' + (filtered.length === 1 ? 'quote' : 'quotes');
+    filtered.length + ' ' + (filtered.length === 1 ? 'unique quote' : 'unique quotes');
 
   // Group quotes by tag — a quote with 2 tags appears in both sections
   const byTag = {};
@@ -597,13 +604,13 @@ function renderTagBoard() {
       const clipSrc = qt.clipFile ? escAttr(qt.projectId + '/clips/' + qt.clipFile) : null;
       const tagPills = (qt.tags||[]).map(tid => {
         const t = codebookMap[tid];
-        return t ? \`<span class="tag-pill" style="background:\${escAttr(t.color)}">\${escHtml(t.label)}</span>\` : '';
+        return t ? \`<span class="tag-pill" style="background:\${safeColor(t.color)}">\${escHtml(t.label)}</span>\` : '';
       }).join('');
       return \`
         <div class="quote-card">
           \${clipSrc
-            ? \`<div class="clip-thumb" onclick="playClip(this, '\${clipSrc}')">
-                <div class="clip-play-btn">
+            ? \`<div class="clip-thumb" role="button" tabindex="0" aria-label="Play clip" onclick="playClip(this,'\${clipSrc}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playClip(this,'\${clipSrc}')}">
+                <div class="clip-play-btn" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                 </div>
               </div>\`
@@ -624,7 +631,7 @@ function renderTagBoard() {
     return \`
       <div class="tag-section">
         <button class="tag-section-header\${isOpen ? ' open' : ''}" onclick="toggleTagSection(this)">
-          <span class="tag-section-dot" style="background:\${escAttr(tag.color)}"></span>
+          <span class="tag-section-dot" style="background:\${safeColor(tag.color)}"></span>
           <span class="tag-section-label">\${escHtml(tag.label)}</span>
           <span class="tag-section-count">\${sectionQuotes.length}</span>
           <span class="tag-chevron">&#9654;</span>
@@ -644,7 +651,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('f-sort').addEventListener('change', applyFilters);
   document.getElementById('btn-clear').addEventListener('click', clearFilters);
 
-  document.getElementById('tb-search').addEventListener('input', renderTagBoard);
+  let _tbSearchTimer = null;
+  document.getElementById('tb-search').addEventListener('input', () => {
+    clearTimeout(_tbSearchTimer);
+    _tbSearchTimer = setTimeout(renderTagBoard, 200);
+  });
   document.getElementById('tb-tag').addEventListener('change', renderTagBoard);
   document.getElementById('tb-project').addEventListener('change', renderTagBoard);
   document.getElementById('tb-persona').addEventListener('change', renderTagBoard);
@@ -677,13 +688,13 @@ ${css}
     <p>${escapeHtmlText(subtitle)}</p>
   </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" id="tab-projects" onclick="switchTab('projects')">Projects</button>
-    <button class="tab-btn" id="tab-tagboard" onclick="switchTab('tagboard')">Tag Board</button>
+  <div class="tabs" role="tablist" aria-label="View panels">
+    <button class="tab-btn active" id="tab-projects" role="tab" aria-selected="true" aria-controls="panel-projects" onclick="switchTab('projects')">Projects</button>
+    <button class="tab-btn" id="tab-tagboard" role="tab" aria-selected="false" aria-controls="panel-tagboard" onclick="switchTab('tagboard')">Tag Board</button>
   </div>
 
   <!-- Projects panel -->
-  <div class="tab-panel active" id="panel-projects">
+  <div class="tab-panel active" id="panel-projects" role="tabpanel" aria-labelledby="tab-projects">
     <div class="toolbar">
       <div class="search-wrap">
         <input type="search" id="search" placeholder="Search studies…" autocomplete="off">
@@ -709,7 +720,7 @@ ${css}
   </div>
 
   <!-- Tag Board panel -->
-  <div class="tab-panel" id="panel-tagboard">
+  <div class="tab-panel" id="panel-tagboard" role="tabpanel" aria-labelledby="tab-tagboard">
     <div class="toolbar">
       <div class="search-wrap">
         <input type="search" id="tb-search" placeholder="Search quotes…" autocomplete="off">

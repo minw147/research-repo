@@ -75,7 +75,7 @@ describe("MarkdownEditor", () => {
     expect(editor).toHaveValue("# Initial Content");
   });
 
-  it("debounces onChange calls by 6 seconds", () => {
+  it("debounces onChange calls by 1.5 seconds", () => {
     render(<MarkdownEditor {...mockProps} />);
     const editor = screen.getByTestId("mock-codemirror");
 
@@ -84,15 +84,15 @@ describe("MarkdownEditor", () => {
     // Should not be called immediately
     expect(mockProps.onChange).not.toHaveBeenCalled();
 
-    // Fast-forward 3 seconds — still within debounce window
+    // Fast-forward 750ms — still within debounce window
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(750);
     });
     expect(mockProps.onChange).not.toHaveBeenCalled();
 
-    // Fast-forward another 3.1 seconds — past the 6s debounce
+    // Fast-forward another 800ms — past the 1.5s debounce
     act(() => {
-      vi.advanceTimersByTime(3100);
+      vi.advanceTimersByTime(800);
     });
     expect(mockProps.onChange).toHaveBeenCalledWith("# Changed Content");
   });
@@ -104,20 +104,20 @@ describe("MarkdownEditor", () => {
     fireEvent.change(editor, { target: { value: "first" } });
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(750);
     });
     expect(mockProps.onChange).not.toHaveBeenCalled();
 
     fireEvent.change(editor, { target: { value: "second" } });
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(1000);
     });
-    // 3s since second change, timer reset, not called yet
+    // 1s since second change, timer reset, not called yet
     expect(mockProps.onChange).not.toHaveBeenCalled();
 
     act(() => {
-      vi.advanceTimersByTime(3001);
+      vi.advanceTimersByTime(600);
     });
     expect(mockProps.onChange).toHaveBeenCalledWith("second");
     expect(mockProps.onChange).toHaveBeenCalledTimes(1);

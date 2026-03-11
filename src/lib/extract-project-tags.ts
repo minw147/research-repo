@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { parseQuotesFromMarkdown } from "./quote-parser";
 import { mergeCodebooks } from "./codebook";
-import type { Project, Codebook } from "@/types";
+import type { Project, Codebook, CodebookTag } from "@/types";
 
 export interface QuoteEntry {
   text: string;
@@ -15,16 +15,9 @@ export interface QuoteEntry {
   clipFile: string; // filename only: "clip-{sessionIndex}-{startSeconds}s.mp4"
 }
 
-export interface CodebookEntry {
-  id: string;
-  label: string;
-  color: string;
-  category: string;
-}
-
 export interface ProjectTagData {
   quotes: QuoteEntry[];
-  codebook: CodebookEntry[];
+  codebook: CodebookTag[];
 }
 
 export function extractProjectTagData(
@@ -65,7 +58,7 @@ export function extractProjectTagData(
 
     // Only include tags actually used in these quotes
     const usedTagIds = new Set(quotes.flatMap(q => q.tags));
-    const codebook: CodebookEntry[] = merged.tags.filter(t => usedTagIds.has(t.id));
+    const codebook: CodebookTag[] = merged.tags.filter(t => usedTagIds.has(t.id));
 
     return { quotes, codebook };
   } catch (err) {

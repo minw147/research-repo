@@ -78,9 +78,9 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Dashboard
-            </h2>
+            </h1>
             <p className="text-slate-600 mt-1 text-sm">
               Organize your insights, manage sessions, and build reports.
             </p>
@@ -92,7 +92,7 @@ export default function HomePage() {
 
         {isLoading ? (
           <div role="status" aria-label="Loading projects" className="flex flex-col items-center justify-center py-16">
-            <div aria-hidden="true" className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin motion-reduce:animate-none"></div>
+            <div aria-hidden="true" className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
             <p className="mt-4 text-slate-500 text-xs font-medium uppercase tracking-wider">
               Fetching Projects...
             </p>
