@@ -2,6 +2,8 @@
 import { PublishAdapter } from "../types";
 import fs from "fs";
 import path from "path";
+import { generateViewerHtml } from "@/lib/viewer-template";
+import { extractProjectTagData } from "@/lib/extract-project-tags";
 
 export const LocalFolderAdapter: PublishAdapter = {
   id: "local-folder",
@@ -52,6 +54,7 @@ export const LocalFolderAdapter: PublishAdapter = {
       }
 
       // Update or add entry
+      const tagData = extractProjectTagData(projectDir, project);
       const entry = {
         id: project.id,
         title: project.title,
@@ -60,7 +63,9 @@ export const LocalFolderAdapter: PublishAdapter = {
         persona: project.persona,
         product: project.product,
         findingsHtml: `${project.id}/index.html`,
-        publishedUrl: project.publishedUrl
+        publishedUrl: project.publishedUrl,
+        quotes: tagData.quotes,
+        codebook: tagData.codebook,
       };
 
       const existingIndex = repoIndex.findIndex(p => p.id === project.id);
@@ -71,6 +76,10 @@ export const LocalFolderAdapter: PublishAdapter = {
       }
 
       fs.writeFileSync(indexPath, JSON.stringify(repoIndex, null, 2));
+
+      // Keep the viewer HTML up to date. Data is inlined so stakeholders can
+      // double-click index.html directly (file:// protocol, no server needed).
+      fs.writeFileSync(path.join(targetPath, "index.html"), generateViewerHtml({ data: repoIndex }), "utf-8");
 
       return {
         success: true,
