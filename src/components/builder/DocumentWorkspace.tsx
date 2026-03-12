@@ -571,12 +571,23 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                 showProjectTab={true}
                                 globalCodebook={globalCodebook ?? { tags: [], categories: [] }}
                                 onSaveGlobal={async (codebook) => {
-                                    await fetch("/api/codebook/global", {
+                                    const res = await fetch("/api/codebook/global", {
                                         method: "PUT",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify(codebook),
                                     });
+                                    if (!res.ok) {
+                                        throw new Error("Failed to save global codebook");
+                                    }
                                     setGlobalCodebook(codebook);
+                                }}
+                                onCascade={async (action, oldId, newId) => {
+                                    const res = await fetch("/api/codebook/cascade", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ dryRun: true, action, oldId, newId }),
+                                    });
+                                    return res.json();
                                 }}
                             />
                         </div>

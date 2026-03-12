@@ -18,14 +18,14 @@ interface CodebookEditorProps {
   ) => Promise<{ affectedFiles: string[]; affectedQuoteCount: number }>;
 }
 
-export const CodebookEditor: React.FC<CodebookEditorProps> = ({
-  projectCodebook,
-  onSave,
-  showProjectTab,
-  globalCodebook: globalCodebookProp,
-  onSaveGlobal,
-  // onCascade will be wired up in Task 6
-}) => {
+export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
+  const {
+    projectCodebook,
+    onSave,
+    showProjectTab,
+    globalCodebook: globalCodebookProp,
+    onSaveGlobal,
+  } = props;
   const [fetchedGlobalCodebook, setFetchedGlobalCodebook] = useState<Codebook | null>(null);
   const [customTags, setCustomTags] = useState<CodebookTag[]>(projectCodebook?.tags || []);
   const [customCategories, setCustomCategories] = useState<string[]>(projectCodebook?.categories || []);
@@ -45,6 +45,14 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
   const [editCategoryValue, setEditCategoryValue] = useState("");
 
   const [loading, setLoading] = useState(true);
+
+  const [pendingCascade, setPendingCascade] = useState<{
+    action: "rename" | "delete";
+    oldId: string;
+    newId?: string;
+    affectedFiles: string[];
+    affectedQuoteCount: number;
+  } | null>(null);
 
   const [activeTab, setActiveTab] = useState<"project" | "global">(
     showProjectTab !== false ? "project" : "global"
@@ -92,13 +100,18 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
     return Array.from(cats);
   }, [globalCodebook, customCategories]);
 
-  const handleSaveTag = () => {
+  const handleSaveTag = async () => {
     if (!tagForm.id || !tagForm.label || !tagForm.category) return;
 
     const newTag = tagForm as CodebookTag;
 
     if (editingTagId) {
-      setCustomTags(customTags.map(t => t.id === editingTagId ? newTag : t));
+      const oldTag = customTags.find(t => t.id === editingTagId);
+      if (oldTag) {
+        await handleUpdateTagWithCascade(oldTag, newTag);
+      } else {
+        setCustomTags(customTags.map(t => t.id === editingTagId ? newTag : t));
+      }
     } else {
       if (customTags.some(t => t.id === newTag.id) || globalCodebook?.tags.some(t => t.id === newTag.id)) {
         alert("Tag ID already exists");
@@ -112,9 +125,27 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
     setTagForm({ id: "", label: "", color: "#f59f0a", category: "" });
   };
 
-  const handleDeleteTag = (id: string) => {
-    setCustomTags(customTags.filter(t => t.id !== id));
+  const handleDeleteTag = async (id: string) => {
+    await handleDeleteTagWithCascade(id);
   };
+
+  async function handleDeleteTagWithCascade(tagId: string) {
+    if (activeTab !== "global" || !props.onCascade) {
+      setCustomTags((prev) => prev.filter((t) => t.id !== tagId));
+      return;
+    }
+    const result = await props.onCascade("delete", tagId);
+    setPendingCascade({ action: "delete", oldId: tagId, ...result });
+  }
+
+  async function handleUpdateTagWithCascade(oldTag: CodebookTag, newTag: CodebookTag) {
+    if (activeTab !== "global" || !props.onCascade || oldTag.id === newTag.id) {
+      setCustomTags((prev) => prev.map((t) => (t.id === oldTag.id ? newTag : t)));
+      return;
+    }
+    const result = await props.onCascade("rename", oldTag.id, newTag.id);
+    setPendingCascade({ action: "rename", oldId: oldTag.id, newId: newTag.id, ...result });
+  }
 
   const handleEditTag = (tag: CodebookTag) => {
     setTagForm(tag);
@@ -416,6 +447,65 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Cascade Confirmation Modal */}
+      {pendingCascade && (
+        <div className="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-white/10 rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-white font-semibold mb-2 text-base">
+              {pendingCascade.action === "rename" ? "Rename global tag" : "Delete global tag"}
+            </h3>
+            <p className="text-white/70 text-sm mb-4">
+              This will update{" "}
+              <span className="text-white font-medium">
+                {pendingCascade.affectedQuoteCount} quote
+                {pendingCascade.affectedQuoteCount !== 1 ? "s" : ""}
+              </span>{" "}
+              across{" "}
+              <span className="text-white font-medium">
+                {pendingCascade.affectedFiles.length} file
+                {pendingCascade.affectedFiles.length !== 1 ? "s" : ""}
+              </span>
+              . Published reports will need to be re-exported to reflect this change.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setPendingCascade(null)}
+                className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  // Execute the cascade (non-dry-run)
+                  await props.onCascade?.(
+                    pendingCascade.action,
+                    pendingCascade.oldId,
+                    pendingCascade.newId
+                  );
+
+                  // Compute final tags once — use for both state and save
+                  const finalTags =
+                    pendingCascade.action === "delete"
+                      ? customTags.filter((t) => t.id !== pendingCascade.oldId)
+                      : customTags.map((t) =>
+                          t.id === pendingCascade.oldId && pendingCascade.newId
+                            ? { ...t, id: pendingCascade.newId! }
+                            : t
+                        );
+
+                  setCustomTags(finalTags);
+                  await props.onSaveGlobal?.({ tags: finalTags, categories: customCategories });
+                  setPendingCascade(null);
+                }}
+                className="px-4 py-2 text-sm bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Tag Modal Overlay */}
       {isAddingTag && (
