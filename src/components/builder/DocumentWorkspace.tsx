@@ -40,7 +40,6 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     const [showPromptModal, setShowPromptModal] = useState(false);
     const [showAddSessionModal, setShowAddSessionModal] = useState(false);
     const [showCodebookModal, setShowCodebookModal] = useState(false);
-    const [isSavingCodebook, setIsSavingCodebook] = useState(false);
 
     const videoPlayerRef = useRef<VideoPlayerRef>(null);
     const markdownEditorRef = useRef<MarkdownEditorHandle>(null);
@@ -260,7 +259,6 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     }, [refetchDoc]);
 
     const handleSaveCodebook = useCallback(async (newCodebook: Codebook) => {
-        setIsSavingCodebook(true);
         try {
             const res = await fetch(`/api/files?slug=${slug}&file=codebook.json`, {
                 method: "POST",
@@ -275,8 +273,6 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
         } catch (err) {
             console.error("Error saving codebook:", err);
             alert("Failed to save codebook changes.");
-        } finally {
-            setIsSavingCodebook(false);
         }
     }, [slug]);
 
@@ -549,28 +545,27 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
             {showCodebookModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border border-slate-200 flex flex-col animate-in zoom-in duration-200">
-                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                    <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col animate-in zoom-in duration-200">
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-700 bg-gray-900 shrink-0">
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
                                     <Settings className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-semibold text-slate-900">Manage Research Codebook</h2>
-                                    <p className="text-xs text-slate-500">Define tags and categories for your analysis</p>
+                                    <h2 className="text-lg font-semibold text-white">Manage Research Codebook</h2>
+                                    <p className="text-xs text-gray-400">Define tags and categories for your analysis</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowCodebookModal(false)}
-                                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                                className="text-gray-400 hover:text-gray-200 p-1 rounded-md hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                                 aria-label="Close"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50">
+                        <div className="flex-1 overflow-y-auto p-4 bg-gray-800">
                             <CodebookEditor
-                                slug={slug}
                                 projectCodebook={project?.codebookData || null}
                                 onSave={handleSaveCodebook}
                                 showProjectTab={true}

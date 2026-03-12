@@ -36,10 +36,9 @@ describe("CodebookEditor", () => {
 
   it("renders merged codebook tags", async () => {
     render(
-      <CodebookEditor 
-        slug="test-project" 
-        projectCodebook={mockProjectCodebook} 
-        onSave={() => {}} 
+      <CodebookEditor
+        projectCodebook={mockProjectCodebook}
+        onSave={() => {}}
       />
     );
 
@@ -54,10 +53,9 @@ describe("CodebookEditor", () => {
   it("calls onSave with updated custom tags when adding a tag", async () => {
     const onSave = vi.fn();
     render(
-      <CodebookEditor 
-        slug="test-project" 
-        projectCodebook={mockProjectCodebook} 
-        onSave={onSave} 
+      <CodebookEditor
+        projectCodebook={mockProjectCodebook}
+        onSave={onSave}
       />
     );
 
@@ -89,10 +87,9 @@ describe("CodebookEditor", () => {
   it("renames a category and updates associated tags", async () => {
     const onSave = vi.fn();
     render(
-      <CodebookEditor 
-        slug="test-project" 
-        projectCodebook={mockProjectCodebook} 
-        onSave={onSave} 
+      <CodebookEditor
+        projectCodebook={mockProjectCodebook}
+        onSave={onSave}
       />
     );
 
@@ -121,5 +118,32 @@ describe("CodebookEditor", () => {
     // Verify old category is gone
     const savedCodebook = onSave.mock.calls[0][0];
     expect(savedCodebook.categories).not.toContain("Project");
+  });
+
+  it("calls onSaveGlobal instead of onSave when on the Global tab", async () => {
+    const onSave = vi.fn();
+    const onSaveGlobal = vi.fn().mockResolvedValue(undefined);
+    const globalCodebook: Codebook = { tags: [], categories: [] };
+
+    render(
+      <CodebookEditor
+        projectCodebook={mockProjectCodebook}
+        showProjectTab={true}
+        globalCodebook={globalCodebook}
+        onSave={onSave}
+        onSaveGlobal={onSaveGlobal}
+      />
+    );
+
+    await waitFor(() => screen.getByText("Project Tag 1"));
+
+    // Click "Global" tab
+    fireEvent.click(screen.getByRole("button", { name: /global/i }));
+
+    // Click "Save Codebook"
+    fireEvent.click(screen.getByRole("button", { name: /save codebook/i }));
+
+    expect(onSaveGlobal).toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
   });
 });

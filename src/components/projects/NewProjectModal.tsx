@@ -94,6 +94,14 @@ export function NewProjectModal() {
   >([]);
   const [newCategories, setNewCategories] = useState<string[]>([]);
 
+  const handleClose = () => {
+    setStep("details");
+    setCsvRows([]);
+    setNewCategories([]);
+    setError(null);
+    setIsOpen(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -108,7 +116,6 @@ export function NewProjectModal() {
 
       if (res.ok) {
         const project = await res.json();
-        setIsOpen(false);
         // Reset form
         setFormData({
           title: "",
@@ -118,6 +125,7 @@ export function NewProjectModal() {
           researchPlan: "",
           codebook: null,
         });
+        handleClose();
         router.push(`/builder/${project.id}/findings`);
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -167,14 +175,20 @@ export function NewProjectModal() {
         categories: [...new Set(csvRows.map((r) => r.category))],
       };
 
-      await fetch(`/api/files?slug=${project.id}&file=codebook.json`, {
+      const codebookRes = await fetch("/api/files", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: JSON.stringify(codebook, null, 2) }),
+        body: JSON.stringify({
+          slug: project.id,
+          file: "codebook.json",
+          content: JSON.stringify(codebook, null, 2),
+        }),
       });
+      if (!codebookRes.ok) {
+        console.error("Failed to save codebook:", await codebookRes.text());
+      }
 
-      setIsOpen(false);
-      // Reset form and step state
+      // Reset form
       setFormData({
         title: "",
         researcher: "",
@@ -183,9 +197,7 @@ export function NewProjectModal() {
         researchPlan: "",
         codebook: null,
       });
-      setStep("details");
-      setCsvRows([]);
-      setNewCategories([]);
+      handleClose();
       router.push(`/builder/${project.id}/findings`);
     } catch (err) {
       console.error("Failed to create project:", err);
@@ -225,7 +237,7 @@ export function NewProjectModal() {
                 <h2 className="text-lg font-semibold text-slate-900">Create New Project</h2>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                 aria-label="Close"
               >
@@ -386,7 +398,7 @@ export function NewProjectModal() {
                             const unique = [...new Set(rows.map((r) => r.category).filter(Boolean))];
                             setNewCategories(unique);
                           } catch (err) {
-                            alert(`CSV parse error: ${err instanceof Error ? err.message : String(err)}`);
+                            setError(`CSV parse error: ${err instanceof Error ? err.message : String(err)}`);
                           }
                         }}
                         className="block w-full text-sm text-white/60 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-white/10 file:text-white hover:file:bg-white/20"
@@ -481,7 +493,7 @@ export function NewProjectModal() {
               <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
                 >
                   Cancel
@@ -490,7 +502,22 @@ export function NewProjectModal() {
                 {step === "details" && formData.codebook === "custom" ? (
                   <button
                     type="button"
-                    onClick={() => setStep("codebook")}
+                    onClick={() => {
+                      if (!formData.title?.trim()) {
+                        setError("Project name is required");
+                        return;
+                      }
+                      if (!formData.researcher?.trim()) {
+                        setError("Researcher name is required");
+                        return;
+                      }
+                      if (!formData.persona?.trim()) {
+                        setError("Persona is required");
+                        return;
+                      }
+                      setError(null);
+                      setStep("codebook");
+                    }}
                     className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center gap-2 transition-colors"
                   >
                     Next: Set Up Codebook

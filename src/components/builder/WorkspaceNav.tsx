@@ -37,8 +37,6 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
     { id: "cloud-storage", label: "Storage", href: `/builder/${slug}/export`, icon: Cloud },
   ];
 
-  const activeTab = tabs.find((tab) => pathname.startsWith(tab.href))?.id || "findings";
-
   return (
     <nav className="flex h-12 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
       <Link

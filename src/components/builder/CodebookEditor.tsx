@@ -6,21 +6,25 @@ import { Codebook, CodebookTag } from "@/types";
 import { mergeCodebooks } from "@/lib/codebook";
 
 interface CodebookEditorProps {
-  slug: string;
   projectCodebook: Codebook | null;
   onSave: (codebook: Codebook) => void;
   showProjectTab?: boolean;       // default true; false when no project context
   globalCodebook?: Codebook;      // passed in for the Global tab
   onSaveGlobal?: (codebook: Codebook) => Promise<void>;
+  onCascade?: (
+    action: "rename" | "delete",
+    oldId: string,
+    newId?: string
+  ) => Promise<{ affectedFiles: string[]; affectedQuoteCount: number }>;
 }
 
 export const CodebookEditor: React.FC<CodebookEditorProps> = ({
-  slug,
   projectCodebook,
   onSave,
   showProjectTab,
   globalCodebook: globalCodebookProp,
   onSaveGlobal,
+  // onCascade will be wired up in Task 6
 }) => {
   const [fetchedGlobalCodebook, setFetchedGlobalCodebook] = useState<Codebook | null>(null);
   const [customTags, setCustomTags] = useState<CodebookTag[]>(projectCodebook?.tags || []);
@@ -126,7 +130,10 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
   };
 
   const handleStartCategoryEdit = (cat: string) => {
-    if (globalCodebook?.categories.includes(cat) && activeTab !== "global") {
+    const isGlobalCat =
+      (globalCodebook?.categories.includes(cat) ?? false) ||
+      (globalCodebookProp?.categories.includes(cat) ?? false);
+    if (isGlobalCat && activeTab !== "global") {
       alert("Cannot edit global category");
       return;
     }
@@ -158,7 +165,10 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
   };
 
   const handleDeleteCategory = (cat: string) => {
-    if (globalCodebook?.categories.includes(cat) && activeTab !== "global") {
+    const isGlobalCat =
+      (globalCodebook?.categories.includes(cat) ?? false) ||
+      (globalCodebookProp?.categories.includes(cat) ?? false);
+    if (isGlobalCat && activeTab !== "global") {
       alert("Cannot delete global category");
       return;
     }

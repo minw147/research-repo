@@ -4,7 +4,6 @@ export default function BuilderLayout({
   children,
 }: {
   children: React.ReactNode;
-  params: { slug: string };
 }) {
   return (
     <div className="flex h-screen flex-col bg-slate-50">
