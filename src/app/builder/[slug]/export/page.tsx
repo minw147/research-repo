@@ -14,6 +14,7 @@ import {
   CloudUpload,
 } from "lucide-react";
 import { PublishModal } from "@/components/publish/PublishModal";
+import { WorkspaceNav } from "@/components/builder/WorkspaceNav";
 import { Project, PublishRecord } from "@/types";
 
 function formatDate(iso: string) {
@@ -74,7 +75,10 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="h-full flex flex-col bg-slate-50">
+      <WorkspaceNav slug={slug} />
+      <div className="flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-2xl px-6 py-10">
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Cloud Storage</h1>
@@ -229,6 +233,9 @@ export default function ExportPage() {
             the report and watch video clips directly in their browser.
           </p>
         </div>
+      </div>
+
+      </div>
       </div>
 
       <PublishModal

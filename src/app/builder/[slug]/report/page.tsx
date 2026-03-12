@@ -1,24 +1,12 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "react-resizable-panels";
-import { 
-  FileText, 
-  RefreshCw, 
-  Loader2, 
-  Sparkles, 
-  Save, 
-  FileEdit, 
-  Presentation, 
-  Layout, 
-  Check,
-  AlertCircle
-} from "lucide-react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { RefreshCw, Loader2, Sparkles, AlertCircle, Download, ExternalLink } from "lucide-react";
 
 import { useFileContent } from "@/hooks/useFileContent";
-import { MarkdownEditor } from "@/components/builder/MarkdownEditor";
-import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
 import { PromptModal } from "@/components/builder/PromptModal";
+import { WorkspaceNav } from "@/components/builder/WorkspaceNav";
+import { mergeCodebooks } from "@/lib/codebook";
 import type { Project, Codebook } from "@/types";
 
 interface ReportPageProps {
@@ -30,229 +18,315 @@ interface ReportPageProps {
 export default function ReportPage({ params }: ReportPageProps) {
   const { slug } = params;
 
-  // 1. State
   const [project, setProject] = useState<Project | null>(null);
-  const [reportStyle, setReportStyle] = useState<"blog" | "slides">("blog");
   const [showPromptModal, setShowPromptModal] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [showRefreshToast, setShowRefreshToast] = useState(false);
 
-  // 2. Fetch Project Metadata
-  useEffect(() => {
-    async function fetchProject() {
-      try {
-        const res = await fetch(`/api/projects/${slug}`);
-        if (!res.ok) throw new Error("Failed to fetch project");
-        const data = await res.json();
-        setProject(data);
-      } catch (err) {
-        console.error("Error fetching project:", err);
-      }
+  const [exportStatus, setExportStatus] = useState<"idle" | "running" | "success" | "error">("idle");
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [hasExport, setHasExport] = useState(false);
+  const lastExportContentRef = useRef<string | null>(null);
+
+  const [globalCodebook, setGlobalCodebook] = useState<Codebook | null>(null);
+
+  const fetchProject = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${slug}`);
+      if (!res.ok) throw new Error("Failed to fetch project");
+      const data = await res.json();
+      setProject(data);
+    } catch (err) {
+      console.error("Error fetching project:", err);
     }
-    fetchProject();
   }, [slug]);
 
-  // 3. Fetch report.mdx
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
+
+  useEffect(() => {
+    async function fetchExportExists() {
+      try {
+        const res = await fetch(
+          `/api/files?slug=${encodeURIComponent(slug)}&file=${encodeURIComponent("export/index.html")}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setHasExport(data.content !== null);
+      } catch {
+        // ignore
+      }
+    }
+    fetchExportExists();
+  }, [slug]);
+
+  useEffect(() => {
+    async function fetchGlobalCodebook() {
+      try {
+        const res = await fetch("/api/codebook/global");
+        if (!res.ok) return;
+        const data = await res.json();
+        setGlobalCodebook(data);
+      } catch (err) {
+        console.error("Error fetching global codebook:", err);
+      }
+    }
+    fetchGlobalCodebook();
+  }, []);
+
   const {
     content: reportContent,
     loading: reportLoading,
     error: reportError,
     refetch: refetchReport,
-    saveContent: saveReport,
-  } = useFileContent(slug, "report.mdx");
+  } = useFileContent(slug, "findings.html");
 
-  // 4. Callbacks
-  const handleReportChange = useCallback(
-    (newContent: string) => {
-      // Just update local state if we had one, but useFileContent handles it
-      // For now we'll just save on every change or on save button
-    },
-    []
-  );
+  const isExportStale =
+    reportContent &&
+    lastExportContentRef.current !== null &&
+    lastExportContentRef.current !== reportContent;
 
-  const handleSave = useCallback(async (newContent?: string) => {
-    const contentToSave = newContent !== undefined ? newContent : reportContent;
-    if (contentToSave === null) return;
-    setSaveStatus("saving");
-    try {
-      await saveReport(contentToSave);
-      setSaveStatus("success");
-      setTimeout(() => setSaveStatus("idle"), 2000);
-    } catch (err) {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+  useEffect(() => {
+    if (!reportLoading && (reportError || !reportContent)) {
+      setShowPromptModal(true);
     }
-  }, [reportContent, saveReport]);
+  }, [reportLoading, reportError, reportContent]);
+
+  const handleModalClose = useCallback(() => {
+    setShowPromptModal(false);
+    setShowRefreshToast(true);
+    setTimeout(() => setShowRefreshToast(false), 6000);
+  }, []);
 
   const handleRefresh = useCallback(() => {
     refetchReport();
   }, [refetchReport]);
 
-  const handleAiReplace = useCallback(
-    (newContent: string) => {
-      saveReport(newContent);
-    },
-    [saveReport]
-  );
+  const handleExport = useCallback(async () => {
+    if (!reportContent) return;
+    setExportStatus("running");
+    setExportProgress(0);
+    setExportError(null);
 
-  // Mock codebook (will be fetched from project/global in Phase 4)
-  const codebook: Codebook = project?.codebookData || {
-    tags: [],
-    categories: [],
-  };
+    try {
+      const res = await fetch("/api/export/portable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Export failed");
+      }
+
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.current != null && data.total) {
+                setExportProgress((data.current / data.total) * 100);
+              }
+              if (data.error) {
+                setExportError(data.error);
+                setExportStatus("error");
+                return;
+              }
+              if (data.done) {
+                setExportStatus("success");
+                setExportProgress(100);
+                lastExportContentRef.current = reportContent;
+                setHasExport(true);
+                fetchProject();
+                window.open(`/api/projects/${slug}/files/export/index.html`, "_blank");
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+        }
+      }
+    } catch (err: unknown) {
+      setExportError(err instanceof Error ? err.message : "Export failed");
+      setExportStatus("error");
+    }
+  }, [slug, reportContent, fetchProject]);
+
+  const handleViewExport = useCallback(() => {
+    window.open(`/api/projects/${slug}/files/export/index.html`, "_blank");
+  }, [slug]);
+
+  const codebook: Codebook = useMemo(
+    () =>
+      mergeCodebooks(
+        globalCodebook ?? { tags: [], categories: [] },
+        project?.codebookData ?? null
+      ),
+    [globalCodebook, project?.codebookData]
+  );
 
   if (!project) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="h-full flex flex-col bg-slate-50">
+      <WorkspaceNav slug={slug} />
       {/* Header / Toolbar */}
-      <div className="h-16 flex items-center justify-between px-6 border-b bg-white shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 mr-4">
-            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-              <FileText className="h-5 w-5" />
-            </div>
-            <h1 className="font-bold text-slate-900 tracking-tight">Report Builder</h1>
-          </div>
+      <div className="h-12 flex items-center justify-end gap-1.5 px-4 sm:px-6 border-b border-slate-200 bg-white shrink-0 shadow-sm">
+        <button
+          onClick={() => setShowPromptModal(true)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 shadow-sm cursor-pointer"
+          title="Run AI Synthesis"
+          aria-label="Run AI Synthesis"
+        >
+          <Sparkles className="h-3.5 w-3.5 shrink-0" />
+          <span>AI Synthesis</span>
+        </button>
 
-          <div className="flex p-1 bg-slate-100 rounded-lg">
-            <button
-              onClick={() => setReportStyle("blog")}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                reportStyle === "blog"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <FileEdit className="h-3.5 w-3.5" />
-              Blog Post
-            </button>
-            <button
-              onClick={() => setReportStyle("slides")}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                reportStyle === "slides"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Presentation className="h-3.5 w-3.5" />
-              Slide Deck
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+        {reportContent && (
           <button
-            onClick={() => setShowPromptModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-md shadow-indigo-200"
+            onClick={handleExport}
+            disabled={exportStatus === "running"}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export portable HTML with sliced clips"
+            aria-label="Export HTML"
           >
-            <Sparkles className="h-4 w-4" />
-            AI Synthesis
-          </button>
-
-          <div className="w-px h-6 bg-slate-200 mx-2" />
-
-          <button
-            onClick={handleSave}
-            disabled={saveStatus === "saving"}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all border ${
-              saveStatus === "success" 
-                ? "bg-green-50 border-green-200 text-green-600" 
-                : saveStatus === "error"
-                ? "bg-red-50 border-red-200 text-red-600"
-                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm"
-            }`}
-          >
-            {saveStatus === "saving" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : saveStatus === "success" ? (
-              <Check className="h-4 w-4" />
-            ) : saveStatus === "error" ? (
-              <AlertCircle className="h-4 w-4" />
+            {exportStatus === "running" ? (
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
             ) : (
-              <Save className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5 shrink-0" />
             )}
-            {saveStatus === "saving" ? "Saving..." : saveStatus === "success" ? "Saved!" : "Save"}
+            <span>Export HTML</span>
           </button>
+        )}
 
+        {hasExport && (
           <button
-            onClick={handleRefresh}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-            title="Manual refresh"
+            onClick={handleViewExport}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer"
+            title="Open exported HTML in new tab"
+            aria-label="View Export"
           >
-            <RefreshCw className="h-4 w-4" />
+            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            <span>View Export</span>
           </button>
-        </div>
+        )}
+
+        <button
+          onClick={handleRefresh}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer"
+          title="Refresh to load changes"
+          aria-label="Refresh to load changes"
+        >
+          <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      {/* Main Content: Split Pane */}
-      <div className="flex-1 overflow-hidden">
+      {/* Stale export notice */}
+      {isExportStale && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mx-4 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm font-medium text-amber-900 shrink-0"
+        >
+          Report has changed since last export. Click <strong>Export HTML</strong> to update.
+        </div>
+      )}
+
+      {/* Export error */}
+      {exportError && (
+        <div
+          role="alert"
+          className="mx-4 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {exportError}
+        </div>
+      )}
+
+      {/* Toast: Refresh reminder */}
+      {showRefreshToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mx-4 mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm font-medium text-slate-900 shrink-0"
+        >
+          Refresh the page once the AI agent is done to view the generated findings.html
+        </div>
+      )}
+
+      {/* Main Content: Full-width HTML preview or empty state */}
+      <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
         {reportLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+          <div className="flex flex-1 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : reportError ? (
-          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
             <div className="p-4 bg-red-50 text-red-600 rounded-full mb-4">
               <AlertCircle className="h-8 w-8" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-2">Error Loading Report</h3>
             <p className="text-slate-500 mb-6 max-w-md">
-              We couldn't load report.mdx. Make sure the file exists in your project directory.
+              We couldn&apos;t load findings.html. Use AI Synthesis to generate it, or try refreshing.
             </p>
             <button
-              onClick={handleRefresh}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-all"
+              onClick={() => setShowPromptModal(true)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/20 mb-2"
             >
-              Retry
+              <Sparkles className="h-4 w-4" />
+              Generate Report
+            </button>
+            <button
+              onClick={handleRefresh}
+              className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors duration-200 rounded-lg px-3 py-2"
+            >
+              Refresh
+            </button>
+          </div>
+        ) : !reportContent ? (
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+            <div className="p-4 bg-primary/10 text-primary rounded-full mb-4">
+              <Sparkles className="h-8 w-8" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">No Report Yet</h3>
+            <p className="text-slate-500 mb-6 max-w-md">
+              Generate a report from your findings using AI Synthesis. The AI will create findings.html with video clips and styling.
+            </p>
+            <button
+              onClick={() => setShowPromptModal(true)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
+            >
+              <Sparkles className="h-4 w-4" />
+              Generate Report
             </button>
           </div>
         ) : (
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full flex flex-col bg-white">
-                <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <FileEdit className="h-3 w-3" />
-                    Editor
-                  </span>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <MarkdownEditor
-                    content={reportContent || ""}
-                    onChange={saveReport}
-                    onSave={handleSave}
-                  />
-                </div>
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full flex flex-col bg-slate-50">
-                <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <Layout className="h-3 w-3" />
-                    Preview
-                  </span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-8">
-                  <div className="max-w-3xl mx-auto bg-white rounded-xl border p-12 shadow-sm prose prose-slate max-w-none">
-                    <MarkdownRenderer
-                      content={reportContent || "# Report Draft\n\nStart writing your report or use AI Synthesis to generate one."}
-                      codebook={codebook}
-                    />
-                  </div>
-                </div>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <iframe
+            srcDoc={reportContent}
+            title="Report preview"
+            className="flex-1 w-full border-0 bg-white"
+            sandbox="allow-same-origin allow-scripts"
+          />
         )}
       </div>
 
@@ -261,10 +335,10 @@ export default function ReportPage({ params }: ReportPageProps) {
           project={project}
           codebook={codebook}
           initialAction="report-generation"
-          mode="replace"
-          reportStyle={reportStyle}
-          onAppend={handleAiReplace}
-          onClose={() => setShowPromptModal(false)}
+          actions={["report-generation", "change-theme", "other-templates"]}
+          reportStyle="blog"
+          otherTemplateContext="report"
+          onClose={handleModalClose}
         />
       )}
     </div>

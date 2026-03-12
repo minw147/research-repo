@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Edit2, Check, X, Tag as TagIcon, Layers, Info } from "lucide-react";
 import { Codebook, CodebookTag } from "@/types";
-import { mergeCodebooks } from "@/lib/codebook";
 
 interface CodebookEditorProps {
   projectCodebook: Codebook | null;
@@ -26,7 +25,6 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
     globalCodebook: globalCodebookProp,
     onSaveGlobal,
   } = props;
-  const [fetchedGlobalCodebook, setFetchedGlobalCodebook] = useState<Codebook | null>(null);
   const [customTags, setCustomTags] = useState<CodebookTag[]>(projectCodebook?.tags || []);
   const [customCategories, setCustomCategories] = useState<string[]>(projectCodebook?.categories || []);
 
@@ -44,8 +42,6 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryValue, setEditCategoryValue] = useState("");
 
-  const [loading, setLoading] = useState(true);
-
   const [pendingCascade, setPendingCascade] = useState<{
     action: "rename" | "delete";
     oldId: string;
@@ -59,23 +55,6 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
   );
 
   useEffect(() => {
-    async function fetchGlobal() {
-      try {
-        const res = await fetch("/api/codebook/global");
-        if (res.ok) {
-          const data = await res.json();
-          setFetchedGlobalCodebook(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch global codebook:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchGlobal();
-  }, []);
-
-  useEffect(() => {
     if (activeTab === "global" && globalCodebookProp) {
       setCustomTags(globalCodebookProp.tags);
       setCustomCategories(globalCodebookProp.categories);
@@ -86,19 +65,6 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // The "global codebook" used for merging / read-only checks is the fetched one
-  // (or the passed-in prop as fallback). On the Global tab we use the prop directly.
-  const globalCodebook = fetchedGlobalCodebook;
-
-  const mergedCodebook = useMemo(() => {
-    if (!globalCodebook) return { tags: customTags, categories: customCategories };
-    return mergeCodebooks(globalCodebook, { tags: customTags, categories: customCategories });
-  }, [globalCodebook, customTags, customCategories]);
-
-  const allCategories = useMemo(() => {
-    const cats = new Set([...(globalCodebook?.categories || []), ...customCategories]);
-    return Array.from(cats);
-  }, [globalCodebook, customCategories]);
 
   const handleSaveTag = async () => {
     if (!tagForm.id || !tagForm.label || !tagForm.category) return;
@@ -113,7 +79,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
         setCustomTags(customTags.map(t => t.id === editingTagId ? newTag : t));
       }
     } else {
-      if (customTags.some(t => t.id === newTag.id) || globalCodebook?.tags.some(t => t.id === newTag.id)) {
+      if (customTags.some(t => t.id === newTag.id)) {
         alert("Tag ID already exists");
         return;
       }
@@ -154,20 +120,13 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
   };
 
   const handleAddCategory = () => {
-    if (!newCategory || allCategories.includes(newCategory)) return;
+    if (!newCategory || customCategories.includes(newCategory)) return;
     setCustomCategories([...customCategories, newCategory]);
     setNewCategory("");
     setIsAddingCategory(false);
   };
 
   const handleStartCategoryEdit = (cat: string) => {
-    const isGlobalCat =
-      (globalCodebook?.categories.includes(cat) ?? false) ||
-      (globalCodebookProp?.categories.includes(cat) ?? false);
-    if (isGlobalCat && activeTab !== "global") {
-      alert("Cannot edit global category");
-      return;
-    }
     setEditingCategory(cat);
     setEditCategoryValue(cat);
   };
@@ -178,7 +137,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
       return;
     }
 
-    if (allCategories.includes(editCategoryValue)) {
+    if (customCategories.includes(editCategoryValue)) {
       alert("Category name already exists");
       return;
     }
@@ -196,13 +155,6 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
   };
 
   const handleDeleteCategory = (cat: string) => {
-    const isGlobalCat =
-      (globalCodebook?.categories.includes(cat) ?? false) ||
-      (globalCodebookProp?.categories.includes(cat) ?? false);
-    if (isGlobalCat && activeTab !== "global") {
-      alert("Cannot delete global category");
-      return;
-    }
     if (customTags.some(t => t.category === cat)) {
       alert("Cannot delete category with tags");
       return;
@@ -218,17 +170,13 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading codebooks...</div>;
-  }
-
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-white">Codebook</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Codebook</h2>
           {showProjectTab !== false && (
-            <div className="flex rounded-md overflow-hidden border border-white/20 text-sm">
+            <div className="flex rounded-md overflow-hidden border border-slate-200 text-sm">
               {(["project", "global"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -236,7 +184,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   className={`px-3 py-1 capitalize ${
                     activeTab === tab
                       ? "bg-primary text-white"
-                      : "text-white/60 hover:text-white"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {tab}
@@ -271,7 +219,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
               </button>
             </div>
             <div className="p-1.5 space-y-0.5">
-              {allCategories.map(cat => (
+              {customCategories.map(cat => (
                 <div key={cat} className="group flex flex-col px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                   {editingCategory === cat ? (
                     <div className="space-y-2 py-1">
@@ -304,24 +252,22 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   ) : (
                     <div className="flex items-center justify-between w-full">
                       <span>{cat}</span>
-                      {(!globalCodebook?.categories.includes(cat) || activeTab === "global") && (
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                          <button
-                            onClick={() => handleStartCategoryEdit(cat)}
-                            className="p-1 text-slate-400 hover:text-primary transition-colors"
-                            aria-label={`Edit ${cat}`}
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(cat)}
-                            className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                            aria-label={`Delete ${cat}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          onClick={() => handleStartCategoryEdit(cat)}
+                          className="p-1 text-slate-400 hover:text-primary transition-colors"
+                          aria-label={`Edit ${cat}`}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(cat)}
+                          className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                          aria-label={`Delete ${cat}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -361,7 +307,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
             <p className="text-xs text-amber-700 leading-relaxed">
               {activeTab === "global"
                 ? "Editing the global codebook. Changes apply across all projects."
-                : "Global tags are read-only and available across all projects. Custom tags are specific to this project."}
+                : "Custom tags are specific to this project. Switch to Global to view or edit tags shared across all projects."}
             </p>
           </div>
         </div>
@@ -377,7 +323,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
               onClick={() => {
                 setIsAddingTag(true);
                 setEditingTagId(null);
-                setTagForm({ id: "", label: "", color: "#f59f0a", category: allCategories[0] || "" });
+                setTagForm({ id: "", label: "", color: "#f59f0a", category: customCategories[0] || "" });
               }}
               className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5"
             >
@@ -387,63 +333,59 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
           </div>
 
           <div className="space-y-6">
-            {allCategories.map(cat => {
-              const categoryTags = mergedCodebook.tags.filter(t => t.category === cat);
+            {customCategories.map(cat => {
+              const categoryTags = customTags.filter(t => t.category === cat);
               if (categoryTags.length === 0) return null;
 
               return (
                 <div key={cat} className="space-y-2">
                   <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">{cat}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {categoryTags.map(tag => {
-                      const isGlobal = globalCodebook?.tags.some(t => t.id === tag.id);
-                      const isEditable = !isGlobal || activeTab === "global";
-                      return (
-                        <div
-                          key={tag.id}
-                          className={`group p-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-between ${isGlobal ? 'bg-slate-50/50 opacity-80' : ''}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                              style={{ backgroundColor: tag.color }}
-                            >
-                              {tag.label.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900">{tag.label}</span>
-                                {isGlobal && activeTab !== "global" && (
-                                  <span className="px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded text-[9px] font-bold uppercase tracking-tighter">Global</span>
-                                )}
-                              </div>
-                              <span className="text-xs text-slate-400 font-mono">#{tag.id}</span>
-                            </div>
+                    {categoryTags.map(tag => (
+                      <div
+                        key={tag.id}
+                        className="group p-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                            style={{ backgroundColor: tag.color }}
+                          >
+                            {tag.label.charAt(0).toUpperCase()}
                           </div>
-
-                          {isEditable && (
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => handleEditTag(tag)}
-                                className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTag(tag.id)}
-                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
+                          <div>
+                            <span className="font-bold text-slate-900">{tag.label}</span>
+                            <div className="text-xs text-slate-400 font-mono">#{tag.id}</div>
+                          </div>
                         </div>
-                      );
-                    })}
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleEditTag(tag)}
+                            className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTag(tag.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
             })}
+            {customTags.length === 0 && (
+              <div className="py-10 text-center text-slate-400 text-sm">
+                {activeTab === "project"
+                  ? "No project tags yet — click \"Add Custom Tag\" to create one."
+                  : "No global tags yet — click \"Add Custom Tag\" to create one."}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -560,7 +502,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                     onChange={e => setTagForm({ ...tagForm, category: e.target.value })}
                   >
                     <option value="" disabled>Select category</option>
-                    {allCategories.map(cat => (
+                    {customCategories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>

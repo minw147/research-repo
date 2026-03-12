@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
-import { Eye, Code, RefreshCw, Loader2, Sparkles, Save, RotateCcw, Tag, Settings, X } from "lucide-react";
+import { Eye, Code, RefreshCw, Loader2, Sparkles, Save, RotateCcw, Tag, Settings, X, ArrowRight } from "lucide-react";
 
 import { useFileContent } from "@/hooks/useFileContent";
 import { useFileWatcher } from "@/hooks/useFileWatcher";
@@ -40,6 +40,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     const [showPromptModal, setShowPromptModal] = useState(false);
     const [showAddSessionModal, setShowAddSessionModal] = useState(false);
     const [showCodebookModal, setShowCodebookModal] = useState(false);
+    const [showTaggingNudge, setShowTaggingNudge] = useState(false);
 
     const videoPlayerRef = useRef<VideoPlayerRef>(null);
     const markdownEditorRef = useRef<MarkdownEditorHandle>(null);
@@ -260,16 +261,21 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
     const handleSaveCodebook = useCallback(async (newCodebook: Codebook) => {
         try {
-            const res = await fetch(`/api/files?slug=${slug}&file=codebook.json`, {
+            const res = await fetch("/api/files", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: JSON.stringify(newCodebook, null, 2) }),
+                body: JSON.stringify({
+                    slug,
+                    file: "codebook.json",
+                    content: JSON.stringify(newCodebook, null, 2),
+                }),
             });
             if (!res.ok) throw new Error("Failed to save codebook");
 
             setProject(prev => prev ? { ...prev, codebookData: newCodebook } : null);
 
             setShowCodebookModal(false);
+            setShowTaggingNudge(true);
         } catch (err) {
             console.error("Error saving codebook:", err);
             alert("Failed to save codebook changes.");
@@ -314,6 +320,46 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     return (
         <div className="h-full flex flex-col bg-slate-50">
             <WorkspaceNav slug={slug} onOpenCodebook={() => setShowCodebookModal(true)} />
+
+            {showTaggingNudge && (
+                <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-primary/5 border-b border-primary/20 text-sm shrink-0">
+                    <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                    <span className="flex-1 min-w-0 text-slate-700">
+                        Codebook saved. Re-run AI Tagging to apply tags to tags.md. Optionally, re-run AI Synthesis on Findings to re-analyze quotes with the new tags.
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            onClick={() => {
+                                setShowTaggingNudge(false);
+                                setActiveFile("tags.md");
+                                setShowPromptModal(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
+                        >
+                            Run AI Tagging
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                            onClick={() => {
+                                setShowTaggingNudge(false);
+                                setActiveFile("findings.md");
+                                setShowPromptModal(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                        >
+                            Re-run Findings
+                        </button>
+                        <button
+                            onClick={() => setShowTaggingNudge(false)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors cursor-pointer"
+                            aria-label="Dismiss"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <Group orientation="horizontal" className="flex-1 overflow-hidden">
                 {/* LEFT PANE: Video + Transcript (resizable vertical split) */}
                 <Panel defaultSize={45} minSize={30}>
@@ -545,26 +591,26 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
             {showCodebookModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col animate-in zoom-in duration-200">
-                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-700 bg-gray-900 shrink-0">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border border-slate-200 flex flex-col animate-in zoom-in duration-200">
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 bg-slate-50 shrink-0">
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
                                     <Settings className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-semibold text-white">Manage Research Codebook</h2>
-                                    <p className="text-xs text-gray-400">Define tags and categories for your analysis</p>
+                                    <h2 className="text-lg font-semibold text-slate-900">Manage Research Codebook</h2>
+                                    <p className="text-xs text-slate-500">Define tags and categories for your analysis</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowCodebookModal(false)}
-                                className="text-gray-400 hover:text-gray-200 p-1 rounded-md hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
+                                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
                                 aria-label="Close"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 bg-gray-800">
+                        <div className="flex-1 overflow-y-auto p-4 bg-white">
                             <CodebookEditor
                                 projectCodebook={project?.codebookData || null}
                                 onSave={handleSaveCodebook}
