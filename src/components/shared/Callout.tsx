@@ -8,10 +8,10 @@ interface CalloutProps {
 
 const variants = {
   info: {
-    bg: "bg-blue-50 dark:bg-blue-950/40",
-    border: "border-l-blue-500",
+    bg: "bg-primary/10 dark:bg-primary/20",
+    border: "border-l-primary",
     icon: "ℹ️",
-    title: "text-blue-800 dark:text-blue-300",
+    title: "text-primary-dark dark:text-primary",
   },
   tip: {
     bg: "bg-emerald-50 dark:bg-emerald-950/40",

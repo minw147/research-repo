@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const projectsDir = getProjectsDir();
     const projectDir = path.join(projectsDir, slug);
     const htmlPath = path.join(projectDir, "export", "index.html");
-    const clipsDir = path.join(projectDir, "export", "clips");
+    const clipsDir = path.join(projectDir, "clips"); // canonical clips dir; export/clips/ is for standalone HTML only
     const tagsHtmlPath = path.join(projectDir, "export", "tags.html");
 
     const payload: PublishPayload = {

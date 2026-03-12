@@ -1,6 +1,14 @@
 // src/lib/quote-parser.ts
 import type { ParsedQuote } from "@/types";
 
+/** Remove embedded [MM:SS] / [H:MM:SS] from text (selection or stored quote). Use when creating clips and for display. */
+export function stripTimestampFragments(text: string): string {
+  return text
+    .replace(/\s*\[\d{1,2}:\d{2}(?::\d{2})?\]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 const QUOTE_REGEX = /^-\s+\*\*"(.+?)"\*\*\s+@\s+(\d{1,2}:\d{2})\s+\((\d+)\s*(?:seconds|s)\)/;
 
 export function parseQuote(line: string): ParsedQuote | null {
@@ -18,9 +26,9 @@ export function parseQuote(line: string): ParsedQuote | null {
   const sessionIndex = sessionMatch ? parseInt(sessionMatch[1], 10) : 1;
   const hidden = line.includes("| hidden: true");
 
-  const tagsMatch = line.match(/tags:\s*(.+?)$/);
+  const tagsMatch = line.match(/tags:\s*(.*)$/);
   const tags = tagsMatch
-    ? tagsMatch[1].split(",").map((t) => t.trim()).filter(Boolean)
+    ? tagsMatch[1].split(",").map((t) => t.trim()).filter(Boolean).slice(0, 3)
     : [];
 
   return {
@@ -42,6 +50,8 @@ export function parseQuotesFromMarkdown(markdown: string): ParsedQuote[] {
     .filter((q): q is ParsedQuote => q !== null);
 }
 
+const MAX_TAGS_PER_QUOTE = 3;
+
 export function formatQuoteAsMarkdown(
   text: string,
   startSeconds: number,
@@ -56,8 +66,7 @@ export function formatQuoteAsMarkdown(
   if (hidden) {
     line += ` | hidden: true`;
   }
-  if (tags.length > 0) {
-    line += ` | tags: ${tags.join(", ")}`;
-  }
+  const cappedTags = tags.slice(0, MAX_TAGS_PER_QUOTE);
+  line += ` | tags: ${cappedTags.join(", ")}`;
   return line;
 }

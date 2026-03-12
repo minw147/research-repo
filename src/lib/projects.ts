@@ -1,7 +1,7 @@
 // src/lib/projects.ts
 import fs from "fs";
 import path from "path";
-import type { Project } from "@/types";
+import type { Project, Session } from "@/types";
 
 const DEFAULT_PROJECTS_DIR = path.join(process.cwd(), "content/projects");
 
@@ -105,4 +105,30 @@ export function listProjects(baseDir = DEFAULT_PROJECTS_DIR): Project[] {
   return projects.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+}
+
+/**
+ * Safe filename for a new session file: session-{index}.{ext}
+ * Extension is sanitized to alphanumeric only (e.g. mp4, txt).
+ */
+export function sessionFilename(sessionIndex: number, extension: string): string {
+  const ext = (extension.startsWith(".") ? extension.slice(1) : extension)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "") || "bin";
+  return `session-${sessionIndex}.${ext}`;
+}
+
+/**
+ * Append a session to a project and optionally set status to "findings" if currently "setup".
+ */
+export function addSessionToProject(
+  slug: string,
+  session: Session,
+  baseDir = DEFAULT_PROJECTS_DIR
+): Project | null {
+  const project = getProject(slug, baseDir);
+  if (!project) return null;
+  const sessions = [...project.sessions, session];
+  const status = project.status === "setup" ? "findings" : project.status;
+  return updateProject(slug, { sessions, status }, baseDir);
 }

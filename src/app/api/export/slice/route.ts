@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import ffmpeg from "ffmpeg-static";
 import { spawn } from "child_process";
+import { getFfmpegPath } from "@/lib/ffmpeg-path";
 import { getProject, sanitizeSlug } from "@/lib/projects";
 import type { ParsedQuote } from "@/types";
 
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No quotes to slice" }, { status: 400 });
     }
 
+    const ffmpeg = getFfmpegPath();
     if (!ffmpeg) {
       return NextResponse.json({ error: "FFmpeg not found" }, { status: 500 });
     }

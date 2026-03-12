@@ -1,17 +1,27 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 export function useFileContent(slug: string, file: string) {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const contentRef = useRef<string | null>(null);
+  contentRef.current = content;
 
   const fetchContent = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/files?slug=${slug}&file=${file}`);
+      const url = `/api/files?slug=${encodeURIComponent(slug)}&file=${encodeURIComponent(file)}`;
+      const res = await fetch(url, {
+        cache: "no-store",
+      });
       if (!res.ok) throw new Error(`Failed to fetch ${file}`);
       const data = await res.json();
+      // Skip update when content unchanged to avoid editor re-render and scroll reset
+      if (data.content === contentRef.current) {
+        setLoading(false);
+        return;
+      }
       setContent(data.content);
     } catch (err: any) {
       setError(err.message);

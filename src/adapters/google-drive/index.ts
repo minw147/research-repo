@@ -4,6 +4,9 @@ import path from "path";
 import { Readable } from "stream";
 import { PublishAdapter, PublishPayload, PublishResult } from "../types";
 import { tokenStore } from "@/lib/token-store";
+import { sliceTagClips } from "@/lib/slice-tag-clips";
+import { extractProjectTagData } from "@/lib/extract-project-tags";
+import { generateViewerHtml } from "@/lib/viewer-template";
 
 /** Escape a value for use inside a Google Drive API query string. */
 function driveEsc(value: string): string {
@@ -105,31 +108,55 @@ export const GoogleDriveAdapter: PublishAdapter = {
     }
 
     try {
+      // Slice any clips referenced in tags.md that don't exist yet
+      const sliceResults = await sliceTagClips(projectDir, project);
+      const sliceErrors = sliceResults.filter((r) => r.status === "error");
+      if (sliceErrors.length) {
+        console.warn("[google-drive] Some clips could not be sliced:", sliceErrors);
+      }
+
       const { google } = await import("googleapis");
       const auth = new google.auth.OAuth2(config.clientId, config.clientSecret);
       auth.setCredentials({ access_token: stored.accessToken, refresh_token: stored.refreshToken });
-      const drive = google.drive({ version: "v3", auth });
 
-      const exportDir = path.join(projectDir, "export");
-      if (!fs.existsSync(exportDir)) {
-        return { success: false, message: `Export directory not found: ${exportDir}. Run export first.` };
-      }
+      // Persist refreshed tokens automatically so the user stays connected
+      // after the 1-hour access token window without re-doing the consent flow.
+      auth.on("tokens", (tokens) => {
+        const current = tokenStore.get("google");
+        tokenStore.set("google", {
+          accessToken: tokens.access_token ?? stored.accessToken,
+          refreshToken: tokens.refresh_token ?? current?.refreshToken ?? stored.refreshToken,
+          expiresAt: tokens.expiry_date ?? (Date.now() + 3600 * 1000),
+        });
+      });
+
+      const drive = google.drive({ version: "v3", auth });
 
       // 1. Create or get project subfolder
       const projectFolderId = await getOrCreateFolder(drive, project.id, config.targetFolderId);
 
-      // 2. Upload index.html
-      const htmlContent = fs.readFileSync(path.join(exportDir, "index.html"));
-      const htmlFileId = await uploadOrUpdateFile(drive, "index.html", projectFolderId, htmlContent, "text/html");
+      // 2. Upload index.html if the export dir exists (optional)
+      let htmlFileId: string | null = null;
+      const exportDir = path.join(projectDir, "export");
+      const htmlPath = path.join(exportDir, "index.html");
+      if (fs.existsSync(htmlPath)) {
+        htmlFileId = await uploadOrUpdateFile(
+          drive, "index.html", projectFolderId,
+          fs.readFileSync(htmlPath), "text/html"
+        );
+      }
 
-      // 3. Upload clips
+      // 3. Upload clips from {projectDir}/clips/ — freshly sliced at publish time
       const clipFileIds: Record<string, string> = {};
-      const clipsDir = path.join(exportDir, "clips");
-      if (fs.existsSync(clipsDir)) {
+      const projectClipsDir = path.join(projectDir, "clips");
+      if (fs.existsSync(projectClipsDir)) {
         const clipsFolderId = await getOrCreateFolder(drive, "clips", projectFolderId);
-        for (const clip of fs.readdirSync(clipsDir)) {
-          const clipContent = fs.readFileSync(path.join(clipsDir, clip));
-          clipFileIds[clip] = await uploadOrUpdateFile(drive, clip, clipsFolderId, clipContent, "video/mp4");
+        for (const clip of fs.readdirSync(projectClipsDir)) {
+          if (!clip.endsWith(".mp4")) continue;
+          clipFileIds[clip] = await uploadOrUpdateFile(
+            drive, clip, clipsFolderId,
+            fs.readFileSync(path.join(projectClipsDir, clip)), "video/mp4"
+          );
         }
       }
 
@@ -145,6 +172,7 @@ export const GoogleDriveAdapter: PublishAdapter = {
         try { repoIndex = JSON.parse(content.data as string); } catch {}
       }
 
+      const tagData = extractProjectTagData(projectDir, project);
       const entry = {
         id: project.id,
         title: project.title,
@@ -152,25 +180,28 @@ export const GoogleDriveAdapter: PublishAdapter = {
         researcher: project.researcher,
         persona: project.persona,
         product: project.product,
-        findingsHtml: `${project.id}/index.html`,
+        findingsHtml: htmlFileId ? `${project.id}/index.html` : null,
         publishedUrl: null,
-        driveFileIds: {
-          report: htmlFileId,
-          clips: clipFileIds,
-        },
+        quotes: tagData.quotes,
+        codebook: tagData.codebook,
+        driveFileIds: { report: htmlFileId, clips: clipFileIds },
       };
 
       const idx = repoIndex.findIndex((p: any) => p.id === project.id);
       if (idx >= 0) repoIndex[idx] = entry; else repoIndex.push(entry);
 
       await uploadOrUpdateFile(
-        drive,
-        "repo-index.json",
-        config.targetFolderId,
+        drive, "repo-index.json", config.targetFolderId,
         Buffer.from(JSON.stringify(repoIndex, null, 2)),
         "application/json"
       );
 
+      // 5. Upload hub viewer index.html with inlined data to root folder
+      await uploadOrUpdateFile(
+        drive, "index.html", config.targetFolderId,
+        Buffer.from(generateViewerHtml({ data: repoIndex }), "utf-8"),
+        "text/html"
+      );
 
       const folderUrl = `https://drive.google.com/drive/folders/${config.targetFolderId}`;
       return { success: true, message: `Published to Google Drive`, url: folderUrl };

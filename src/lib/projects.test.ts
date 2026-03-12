@@ -9,6 +9,8 @@ import {
   createProject,
   updateProject,
   slugify,
+  sessionFilename,
+  addSessionToProject,
 } from "./projects";
 
 const TEST_DIR = path.join(process.cwd(), "content/projects/__test__");
@@ -85,5 +87,31 @@ describe("project CRUD", () => {
     expect(updated?.researcher).toBe("John");
     const project = getProject("update-test", TEST_DIR);
     expect(project?.researcher).toBe("John");
+  });
+
+  it("sessionFilename returns safe session-{n}.{ext}", () => {
+    expect(sessionFilename(1, "mp4")).toBe("session-1.mp4");
+    expect(sessionFilename(2, ".txt")).toBe("session-2.txt");
+    expect(sessionFilename(1, "MP4")).toBe("session-1.mp4");
+  });
+
+  it("addSessionToProject appends session and sets status to findings when setup", () => {
+    createProject(
+      { title: "Session Add Test", researcher: "Jane", persona: "User" },
+      TEST_DIR
+    );
+    const updated = addSessionToProject(
+      "session-add-test",
+      {
+        id: "session-1",
+        participant: "Alex",
+        videoFile: "session-1.mp4",
+        transcriptFile: "session-1.txt",
+      },
+      TEST_DIR
+    );
+    expect(updated?.sessions).toHaveLength(1);
+    expect(updated?.sessions[0].participant).toBe("Alex");
+    expect(updated?.status).toBe("findings");
   });
 });

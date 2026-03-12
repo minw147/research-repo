@@ -1,6 +1,7 @@
 // src/lib/token-store.ts
-// OAuth token storage. Persists to .next/cache/oauth-tokens.json so tokens
-// survive Next.js hot-module reloads in development.
+// OAuth token storage. Persists to content/.oauth-tokens.json — a stable
+// location that survives Next.js dev-server restarts, hot-module reloads,
+// and `npm run build` cache wipes.
 
 import fs from "fs";
 import path from "path";
@@ -11,7 +12,7 @@ export interface StoredToken {
   expiresAt: number; // Unix timestamp ms
 }
 
-const CACHE_FILE = path.join(process.cwd(), ".next", "cache", "oauth-tokens.json");
+const CACHE_FILE = path.join(process.cwd(), "content", ".oauth-tokens.json");
 
 function readCacheFile(): Map<string, StoredToken> {
   try {
@@ -29,7 +30,7 @@ function writeCacheFile(store: Map<string, StoredToken>): void {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(CACHE_FILE, JSON.stringify(Object.fromEntries(store), null, 2));
   } catch {
-    // Non-fatal: in-memory store still works
+    // Non-fatal: in-memory store still works for this session
   }
 }
 
@@ -44,22 +45,29 @@ class TokenStore {
   get(provider: string): StoredToken | null {
     let token = this.store.get(provider);
 
-    // Fall back to file cache when in-memory is empty (e.g. after hot-reload)
+    // Fall back to file cache when in-memory is empty (e.g. after hot-reload / restart)
     if (!token) {
       const cached = readCacheFile();
       const fromFile = cached.get(provider);
       if (fromFile) {
-        this.store = cached; // re-hydrate in-memory store
+        this.store = cached;
         token = fromFile;
       }
     }
 
     if (!token) return null;
-    if (Date.now() >= token.expiresAt) {
+
+    // If the access token is expired but we have a refresh token, still return
+    // the stored credentials — the OAuth2 client (googleapis) will use the
+    // refresh token to obtain a new access token automatically.
+    // Only treat as disconnected when there is no refresh token AND the access
+    // token is past its expiry.
+    if (Date.now() >= token.expiresAt && !token.refreshToken) {
       this.store.delete(provider);
       writeCacheFile(this.store);
       return null;
     }
+
     return token;
   }
 

@@ -21,11 +21,22 @@ describe("TokenStore", () => {
     expect(stored!.accessToken).toBe("tok");
   });
 
-  it("returns null for expired token", () => {
+  it("returns token even when access token is expired if refresh token is present", () => {
     tokenStore.set("google", {
       accessToken: "tok",
       refreshToken: "ref",
-      expiresAt: Date.now() - 1000, // already expired
+      expiresAt: Date.now() - 1000, // access token expired
+    });
+    // Should still return the token — googleapis will use refresh_token to renew
+    const stored = tokenStore.get("google");
+    expect(stored).not.toBeNull();
+    expect(stored!.refreshToken).toBe("ref");
+  });
+
+  it("returns null for expired token with no refresh token", () => {
+    tokenStore.set("google", {
+      accessToken: "tok",
+      expiresAt: Date.now() - 1000, // expired, no refresh token
     });
     expect(tokenStore.get("google")).toBeNull();
   });

@@ -1,3 +1,6 @@
+# OAuth tokens (contain secrets, must not be committed)
+content/.oauth-tokens.json
+
 # Dependencies
 node_modules
 /.pnp

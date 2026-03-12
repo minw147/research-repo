@@ -41,7 +41,6 @@ export async function GET(
       return NextResponse.json({ error: "Not a file" }, { status: 400 });
     }
 
-    const fileBuffer = fs.readFileSync(resolvedPath);
     const ext = path.extname(resolvedPath).toLowerCase();
 
     // Map extensions to content types
@@ -63,12 +62,46 @@ export async function GET(
     };
 
     const contentType = contentTypeMap[ext] || "application/octet-stream";
+    const isVideo = ext === ".mp4" || ext === ".webm";
+    const fileSize = stat.size;
+
+    // Support Range requests for video so the browser can seek
+    const rangeHeader = req.headers.get("range");
+    if (isVideo && rangeHeader?.startsWith("bytes=")) {
+      const match = rangeHeader.match(/bytes=(\d*)-(\d*)/);
+      if (match) {
+        const start = match[1] === "" ? 0 : parseInt(match[1], 10);
+        const end = match[2] === "" ? fileSize - 1 : parseInt(match[2], 10);
+        const chunkSize = end - start + 1;
+        const buffer = Buffer.alloc(chunkSize);
+        const fd = fs.openSync(resolvedPath, "r");
+        fs.readSync(fd, buffer, 0, chunkSize, start);
+        fs.closeSync(fd);
+        return new Response(buffer, {
+          status: 206,
+          headers: {
+            "Content-Type": contentType,
+            "Content-Length": String(chunkSize),
+            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "no-cache",
+          },
+        });
+      }
+    }
+
+    const fileBuffer = fs.readFileSync(resolvedPath);
+    const headers: Record<string, string> = {
+      "Content-Type": contentType,
+      "Cache-Control": "no-cache",
+    };
+    if (isVideo) {
+      headers["Accept-Ranges"] = "bytes";
+      headers["Content-Length"] = String(fileSize);
+    }
 
     return new Response(fileBuffer, {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "no-cache",
-      },
+      headers,
     });
   } catch (error: any) {
     console.error("Preview API error:", error);

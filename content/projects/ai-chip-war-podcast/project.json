@@ -1,0 +1,34 @@
+{
+  "id": "ai-chip-war-podcast",
+  "title": "AI Chip War Podcast",
+  "date": "2026-03-08",
+  "researcher": "Min",
+  "persona": "Investor",
+  "product": "Mobile App",
+  "status": "published",
+  "researchPlan": "",
+  "codebook": null,
+  "sessions": [
+    {
+      "id": "session-1",
+      "participant": "Session 1",
+      "videoFile": "session-1.mp4",
+      "transcriptFile": "session-1.vtt"
+    }
+  ],
+  "publishedUrl": "https://drive.google.com/drive/folders/170BkQ0Wg54F4x6a18Nlh5R8P-M3ETo3Z",
+  "publishedUrls": [
+    {
+      "adapterId": "local-folder",
+      "adapterName": "Local Folder",
+      "url": "C:\\Users\\Administrator\\Downloads\\temp\\ai-chip-war-podcast\\index.html",
+      "publishedAt": "2026-03-11T01:01:02.046Z"
+    },
+    {
+      "adapterId": "google-drive",
+      "adapterName": "Google Drive",
+      "url": "https://drive.google.com/drive/folders/170BkQ0Wg54F4x6a18Nlh5R8P-M3ETo3Z",
+      "publishedAt": "2026-03-11T01:10:59.283Z"
+    }
+  ]
+}
