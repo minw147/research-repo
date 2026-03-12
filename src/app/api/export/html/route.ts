@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
     const html = await generateReportHtml(project, reportMdx, timestampsOnly);
     fs.writeFileSync(path.join(exportDir, "index.html"), html);
 
-    // Copy necessary assets (CSS, JS) from repo-viewer if they exist
-    const repoViewerDir = path.join(process.cwd(), "repo-viewer");
+    // Copy necessary assets (CSS, JS) from repo-viewer-template if they exist
+    const repoViewerDir = path.join(process.cwd(), "repo-viewer-template");
     if (fs.existsSync(repoViewerDir)) {
       const assets = ["viewer.js", "viewer.css", "index.html"];
       for (const asset of assets) {

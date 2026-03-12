@@ -1,14 +1,16 @@
-# Research Repository
+# Research Hub
 
-A local-first UX research repository built with Next.js. Analyze interview transcripts, publish MDX reports with embedded video clips, and share findings as standalone HTML or PowerPoint. Designed for researchers using [Cursor](https://cursor.com) and local AI.
+A local-first UX research repository for managing interview transcripts, extracting insights, and publishing reports with embedded video clips. Built for researchers using [Cursor](https://cursor.com) and local AI — no LLM API calls from the app.
 
 ## What it does
 
-- **Transcript analysis** �?Place transcripts in `data/transcripts`, use Cursor to extract themes, pain points, and verbatim quotes with timestamps. *Requires an API key (e.g. Groq) for AI transcription; if you don't have one, use auto-generated transcripts from Teams, Zoom, or other services.*
-- **MDX reports** �?Publish findings to `content/reports` as MDX with embedded `<Clip />` components for video evidence
-- **Video clips** �?Slice clips from full videos via FFmpeg based on report timestamps
-- **Export** �?Generate standalone HTML (portable, with videos) or PowerPoint with embedded clips
-- **Cursor skills** �?Built-in skills guide AI to analyze transcripts and publish reports the right way
+- **Project-based workflow** — Create projects, add sessions (video + transcript), edit findings and tags in the Report Builder
+- **Codebook** — Define tags and categories (project-level or global) for thematic analysis
+- **Transcript analysis** — Use Cursor skills to extract themes, pain points, and verbatim quotes with timestamps
+- **Report Builder** — Edit findings.md, tags.md, and report.mdx with live preview; AI analysis via copy-and-run prompts
+- **Video clips** — Slice clips from full videos via FFmpeg based on quote timestamps
+- **Export** — Generate portable HTML reports (self-contained, with clips) or publish to local folder, Google Drive
+- **Cursor skills** — Built-in skills in `.cursor/skills/` guide AI to analyze transcripts and publish reports
 
 ## Quick start
 
@@ -19,73 +21,91 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The dashboard shows sample studies; click through to view reports.
+Open [http://localhost:3000](http://localhost:3000). The dashboard lists projects; create one or open an existing project to start.
 
 ## Project structure
 
 ```
 research-repo/
+├── content/projects/[slug]/   # Per-project data
+│   ├── project.json           # Metadata (title, researcher, sessions)
+│   ├── codebook.json          # Project-specific tags & categories
+│   ├── findings.md            # Thematic findings & quotes
+│   ├── tags.md                # Tag board (quotes by tag)
+│   ├── report.mdx             # Published report (MDX with clips)
+│   ├── export/                # Portable HTML export (index.html + clips/)
+│   ├── transcripts/           # Session transcripts (.vtt, .txt)
+│   └── videos/                # Session videos (gitignored)
 ├── data/
-�?  ├── transcripts/       # Raw transcript files (.txt, timestamped)
-�?  ├── analysis/          # Findings drafts (research-analysis output)
-�?  ├── drafts/            # Work-in-progress
-�?  └── research-index.json   # Study metadata (video URLs, report links)
-├── content/reports/      # Published MDX reports
-├── public/videos/        # Full videos + sliced clips (gitignored)
-├── .cursor/skills/      # Cursor skills (research-analysis, report-publication)
-└── src/                 # Next.js app (dashboard, report view, Clip component)
+│   ├── global-codebook.json   # Shared tags across all projects
+│   └── research-index.json   # Legacy study metadata
+├── .cursor/skills/            # Cursor skills (research-analysis, report-publication)
+├── repo-viewer-template/     # Static viewer template (index.html, viewer.js, viewer.css)
+├── docs/                      # Plans, setup guides
+└── src/                       # Next.js app (App Router)
 ```
 
-## Adding your own research
+## Workflow
 
-1. **Add a transcript** �?Place a timestamped `.txt` file in `data/transcripts` (format: `[MM:SS] text` per line).
-2. **Register the study** �?Add an entry to `data/research-index.json` with `videoUrl`, `transcriptFile`, and `reportFile`.
-3. **Analyze** �?In Cursor, ask to analyze the transcript. The **research-analysis** skill writes findings to `data/analysis/[slug]-findings.md`.
-4. **Publish** �?When ready, ask Cursor to publish the report. The **report-publication** skill converts findings to MDX with `<Clip />` components.
-5. **Slice clips** �?Run `npm run slice-clips` to extract clips from your full video (place it in `public/videos/`). See [public/videos/README.md](public/videos/README.md).
+1. **Create a project** — From the dashboard, click **New Project**. Add title, researcher, persona, product.
+2. **Add sessions** — In the Report Builder, add sessions with video and transcript files (or auto-generated VTT from Teams/Zoom).
+3. **Manage codebook** — Open **Codebook** to define tags and categories. Project tags are per-project; global tags are shared.
+4. **Analyze** — In Findings or Tags, click **AI Analyze**, copy the prompt, run it in Cursor. The AI creates/updates `findings.md` or `tags.md`. Refresh the app to see changes.
+5. **Generate report** — On the Report tab, use **AI Synthesis** to produce `findings.html` from `findings.md`. Export HTML for a portable bundle.
+6. **Publish** — On the Storage tab, publish the export to a local folder, Google Drive, or other destinations.
+
+See [docs/report-builder-cli.md](docs/report-builder-cli.md) for the AI copy-and-run workflow.
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Start dev server (exports HTML on predev) |
-| `npm run build` | Build static export |
-| `npm run slice-clips` | Slice video clips from MDX reports via FFmpeg |
-| `npm run export-portable` | Bundle HTML + videos + captions for offline sharing |
-| `npm run export-pptx` | Export report to PowerPoint with embedded clips |
-| `npm run update-clip-urls` | Update Clip URLs from JSON (OneDrive/SharePoint mapping) |
+| `npm run dev` | Start dev server |
+| `npm run build` | Production static export |
+| `npm run test` | Run Vitest test suite |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run lint` | ESLint |
+| `npm run slice-clips` | Extract video clips from MDX via FFmpeg |
+| `npm run update-clip-urls` | Sync clip URLs from OneDrive/SharePoint JSON |
+| `npm run refresh-viewer` | Rebuild `repo-viewer-template` viewer index |
 
-## Report Builder & AI Analysis
+## Report Builder
 
-The Report Builder (e.g. `/builder/[slug]/findings`) supports AI analysis via a copy-and-run workflow. Click **AI Analyze**, copy the generated prompt, paste it into Cursor, and run the agent. The AI creates or updates markdown files (`findings.md`, `tags.md`, `report.mdx`) in your project; refresh the app to see changes. See **Help** in the app or [docs/report-builder-cli.md](docs/report-builder-cli.md) for details.
+The Report Builder (`/builder/[slug]`) has four tabs:
+
+| Tab | Purpose |
+|-----|---------|
+| **Findings** | Edit `findings.md` — thematic findings with timestamped quotes |
+| **Tags** | Edit `tags.md` — tag board grouping quotes by codebook tags |
+| **Report** | Preview and export HTML; run AI Synthesis to generate `findings.html` |
+| **Storage** | Publish exported reports to local folder or Google Drive |
+
+The app uses **file watching** — changes to markdown files on disk refresh the UI automatically. AI analysis runs externally in Cursor; prompts are copied and executed there.
 
 ## Cursor skills
 
-Two skills live in `.cursor/skills/`:
+Two skills in `.cursor/skills/`:
 
 | Skill | Purpose |
 |-------|---------|
 | **research-analysis** | Analyze transcripts, extract findings, transcribe videos (Groq/Whisper) |
 | **report-publication** | Convert findings to MDX, slice clips, export HTML/PPTX |
 
-Open this repo in Cursor; the skills are auto-discovered. Use them when asking the AI to analyze transcripts or publish reports.
+Use them when asking the AI to analyze transcripts or publish reports. The app does not call LLM APIs; all AI runs in Cursor via copy-paste prompts.
 
-## Video setup
+## Publishing & sharing
 
-Videos are **gitignored** (raw files and clips). For local development:
+- **Local folder** — Export a portable `/export` folder; zip and upload to SharePoint, OneDrive, or Google Drive. Stakeholders can view HTML and watch clips in the browser.
+- **Google Drive** — Publish directly to a Drive folder. Optionally host a Research Hub viewer on Vercel that reads from the same folder.
 
-- Place full videos in `public/videos/`
-- Run `npm run slice-clips` to extract clips for report timestamps
-- For production sharing, host clips on OneDrive, SharePoint, or Google Drive and use `data/clip-urls-[report].json` + `npm run update-clip-urls`
-
-See [public/videos/README.md](public/videos/README.md) for details.
+See [docs/setup-hub-server.md](docs/setup-hub-server.md) for Google Drive and viewer setup.
 
 ## Requirements
 
 - Node.js 18+
 - FFmpeg (for `slice-clips`; [ffmpeg-static](https://www.npmjs.com/package/ffmpeg-static) is bundled)
-- Optional: [Groq](https://groq.com) API key in `.env` for transcription (`GROQ_API_KEY`)
+- Optional: `GROQ_API_KEY` in `.env` for Groq/Whisper transcription in Cursor skill
 
 ## License
 
-MIT �?see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

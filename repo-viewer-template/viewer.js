@@ -1,4 +1,4 @@
-// repo-viewer/viewer.js
+// repo-viewer-template/viewer.js
 let allProjects = [];
 
 async function loadProjects() {
