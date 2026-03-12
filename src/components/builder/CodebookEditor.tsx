@@ -126,7 +126,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
   };
 
   const handleStartCategoryEdit = (cat: string) => {
-    if (globalCodebook?.categories.includes(cat)) {
+    if (globalCodebook?.categories.includes(cat) && activeTab !== "global") {
       alert("Cannot edit global category");
       return;
     }
@@ -158,7 +158,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = ({
   };
 
   const handleDeleteCategory = (cat: string) => {
-    if (globalCodebook?.categories.includes(cat)) {
+    if (globalCodebook?.categories.includes(cat) && activeTab !== "global") {
       alert("Cannot delete global category");
       return;
     }
