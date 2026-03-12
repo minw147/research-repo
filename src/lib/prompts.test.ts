@@ -2,6 +2,7 @@
 import { describe, test, expect } from "vitest";
 import {
   buildAnalyzeTranscriptsPrompt,
+  buildAnalyzeFindingsPrompt,
   buildAddThemePrompt,
   buildGenerateTagsPrompt,
   buildGenerateReportPrompt,
@@ -37,40 +38,70 @@ describe("AI Analysis Prompts", () => {
 
   const mockTranscript = "00:01|Hello there\n00:05|This is a test";
 
-  test("buildAnalyzeTranscriptsPrompt returns formatted prompt", () => {
+  test("buildAnalyzeTranscriptsPrompt returns formatted prompt with project context", () => {
     const prompt = buildAnalyzeTranscriptsPrompt(mockProject, mockCodebook);
-    expect(prompt).toContain('Analyze all transcript files in the \'transcripts/\' directory for the project "Test Project".');
-    expect(prompt).toContain('Context: A busy professional testing Task App.');
-    expect(prompt).toContain('Research Plan: Test out some new features.');
-    expect(prompt).toContain('Tag A');
-    expect(prompt).toContain('Tag B');
-  });
-
-  test("buildAddThemePrompt returns formatted prompt", () => {
-    const prompt = buildAddThemePrompt(mockProject, "Theme X");
-    expect(prompt).toContain('Analyze research data (findings.md and transcripts/) to find evidence for a new theme: "Theme X".');
-    expect(prompt).toContain('Project: Test Project');
-    expect(prompt).toContain('Persona: A busy professional');
-  });
-
-  test("buildGenerateTagsPrompt returns formatted prompt", () => {
-    const prompt = buildGenerateTagsPrompt(mockProject, mockCodebook, "findings");
-    expect(prompt).toContain("Review the research data in 'findings.md' for the project \"Test Project\".");
+    expect(prompt).toContain("content/projects/p1");
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("Jane Doe");
+    expect(prompt).toContain("A busy professional");
+    expect(prompt).toContain("Task App");
+    expect(prompt).toContain("Test out some new features.");
+    expect(prompt).toContain("transcripts/");
     expect(prompt).toContain("Tag A");
     expect(prompt).toContain("Tag B");
   });
 
+  test("buildAddThemePrompt returns formatted prompt", () => {
+    const prompt = buildAddThemePrompt(mockProject, "Theme X");
+    expect(prompt).toContain('Theme X');
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("A busy professional");
+    expect(prompt).toContain("findings.md");
+  });
+
+  test("buildGenerateTagsPrompt returns formatted prompt for findings source", () => {
+    const prompt = buildGenerateTagsPrompt(mockProject, mockCodebook, "findings");
+    expect(prompt).toContain("findings.md");
+    expect(prompt).toContain("tags.md");
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("Tag A");
+    expect(prompt).toContain("Tag B");
+  });
+
+  test("buildGenerateTagsPrompt returns formatted prompt for transcripts source", () => {
+    const prompt = buildGenerateTagsPrompt(mockProject, mockCodebook, "transcripts");
+    expect(prompt).toContain("scanning all session transcripts");
+    expect(prompt).toContain("tags.md");
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("Tag A");
+    expect(prompt).toContain("Tag B");
+  });
+
+  test("prompts do not reference non-interactive or CLI-specific instructions", () => {
+    const prompts = [
+      buildAnalyzeTranscriptsPrompt(mockProject, mockCodebook),
+      buildGenerateTagsPrompt(mockProject, mockCodebook, "findings"),
+      buildGenerateTagsPrompt(mockProject, mockCodebook, "transcripts"),
+    ];
+    for (const p of prompts) {
+      expect(p).not.toContain("non-interactive");
+      expect(p).not.toContain("run the CLI");
+      expect(p).not.toContain("Do not ask");
+    }
+  });
+
   test("buildGenerateReportPrompt returns formatted prompt", () => {
     const prompt = buildGenerateReportPrompt(mockProject, "blog");
-    expect(prompt).toContain("Review 'findings.md' and 'tags.md' in the current directory for the project \"Test Project\".");
-    expect(prompt).toContain("Style: Long-form Blog Post / Case Study.");
+    expect(prompt).toContain("findings.md");
+    expect(prompt).toContain("tags.md");
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("Long-form Blog Post / Case Study");
   });
 
   test("generateThematicAnalysisPrompt returns formatted prompt (deprecated)", () => {
     const prompt = generateThematicAnalysisPrompt(mockProject, mockTranscript, 2);
-    expect(prompt).toContain('Analyze this UX research transcript for the project "Test Project".');
-    expect(prompt).toContain('Context: A busy professional testing Task App.');
-    expect(prompt).toContain('session: 2');
+    expect(prompt).toContain("Test Project");
+    expect(prompt).toContain("session 2");
     expect(prompt).toContain(mockTranscript);
   });
 
@@ -81,5 +112,26 @@ describe("AI Analysis Prompts", () => {
     expect(prompt).toContain(codebook);
     expect(prompt).toContain(mockTranscript);
     expect(prompt).toContain("session: 3 | tags: tag1, tag2");
+  });
+
+  test("buildAnalyzeTranscriptsPrompt references Step 4a not Steps 1-5", () => {
+    const prompt = buildAnalyzeTranscriptsPrompt(mockProject, mockCodebook);
+    expect(prompt).toContain("Step 4a");
+    expect(prompt).not.toContain("Steps 1–5");
+    expect(prompt).not.toContain("Steps 1-5");
+  });
+
+  test("buildAnalyzeFindingsPrompt references Step 4a not Steps 1-5", () => {
+    const prompt = buildAnalyzeFindingsPrompt(mockProject, mockCodebook);
+    expect(prompt).toContain("Step 4a");
+    expect(prompt).not.toContain("Steps 1–5");
+    expect(prompt).not.toContain("Steps 1-5");
+  });
+
+  test("buildGenerateTagsPrompt references Step 4b not Steps 1-5", () => {
+    const prompt = buildGenerateTagsPrompt(mockProject, mockCodebook, "findings");
+    expect(prompt).toContain("Step 4b");
+    expect(prompt).not.toContain("Steps 1–5");
+    expect(prompt).not.toContain("Steps 1-5");
   });
 });
