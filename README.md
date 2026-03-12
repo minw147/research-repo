@@ -1,6 +1,6 @@
 # Research Hub
 
-A local-first UX research repository for managing interview transcripts, extracting insights, and publishing reports with embedded video clips. Built for researchers using [Cursor](https://cursor.com) and local AI — no LLM API calls from the app.
+A local-first UX research hub for transforming transcripts into insight-rich reports with embedded video clips. Optimized for AI-assisted analysis via Cursor or Claude Code without external API calls.
 
 ## What it does
 
