@@ -4,11 +4,11 @@ A local-first UX research repository built with Next.js. Analyze interview trans
 
 ## What it does
 
-- **Transcript analysis** — Place transcripts in `data/transcripts`, use Cursor to extract themes, pain points, and verbatim quotes with timestamps. *Requires an API key (e.g. Groq) for AI transcription; if you don't have one, use auto-generated transcripts from Teams, Zoom, or other services.*
-- **MDX reports** — Publish findings to `content/reports` as MDX with embedded `<Clip />` components for video evidence
-- **Video clips** — Slice clips from full videos via FFmpeg based on report timestamps
-- **Export** — Generate standalone HTML (portable, with videos) or PowerPoint with embedded clips
-- **Cursor skills** — Built-in skills guide AI to analyze transcripts and publish reports the right way
+- **Transcript analysis** �?Place transcripts in `data/transcripts`, use Cursor to extract themes, pain points, and verbatim quotes with timestamps. *Requires an API key (e.g. Groq) for AI transcription; if you don't have one, use auto-generated transcripts from Teams, Zoom, or other services.*
+- **MDX reports** �?Publish findings to `content/reports` as MDX with embedded `<Clip />` components for video evidence
+- **Video clips** �?Slice clips from full videos via FFmpeg based on report timestamps
+- **Export** �?Generate standalone HTML (portable, with videos) or PowerPoint with embedded clips
+- **Cursor skills** �?Built-in skills guide AI to analyze transcripts and publish reports the right way
 
 ## Quick start
 
@@ -26,10 +26,10 @@ Open [http://localhost:3000](http://localhost:3000). The dashboard shows sample 
 ```
 research-repo/
 ├── data/
-│   ├── transcripts/       # Raw transcript files (.txt, timestamped)
-│   ├── analysis/          # Findings drafts (research-analysis output)
-│   ├── drafts/            # Work-in-progress
-│   └── research-index.json   # Study metadata (video URLs, report links)
+�?  ├── transcripts/       # Raw transcript files (.txt, timestamped)
+�?  ├── analysis/          # Findings drafts (research-analysis output)
+�?  ├── drafts/            # Work-in-progress
+�?  └── research-index.json   # Study metadata (video URLs, report links)
 ├── content/reports/      # Published MDX reports
 ├── public/videos/        # Full videos + sliced clips (gitignored)
 ├── .cursor/skills/      # Cursor skills (research-analysis, report-publication)
@@ -38,11 +38,11 @@ research-repo/
 
 ## Adding your own research
 
-1. **Add a transcript** — Place a timestamped `.txt` file in `data/transcripts` (format: `[MM:SS] text` per line).
-2. **Register the study** — Add an entry to `data/research-index.json` with `videoUrl`, `transcriptFile`, and `reportFile`.
-3. **Analyze** — In Cursor, ask to analyze the transcript. The **research-analysis** skill writes findings to `data/analysis/[slug]-findings.md`.
-4. **Publish** — When ready, ask Cursor to publish the report. The **report-publication** skill converts findings to MDX with `<Clip />` components.
-5. **Slice clips** — Run `npm run slice-clips` to extract clips from your full video (place it in `public/videos/`). See [public/videos/README.md](public/videos/README.md).
+1. **Add a transcript** �?Place a timestamped `.txt` file in `data/transcripts` (format: `[MM:SS] text` per line).
+2. **Register the study** �?Add an entry to `data/research-index.json` with `videoUrl`, `transcriptFile`, and `reportFile`.
+3. **Analyze** �?In Cursor, ask to analyze the transcript. The **research-analysis** skill writes findings to `data/analysis/[slug]-findings.md`.
+4. **Publish** �?When ready, ask Cursor to publish the report. The **report-publication** skill converts findings to MDX with `<Clip />` components.
+5. **Slice clips** �?Run `npm run slice-clips` to extract clips from your full video (place it in `public/videos/`). See [public/videos/README.md](public/videos/README.md).
 
 ## Commands
 
@@ -54,6 +54,10 @@ research-repo/
 | `npm run export-portable` | Bundle HTML + videos + captions for offline sharing |
 | `npm run export-pptx` | Export report to PowerPoint with embedded clips |
 | `npm run update-clip-urls` | Update Clip URLs from JSON (OneDrive/SharePoint mapping) |
+
+## Report Builder & AI Analysis
+
+The Report Builder (e.g. `/builder/[slug]/findings`) supports AI analysis via a copy-and-run workflow. Click **AI Analyze**, copy the generated prompt, paste it into Cursor, and run the agent. The AI creates or updates markdown files (`findings.md`, `tags.md`, `report.mdx`) in your project; refresh the app to see changes. See **Help** in the app or [docs/report-builder-cli.md](docs/report-builder-cli.md) for details.
 
 ## Cursor skills
 
@@ -84,4 +88,4 @@ See [public/videos/README.md](public/videos/README.md) for details.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT �?see [LICENSE](LICENSE).

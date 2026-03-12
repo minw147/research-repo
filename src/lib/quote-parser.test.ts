@@ -1,6 +1,6 @@
 // src/lib/quote-parser.test.ts
 import { describe, it, expect } from "vitest";
-import { parseQuote, parseQuotesFromMarkdown } from "./quote-parser";
+import { parseQuote, parseQuotesFromMarkdown, formatQuoteAsMarkdown, stripTimestampFragments } from "./quote-parser";
 
 describe("parseQuote", () => {
   it("parses full format with all fields", () => {
@@ -44,6 +44,12 @@ describe("parseQuote", () => {
     expect(parseQuote("Some paragraph text")).toBeNull();
     expect(parseQuote("")).toBeNull();
   });
+
+  it("caps at 3 tags when parsing (max tags per quote)", () => {
+    const line = '- **"Too many tags"** @ 01:00 (60s) | duration: 10s | session: 1 | tags: a, b, c, d, e';
+    const result = parseQuote(line);
+    expect(result?.tags).toEqual(["a", "b", "c"]);
+  });
 });
 
 describe("parseQuotesFromMarkdown", () => {
@@ -68,5 +74,33 @@ Some context paragraph.
     expect(quotes[0].text).toBe("I kept looking for the Visa logo");
     expect(quotes[1].text).toBe("The button was too small");
     expect(quotes[2].text).toBe("I got lost in the menu");
+  });
+});
+
+describe("stripTimestampFragments", () => {
+  it("removes [MM:SS] and [H:MM:SS] from text", () => {
+    expect(stripTimestampFragments("Hello [05:10] world")).toBe("Hello world");
+    expect(stripTimestampFragments("[00:00] Start here")).toBe("Start here");
+    expect(stripTimestampFragments("Before [1:30:45] after")).toBe("Before after");
+  });
+  it("collapses multiple spaces and trims", () => {
+    expect(stripTimestampFragments("  [05:09]  [05:10]  text  ")).toBe("text");
+  });
+});
+
+describe("formatQuoteAsMarkdown", () => {
+  it("always includes | tags: in output (empty when no tags)", () => {
+    const line = formatQuoteAsMarkdown("Hello", 90, 15, 1, []);
+    expect(line).toContain("| tags: ");
+    expect(line).toMatch(/\|\s*tags:\s*$/);
+    const parsed = parseQuote(line);
+    expect(parsed?.tags).toEqual([]);
+  });
+
+  it("includes tag ids when provided", () => {
+    const line = formatQuoteAsMarkdown("Hi", 60, 10, 2, ["usability", "friction"]);
+    expect(line).toContain("| tags: usability, friction");
+    const parsed = parseQuote(line);
+    expect(parsed?.tags).toEqual(["usability", "friction"]);
   });
 });

@@ -1,336 +1,295 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { X, Loader2, Sparkles, Copy, Check, Plus, Terminal, AlertCircle } from "lucide-react";
+import { X, Sparkles, Copy, Check } from "lucide-react";
 import { Codebook, Project } from "@/types";
-import { MarkdownRenderer } from "./MarkdownRenderer";
 import {
   buildAnalyzeTranscriptsPrompt,
   buildAnalyzeFindingsPrompt,
   buildGenerateTagsPrompt,
   buildGenerateReportPrompt,
+  buildOtherTemplatePrompt,
+  getOtherTemplatesForContext,
+  getOtherTemplateTargetFile,
+  type OtherTemplateContext,
+  type OtherTemplateId,
 } from "@/lib/prompts";
+import { buildColorThemePrompt, COLOR_THEMES } from "@/lib/color-themes";
+
+export type AIAction =
+  | "thematic-transcripts"
+  | "thematic-findings"
+  | "tagging-findings"
+  | "tagging-transcripts"
+  | "report-generation"
+  | "change-theme"
+  | "other-templates";
 
 interface PromptModalProps {
   project: Project;
   codebook: Codebook;
-  onAppend: (content: string) => void;
   onClose: () => void;
   initialAction?: AIAction;
-  mode?: "append" | "replace";
+  /** Which actions to show. Default: findings-only (Initial, Refine, Suggest Tags). Report page can pass ["report-generation", "other-templates"]. */
+  actions?: AIAction[];
   reportStyle?: "blog" | "slides";
+  /** Context for "Other templates" (findings, tags, or report). Required when actions include "other-templates". */
+  otherTemplateContext?: OtherTemplateContext;
 }
 
-export type AIAction = "thematic-transcripts" | "thematic-findings" | "tagging" | "report-generation";
+const FINDINGS_ACTIONS: AIAction[] = ["thematic-transcripts", "thematic-findings", "tagging-findings", "tagging-transcripts", "other-templates"];
+
+function getTargetFile(action: AIAction, selectedTemplateId: OtherTemplateId | null, otherTemplateContext: OtherTemplateContext | undefined): string {
+  if (action === "other-templates" && selectedTemplateId && otherTemplateContext) {
+    return getOtherTemplateTargetFile(selectedTemplateId, otherTemplateContext);
+  }
+  if (action === "report-generation" || action === "change-theme") return "findings.html";
+  if (action === "tagging-findings" || action === "tagging-transcripts") return "tags.md";
+  return "findings.md";
+}
 
 export const PromptModal: React.FC<PromptModalProps> = ({
   project,
   codebook,
-  onAppend,
   onClose,
   initialAction = "thematic-findings",
-  mode = "append",
+  actions = FINDINGS_ACTIONS,
   reportStyle = "blog",
+  otherTemplateContext = "findings",
 }) => {
-  const projectSlug = project.id;
-  const [selectedAction, setSelectedAction] = useState<AIAction>(initialAction);
-  const [isDetecting, setIsDetecting] = useState(true);
-  const [cliAvailable, setCliAvailable] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedAction, setSelectedAction] = useState<AIAction>(() =>
+    actions.includes(initialAction) ? initialAction : actions[0]
+  );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<OtherTemplateId | null>(null);
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // 1. Detect Claude CLI on mount
-  useEffect(() => {
-    async function detectCLI() {
-      try {
-        const res = await fetch("/api/ai/detect");
-        const data = await res.json();
-        setCliAvailable(data.available);
-      } catch (err) {
-        console.error("Failed to detect Claude CLI:", err);
-        setCliAvailable(false);
-      } finally {
-        setIsDetecting(false);
-      }
-    }
-    detectCLI();
-  }, []);
+  const otherTemplates = otherTemplateContext ? getOtherTemplatesForContext(otherTemplateContext) : [];
 
-  // 2. Generate Prompt based on action
   const generatePrompt = useCallback(() => {
+    if (selectedAction === "other-templates") {
+      if (selectedTemplateId && otherTemplateContext) {
+        return buildOtherTemplatePrompt(project, selectedTemplateId, otherTemplateContext, codebook);
+      }
+      return "";
+    }
+    if (selectedAction === "change-theme") {
+      if (selectedThemeId) {
+        const theme = COLOR_THEMES.find((t) => t.id === selectedThemeId);
+        return theme ? buildColorThemePrompt(project, theme) : "";
+      }
+      return "";
+    }
     if (selectedAction === "thematic-transcripts") {
       return buildAnalyzeTranscriptsPrompt(project, codebook);
-    } else if (selectedAction === "thematic-findings") {
-      return buildAnalyzeFindingsPrompt(project, codebook);
-    } else if (selectedAction === "tagging") {
-      return buildGenerateTagsPrompt(project, codebook, "findings");
-    } else {
-      return buildGenerateReportPrompt(project, reportStyle);
     }
-  }, [selectedAction, project, codebook, reportStyle]);
+    if (selectedAction === "thematic-findings") {
+      return buildAnalyzeFindingsPrompt(project, codebook);
+    }
+    if (selectedAction === "tagging-findings") {
+      return buildGenerateTagsPrompt(project, codebook, "findings");
+    }
+    if (selectedAction === "tagging-transcripts") {
+      return buildGenerateTagsPrompt(project, codebook, "transcripts");
+    }
+    return buildGenerateReportPrompt(project, reportStyle);
+  }, [selectedAction, selectedTemplateId, selectedThemeId, otherTemplateContext, project, codebook, reportStyle]);
 
   const prompt = generatePrompt();
+  const [editablePrompt, setEditablePrompt] = useState(prompt);
 
-  // 3. Handle Run with Claude
-  const handleRun = async () => {
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
+  useEffect(() => {
+    setEditablePrompt(prompt);
+  }, [prompt]);
 
-    try {
-      const res = await fetch("/api/ai/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          projectSlug,
-        }),
-      });
+  const targetFile = getTargetFile(selectedAction, selectedTemplateId, otherTemplateContext);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to run analysis");
-      
-      setResult(data.output);
-    } catch (err: any) {
-      console.error("AI Run Error:", err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 4. Handle Copy to Clipboard
   const handleCopy = () => {
-    navigator.clipboard.writeText(prompt);
+    navigator.clipboard.writeText(editablePrompt);
     setCopied(true);
+    setToast(`Paste into Cursor and run the agent. The AI will create or update \`${targetFile}\`. Refresh this page to see changes.`);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleAppend = () => {
-    if (result) {
-      onAppend(result);
-      onClose();
-    }
+    setTimeout(() => setToast(null), 6000);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 animate-in zoom-in duration-200"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-200 animate-in zoom-in duration-200 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-              <Sparkles className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+              <Sparkles className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">AI Analysis</h2>
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
-                Generate insights from your findings
-              </p>
-            </div>
+            <h2 className="text-lg font-semibold text-slate-900">AI Analysis</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Action Selection */}
-          {!result && !isLoading && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className={`grid gap-2 ${actions.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
+            {[
+              { id: "thematic-transcripts" as const, label: "Initial Findings", sub: "Create or rewrite findings.md" },
+              { id: "thematic-findings" as const, label: "Refine Findings", sub: "Modify findings.md" },
+              { id: "tagging-findings" as const, label: "Tag Findings", sub: "Group existing findings by tag" },
+              { id: "tagging-transcripts" as const, label: "Tag Transcripts", sub: "Scan all transcripts for tags" },
+              { id: "report-generation" as const, label: "AI synthesis", sub: "Generate report" },
+              { id: "change-theme" as const, label: "Change color theme", sub: "Pick a palette for the report" },
+              { id: "other-templates" as const, label: "Other templates", sub: "Streamline, add question, notes, etc." },
+            ]
+              .filter(({ id }) => actions.includes(id))
+              .map(({ id, label, sub }) => (
                 <button
-                  onClick={() => setSelectedAction("thematic-transcripts")}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    selectedAction === "thematic-transcripts"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-white"
-                  }`}
+                  key={id}
+                  onClick={() => {
+                    setSelectedAction(id);
+                    if (id !== "other-templates") setSelectedTemplateId(null);
+                    if (id !== "change-theme") setSelectedThemeId(null);
+                  }}
+                  className={`p-2.5 rounded-lg border transition-colors duration-200 text-left cursor-pointer ${selectedAction === id
+                      ? "border-primary bg-primary/10 text-primary-dark"
+                      : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                    }`}
                 >
-                  <h3 className={`font-bold text-[10px] ${selectedAction === "thematic-transcripts" ? "text-indigo-700" : "text-slate-700"}`}>
-                    Initial Findings
-                  </h3>
-                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
-                    Analyze transcripts.
-                  </p>
+                  <span className="block text-xs font-medium leading-tight">{label}</span>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">{sub}</span>
                 </button>
-                <button
-                  onClick={() => setSelectedAction("thematic-findings")}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    selectedAction === "thematic-findings"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-white"
-                  }`}
-                >
-                  <h3 className={`font-bold text-[10px] ${selectedAction === "thematic-findings" ? "text-indigo-700" : "text-slate-700"}`}>
-                    Refine Findings
-                  </h3>
-                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
-                    Analyze findings.
-                  </p>
-                </button>
-                <button
-                  onClick={() => setSelectedAction("tagging")}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    selectedAction === "tagging"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-white"
-                  }`}
-                >
-                  <h3 className={`font-bold text-[10px] ${selectedAction === "tagging" ? "text-indigo-700" : "text-slate-700"}`}>
-                    Suggest Tags
-                  </h3>
-                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
-                    Suggest tags.
-                  </p>
-                </button>
-                <button
-                  onClick={() => setSelectedAction("report-generation")}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    selectedAction === "report-generation"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-white"
-                  }`}
-                >
-                  <h3 className={`font-bold text-[10px] ${selectedAction === "report-generation" ? "text-indigo-700" : "text-slate-700"}`}>
-                    AI synthesis
-                  </h3>
-                  <p className="text-[9px] text-slate-500 mt-1 leading-tight">
-                    Generate report.
-                  </p>
-                </button>
-              </div>
+              ))}
+          </div>
 
-              {/* Prompt Preview / Fallback */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Generated Prompt
-                  </label>
-                  {!cliAvailable && !isDetecting && (
-                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tight flex items-center gap-1">
-                      <Terminal className="w-3 h-3" />
-                      CLI Not Detected
-                    </span>
-                  )}
-                </div>
-                <div className="relative group">
-                  <textarea
-                    readOnly
-                    className="w-full h-32 p-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none font-mono text-slate-600 resize-none"
-                    value={prompt}
-                  />
-                  {!cliAvailable && (
-                    <button
-                      onClick={handleCopy}
-                      className="absolute top-2 right-2 p-2 bg-white border border-slate-200 rounded-md shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2 text-xs font-medium text-slate-600"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-green-500" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy to Clipboard
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-                {!cliAvailable && !isDetecting && (
-                  <p className="text-xs text-slate-500 italic">
-                    Claude CLI was not detected. Copy the prompt above and run it in your terminal, then paste the results back here.
-                  </p>
+          {selectedAction === "other-templates" && otherTemplates.length > 0 && (
+            <div>
+              <span className="block text-xs font-medium text-slate-500 mb-2">Choose a template</span>
+              <div className="flex flex-wrap gap-2">
+                {otherTemplates.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTemplateId(t.id)}
+                    className={`px-3 py-1.5 rounded-lg border text-left transition-colors duration-200 cursor-pointer ${selectedTemplateId === t.id
+                        ? "border-primary bg-primary/10 text-primary-dark"
+                        : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                      }`}
+                  >
+                    <span className="block text-xs font-medium leading-tight">{t.label}</span>
+                    <span className="block text-[10px] text-slate-500 mt-0.5">{t.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedAction === "change-theme" && (
+            <div>
+              <span className="block text-xs font-medium text-slate-500 mb-2">Choose a theme</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {COLOR_THEMES.map((theme) => (
+                  <button
+                    key={theme.id}
+                    onClick={() => setSelectedThemeId(theme.id)}
+                    className={`px-3 py-2 rounded-lg border text-left transition-colors duration-200 cursor-pointer ${selectedThemeId === theme.id
+                        ? "border-primary bg-primary/10 text-primary-dark"
+                        : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                      }`}
+                  >
+                    <span className="block text-xs font-medium leading-tight">{theme.name}</span>
+                    <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                      {[
+                        theme.colors.primary,
+                        theme.colors.accent,
+                        theme.colors.background,
+                        theme.colors.accentLight,
+                        theme.colors.text,
+                      ].map((hex) => (
+                        <span
+                          key={hex}
+                          className="w-4 h-4 rounded-full border border-slate-200 shrink-0"
+                          style={{ backgroundColor: hex }}
+                          title={hex}
+                          aria-hidden
+                        />
+                      ))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-slate-500">Generated prompt</span>
+              <span className="text-[10px] text-slate-500">
+                {selectedAction === "other-templates" && !selectedTemplateId ? (
+                  "Select a template above"
+                ) : selectedAction === "change-theme" && !selectedThemeId ? (
+                  "Select a theme above"
+                ) : (
+                  <>Will update <code className="bg-slate-100 px-1 rounded">{targetFile}</code></>
                 )}
-              </div>
+              </span>
             </div>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="py-12 flex flex-col items-center justify-center space-y-4">
-              <div className="relative">
-                <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                <Sparkles className="w-6 h-6 text-indigo-400 absolute -top-1 -right-1 animate-pulse" />
-              </div>
-              <div className="text-center">
-                <h3 className="font-bold text-slate-900">Claude is analyzing...</h3>
-                <p className="text-sm text-slate-500">This may take a moment depending on the amount of data.</p>
-              </div>
+            <div className="relative">
+              <textarea
+                className="w-full min-h-[220px] p-3 pr-24 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-slate-700 resize-y max-h-[50vh]"
+                value={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
+                onChange={(e) => setEditablePrompt(e.target.value)}
+                aria-label="Generated prompt (editable)"
+                placeholder={(selectedAction === "other-templates" && !selectedTemplateId) ? "Select a template to generate the prompt…" : (selectedAction === "change-theme" && !selectedThemeId) ? "Select a theme to generate the prompt…" : "Edit the prompt before copying…"}
+                disabled={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId)}
+              />
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId)}
+                className="absolute top-2 right-10 p-1.5 bg-white border border-slate-200 rounded shadow-sm hover:bg-slate-50 transition-colors duration-200 flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Copied" : "Copy"}
+              </button>
             </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-bold text-red-900">Analysis Failed</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-                <button
-                  onClick={handleRun}
-                  className="mt-3 text-sm font-bold text-red-900 underline hover:no-underline"
-                >
-                  Try Again
-                </button>
+            <p className="mt-2 text-xs text-slate-500">
+              <span className="font-medium text-slate-600">How it works:</span>{" "}
+              {selectedAction === "other-templates" && !selectedTemplateId ? (
+                "Select a template above, then copy the generated prompt, paste it into Cursor, and run the agent."
+              ) : selectedAction === "change-theme" && !selectedThemeId ? (
+                "Select a theme above, then copy the generated prompt, paste it into Cursor, and run the agent."
+              ) : (
+                <>Copy this prompt, paste it into Cursor, and run the agent. The prompt instructs the AI to follow the relevant skill ({(selectedAction === "other-templates" && otherTemplateContext === "report") || selectedAction === "change-theme" ? (
+                  <code className="bg-slate-100 px-1 rounded">report-publication</code>
+                ) : (
+                  <code className="bg-slate-100 px-1 rounded">research-analysis</code>
+                )}). The AI will create or update <code className="bg-slate-100 px-1 rounded">{targetFile}</code> in your project. Use the refresh button or wait for auto-refresh to see the changes.</>
+              )}
+            </p>
+            {toast && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-2 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm text-primary-dark"
+              >
+                {toast}
               </div>
-            </div>
-          )}
-
-          {/* Result Preview */}
-          {result && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Analysis Result
-                </label>
-                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">
-                  Complete
-                </span>
-              </div>
-              <div className="max-h-[400px] overflow-y-auto p-6 bg-slate-50 border border-slate-200 rounded-lg prose prose-slate prose-sm max-w-none shadow-inner">
-                <MarkdownRenderer content={result} codebook={codebook} />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
           >
-            {result ? "Discard" : "Cancel"}
+            Done
           </button>
-          
-          {!result && !isLoading && cliAvailable && (
-            <button
-              onClick={handleRun}
-              className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2"
-            >
-              <Terminal className="w-4 h-4" />
-              Run with Claude
-            </button>
-          )}
-
-          {result && (
-            <button
-              onClick={handleAppend}
-              className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {mode === "append" ? "Append to Findings" : "Replace Report"}
-            </button>
-          )}
         </div>
       </div>
     </div>

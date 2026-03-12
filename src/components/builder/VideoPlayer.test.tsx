@@ -48,7 +48,7 @@ describe("VideoPlayer", () => {
     
     const video = container.querySelector("video");
     expect(video).toBeInTheDocument();
-    expect(video).toHaveAttribute("src", "/api/projects/test-project/videos/video-1.mp4");
+    expect(video).toHaveAttribute("src", "/api/projects/test-project/files/videos/video-1.mp4");
   });
 
   it("calls onSessionChange when dropdown changes", () => {
@@ -68,7 +68,7 @@ describe("VideoPlayer", () => {
     expect(onSessionChange).toHaveBeenCalledWith(1);
   });
 
-  it("exposes seekTo and playRange via ref", () => {
+  it("exposes seekTo, seekAndPlay, and playRange via ref", () => {
     const onSessionChange = vi.fn();
     const ref = React.createRef<VideoPlayerRef>();
     render(
@@ -83,6 +83,7 @@ describe("VideoPlayer", () => {
 
     expect(ref.current).toBeDefined();
     expect(ref.current?.seekTo).toBeTypeOf("function");
+    expect(ref.current?.seekAndPlay).toBeTypeOf("function");
     expect(ref.current?.playRange).toBeTypeOf("function");
   });
 

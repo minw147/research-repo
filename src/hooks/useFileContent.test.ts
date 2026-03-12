@@ -23,7 +23,10 @@ describe("useFileContent", () => {
     });
 
     expect(result.current.content).toBe("# Test Findings");
-    expect(fetch).toHaveBeenCalledWith("/api/files?slug=test-project&file=findings.md");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/files?slug=test-project&file=findings.md",
+      { cache: "no-store" }
+    );
   });
 
   it("saves content when saveContent is called", async () => {

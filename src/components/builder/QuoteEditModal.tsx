@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Save, Clock, Tag, EyeOff, Eye } from "lucide-react";
+import { X, Save, Clock, Tag, EyeOff, Eye, FileEdit } from "lucide-react";
 import { ParsedQuote, Codebook } from "@/types";
 
 interface QuoteEditModalProps {
@@ -68,19 +68,25 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
         className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <h2 className="text-xl font-semibold text-slate-900">Edit Quote</h2>
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+              <FileEdit className="w-4 h-4" />
+            </div>
+            <h2 className="text-lg font-semibold text-slate-900">Edit Quote</h2>
+          </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 space-y-4">
           {/* Quote Text Preview */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 max-h-40 overflow-y-auto">
             <p className="text-sm text-slate-600 italic leading-relaxed">
               &ldquo;{quote.text}&rdquo;
             </p>
@@ -121,7 +127,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
                 <input
                   type="text"
                   placeholder="Add a tag..."
-                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                   value={tagInput}
                   onChange={(e) => {
                     setTagInput(e.target.value);
@@ -167,7 +173,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
               type="number"
               min="1"
               max="300"
-              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
             />
@@ -179,11 +185,11 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
               <EyeOff className="w-3.5 h-3.5" />
               Transcript Visibility
             </label>
-            <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-lg">
               <button
                 type="button"
                 onClick={() => setHidden(!hidden)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-colors ${
                   hidden
                     ? "bg-amber-100 text-amber-700 border border-amber-200"
                     : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm"
@@ -191,12 +197,12 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
               >
                 {hidden ? (
                   <>
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="w-3.5 h-3.5" />
                     Hidden
                   </>
                 ) : (
                   <>
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-3.5 h-3.5" />
                     Visible
                   </>
                 )}
@@ -208,7 +214,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
           </div>
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
@@ -217,7 +223,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 flex items-center gap-2"
+            className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             Save Changes

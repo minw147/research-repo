@@ -160,9 +160,9 @@ async function generateReportHtml(project: any, mdx: string, timestampsOnly: boo
   ul, ol { margin: 0 0 1.5rem; padding-left: 1.5rem; }
   li { margin-bottom: 0.25rem; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 2rem 0; }
-  blockquote { margin: 1.5rem 0; padding: 1rem 1.25rem; border-left: 4px solid #137fec; background: #eff6ff; border-radius: 0 0.5rem 0.5rem 0; color: #1e3a5f; }
+  blockquote { margin: 1.5rem 0; padding: 1rem 1.25rem; border-left: 4px solid #f59f0a; background: #fffbeb; border-radius: 0 0.5rem 0.5rem 0; color: #1e3a5f; }
   .meta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; padding-bottom: 2rem; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #64748b; margin-bottom: 2rem; }
-  .clip-card { margin: 1.5rem 0; border-radius: 0.75rem; border-left: 4px solid #137fec; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+  .clip-card { margin: 1.5rem 0; border-radius: 0.75rem; border-left: 4px solid #f59f0a; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
   .clip-container { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
   @media (min-width: 640px) { .clip-container { flex-direction: row; } }
   .clip-video { position: relative; flex-shrink: 0; }
@@ -172,7 +172,7 @@ async function generateReportHtml(project: any, mdx: string, timestampsOnly: boo
   .clip-meta { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem; }
   .clip-label { margin: 0; font-size: 1.125rem; font-weight: 500; line-height: 1.5; color: #334155; }
   .clip-link { margin-top: 0.5rem; font-size: 0.75rem; color: #94a3b8; }
-  .clip-link a { color: #137fec; text-decoration: none; }
+  .clip-link a { color: #f59f0a; text-decoration: none; }
   details { margin-top: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
   summary { padding: 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: #64748b; cursor: pointer; user-select: none; }
   .transcript { padding: 0.75rem 1rem; font-size: 0.875rem; line-height: 1.5; color: #475569; background: #f8fafc; }
@@ -186,7 +186,7 @@ async function generateReportHtml(project: any, mdx: string, timestampsOnly: boo
     <span>Researcher: <strong>${project.researcher}</strong></span>
     <span>Date: <strong>${project.date}</strong></span>
     <span>Persona: <strong>${project.persona}</strong></span>
-    ${project.product ? `<span style="background:#eff6ff;color:#137fec;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500">${project.product}</span>` : ""}
+    ${project.product ? `<span style="background:#fffbeb;color:#f59f0a;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500">${project.product}</span>` : ""}
   </div>
   ${content}
 </div>

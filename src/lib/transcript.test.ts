@@ -1,6 +1,6 @@
 // src/lib/transcript.test.ts
 import { describe, it, expect } from "vitest";
-import { parseTranscript, getTranscriptExcerpt, getClipVtt } from "./transcript";
+import { parseTranscript, getTranscriptExcerpt, getClipVtt, cleanTranscriptText } from "./transcript";
 
 describe("parseTranscript", () => {
   it("parses [MM:SS] format", () => {
@@ -28,6 +28,41 @@ describe("parseTranscript", () => {
 
   it("handles empty input", () => {
     expect(parseTranscript("")).toEqual([]);
+  });
+
+  it("handles null/undefined", () => {
+    expect(parseTranscript(null)).toEqual([]);
+    expect(parseTranscript(undefined)).toEqual([]);
+  });
+
+  it("parses plain MM:SS and HH:MM:SS without brackets", () => {
+    const raw = "00:00 Hello\n01:30 World\n1:00:00 Hour mark";
+    const lines = parseTranscript(raw);
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toEqual({ sec: 0, text: "Hello" });
+    expect(lines[1]).toEqual({ sec: 90, text: "World" });
+    expect(lines[2]).toEqual({ sec: 3600, text: "Hour mark" });
+  });
+
+  it("parses WEBVTT and strips redundant timestamps", () => {
+    const vtt = `WEBVTT
+
+00:00:15.000 --> 00:00:16.000
+The silicon. 3
+
+00:00:16.000 --> 00:00:24.000
+The silicon that makes modern large language models possible. 4`;
+    const lines = parseTranscript(vtt);
+    expect(lines).toHaveLength(2);
+    expect(lines[0].sec).toBe(15);
+    expect(lines[0].text).toBe("The silicon.");
+    expect(lines[1].sec).toBe(16);
+    expect(lines[1].text).toBe("The silicon that makes modern large language models possible.");
+  });
+
+  it("cleanTranscriptText strips bracket timestamp and VTT-style suffix", () => {
+    expect(cleanTranscriptText("[00:15] .000 → 00:00:16.000 The silicon. 3")).toBe("The silicon.");
+    expect(cleanTranscriptText("Plain text 42")).toBe("Plain text");
   });
 });
 

@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { QuoteCard } from "./QuoteCard";
-import { parseQuote } from "@/lib/quote-parser";
+import { parseQuote, parseQuotesFromMarkdown } from "@/lib/quote-parser";
 import { Codebook, ParsedQuote } from "@/types";
 
 interface MarkdownRendererProps {
@@ -10,6 +10,7 @@ interface MarkdownRendererProps {
   codebook: Codebook;
   onQuoteClick?: (quote: ParsedQuote) => void;
   onQuoteDoubleClick?: (quote: ParsedQuote) => void;
+  onQuoteDelete?: (quote: ParsedQuote) => void;
 }
 
 interface HastNode {
@@ -28,43 +29,48 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   codebook,
   onQuoteClick,
   onQuoteDoubleClick,
+  onQuoteDelete,
 }) => {
+  const fileQuotes = useMemo(() => parseQuotesFromMarkdown(content), [content]);
+
   const components: Components = useMemo(
     () => ({
-      li: ({ node, children, ...props }) => {
-        // To detect the quote, we need the raw text content of the list item.
-        // We'll try to extract the text content from the node or children.
-
-        // Getting raw text from MDAST node if available
-        const getRawText = (node: HastNode | undefined): string => {
-          if (!node) return "";
-          if (node.type === "text" && node.value) return node.value;
-          if (node.type === "element" && node.children) {
-            if (node.tagName === "strong") {
-              return `**${node.children.map(getRawText).join("")}**`;
+      li: ({ node, children, ...props }: { node?: HastNode; children?: React.ReactNode }) => {
+        const getRawText = (n: HastNode | undefined): string => {
+          if (!n) return "";
+          if (n.type === "text" && n.value) return n.value;
+          if (n.type === "element" && n.children) {
+            if (n.tagName === "strong") {
+              return `**${n.children.map((c) => getRawText(c as HastNode)).join("")}**`;
             }
-            if (node.tagName === "em") {
-              return `*${node.children.map(getRawText).join("")}*`;
+            if (n.tagName === "em") {
+              return `*${n.children.map((c) => getRawText(c as HastNode)).join("")}*`;
             }
-            return node.children.map(getRawText).join("");
+            return n.children.map((c) => getRawText(c as HastNode)).join("");
           }
           return "";
         };
 
         const rawText = getRawText(node as HastNode);
-
-        // parseQuote expects the line to start with "- "
         const lineToParse = `- ${rawText}`;
-        const parsedQuote = parseQuote(lineToParse);
+        const parsedFromAst = parseQuote(lineToParse);
 
-        if (parsedQuote) {
+        if (parsedFromAst) {
+          const quote =
+            fileQuotes.find(
+              (q) =>
+                q.text === parsedFromAst!.text &&
+                q.startSeconds === parsedFromAst!.startSeconds &&
+                q.sessionIndex === parsedFromAst!.sessionIndex
+            ) ?? parsedFromAst;
           return (
             <li className="not-prose list-none" {...props}>
               <QuoteCard
-                quote={parsedQuote}
+                quote={quote}
                 codebook={codebook}
                 onClick={onQuoteClick || (() => {})}
                 onDoubleClick={onQuoteDoubleClick || (() => {})}
+                onDelete={onQuoteDelete}
               />
             </li>
           );
@@ -73,7 +79,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         return <li {...props}>{children}</li>;
       },
     }),
-    [codebook, onQuoteClick, onQuoteDoubleClick]
+    [codebook, onQuoteClick, onQuoteDoubleClick, onQuoteDelete, fileQuotes]
   );
 
   return (

@@ -97,7 +97,7 @@ export const TagBoard: React.FC<TagBoardProps> = ({
           </div>
           <input
             type="text"
-            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Search quotes or tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
