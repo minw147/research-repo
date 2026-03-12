@@ -98,8 +98,12 @@ Here the quote text is the full verbatim content of the 15-second clip at 01:30.
 
 ## Before you begin
 
-- Ensure the transcript exists in the expected path
-- For Report Builder: read `data/global-codebook.json` (and project codebook if present) for tag ids
+Ask the researcher one question at a time before starting:
+1. What is the research focus or goal for this project?
+2. Are there specific themes or hypotheses to look for?
+3. Should the output go to `findings.md` (thematic synthesis) or `tags.md` (evidence per tag)?
+
+Wait for answers before proceeding to Step 1.
 
 ## When transcript is missing (local video only)
 
