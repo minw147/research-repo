@@ -21,6 +21,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# Claude / AI assistant config (local, not for GitHub)
+.claude/
+CLAUDE.md
+
 # Google OAuth / service account credential files — never commit
 client_secret*.json
 *service-account*.json
