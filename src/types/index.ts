@@ -1,34 +1,72 @@
-export interface Study {
+// src/types/index.ts
+
+export interface Session {
+  id: string;
+  participant: string;
+  videoFile: string;
+  transcriptFile: string;
+}
+
+export interface PublishRecord {
+  adapterId: string;
+  adapterName: string;
+  url: string;
+  publishedAt: string; // ISO date string
+}
+
+export interface Project {
   id: string;
   title: string;
   date: string;
+  researcher: string;
   persona: string;
   product?: string;
-  videoUrl: string;
-  transcriptFile?: string;
-  reportFile: string;
+  status: ProjectStatus;
+  researchPlan?: string;
+  codebook: string | null;
+  codebookData?: Codebook; // Merged codebook object
+  sessions: Session[];
+  publishedUrl: string | null; // kept for backward compat — last published URL
+  publishedUrls?: PublishRecord[]; // full history, one record per destination
 }
 
-export interface StudyWithContent extends Study {
-  searchText: string;
-}
+export type ProjectStatus =
+  | "setup"
+  | "findings"
+  | "tagged"
+  | "report"
+  | "exported"
+  | "published";
 
-export interface ReportFrontmatter {
-  title: string;
-  date?: string;
-  studyId?: string;
-  [key: string]: unknown;
-}
-
-export interface Report {
-  frontmatter: ReportFrontmatter;
-  content: string;
-}
-
-export interface ClipProps {
-  src: string;
+export interface CodebookTag {
+  id: string;
   label: string;
-  start?: number;
-  participant?: string;
-  duration?: string;
+  color: string;
+  category: string;
+}
+
+export interface Codebook {
+  tags: CodebookTag[];
+  categories: string[];
+}
+
+export interface ParsedQuote {
+  text: string;
+  timestampDisplay: string;
+  startSeconds: number;
+  durationSeconds: number;
+  sessionIndex: number;
+  tags: string[];
+  rawLine: string;
+  hidden?: boolean;
+}
+
+export interface TranscriptLine {
+  sec: number;
+  text: string;
+}
+
+export interface AppConfig {
+  aiMode: "auto" | "claude-cli" | "copy-paste";
+  adapters: Record<string, Record<string, unknown>>;
 }
