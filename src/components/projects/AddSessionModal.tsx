@@ -87,7 +87,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
             </label>
             <input
               type="text"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 placeholder:text-slate-400"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary text-slate-900 placeholder:text-slate-400"
               placeholder="e.g. User 1, Alex"
               value={participant}
               onChange={(e) => setParticipant(e.target.value)}

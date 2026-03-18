@@ -41,7 +41,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
     <nav className="flex h-12 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
       <Link
         href="/"
-        className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
+        className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
         aria-label="Research Hub home"
       >
         <Box className="h-5 w-5 text-primary" />
@@ -72,7 +72,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
               role="tab"
               aria-selected={isActive}
               aria-label={tab.label}
-              className={`flex h-full min-w-[44px] items-center justify-center gap-2 border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-0 cursor-pointer ${
+              className={`flex h-full min-w-[44px] items-center justify-center gap-2 border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-0 cursor-pointer ${
                 isActive
                   ? "border-primary text-slate-900 font-semibold"
                   : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
@@ -88,7 +88,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
       {onOpenCodebook && (
         <button
           onClick={onOpenCodebook}
-          className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 cursor-pointer"
+          className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer"
           aria-label="Codebook"
         >
           <Tag className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
 
       <Link
         href="/help"
-        className={`${onOpenCodebook ? "" : "ml-auto "}flex shrink-0 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 cursor-pointer`}
+        className={`${onOpenCodebook ? "" : "ml-auto "}flex shrink-0 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer`}
         title="Help: CLI setup"
         aria-label="Help"
       >

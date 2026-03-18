@@ -431,7 +431,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                       {field.type === "select" ? (
                         <select
                           required={field.required}
-                          className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         >
@@ -448,7 +448,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               type="text"
                               required={field.required}
                               placeholder={field.placeholder}
-                              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                               value={config[field.key] || ""}
                               onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                             />
@@ -519,7 +519,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                           type={field.type === "password" ? "password" : "text"}
                           required={field.required}
                           placeholder={field.placeholder}
-                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         />

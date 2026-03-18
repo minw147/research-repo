@@ -244,7 +244,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
             </div>
             <div className="relative">
               <textarea
-                className="w-full min-h-[220px] p-3 pr-24 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-slate-700 resize-y max-h-[50vh]"
+                className="w-full min-h-[220px] p-3 pr-24 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary font-mono text-slate-700 resize-y max-h-[50vh]"
                 value={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
                 onChange={(e) => setEditablePrompt(e.target.value)}
                 aria-label="Generated prompt (editable)"

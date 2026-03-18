@@ -127,7 +127,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
                 <input
                   type="text"
                   placeholder="Add a tag..."
-                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-sm"
                   value={tagInput}
                   onChange={(e) => {
                     setTagInput(e.target.value);
@@ -173,7 +173,7 @@ export const QuoteEditModal: React.FC<QuoteEditModalProps> = ({
               type="number"
               min="1"
               max="300"
-              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-sm"
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
             />

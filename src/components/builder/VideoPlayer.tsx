@@ -103,7 +103,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               <select
                 value={activeSessionIndex}
                 onChange={(e) => onSessionChange(Number(e.target.value))}
-                className="pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+                className="pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all appearance-none cursor-pointer"
               >
                 {sessions.map((session, index) => (
                   <option key={session.id} value={index}>
