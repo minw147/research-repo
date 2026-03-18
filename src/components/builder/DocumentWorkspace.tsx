@@ -378,7 +378,13 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                     />
                                 </div>
                             </Panel>
-                            <Separator className="h-2 shrink-0 bg-slate-200 hover:bg-primary/30 transition-colors" />
+                            <Separator className="h-2 shrink-0 group bg-slate-200 hover:bg-primary/20 transition-colors cursor-row-resize relative">
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-row items-center justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="h-1 w-1 rounded-full bg-primary/60" />
+                                <span className="h-1 w-1 rounded-full bg-primary/60" />
+                                <span className="h-1 w-1 rounded-full bg-primary/60" />
+                              </div>
+                            </Separator>
                             <Panel defaultSize={60} minSize={30} className="min-h-0 overflow-hidden">
                                 {project.sessions.length === 0 ? (
                                     <ProjectEmptyState
@@ -421,7 +427,13 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                     </div>
                 </Panel>
 
-                <Separator className="w-1 bg-slate-200 hover:bg-primary/30 transition-colors" />
+                <Separator className="w-2 group bg-slate-200 hover:bg-primary/20 transition-colors cursor-col-resize relative">
+                  <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="w-1 h-1 rounded-full bg-primary/60" />
+                    <span className="w-1 h-1 rounded-full bg-primary/60" />
+                    <span className="w-1 h-1 rounded-full bg-primary/60" />
+                  </div>
+                </Separator>
 
                 {/* RIGHT PANE: Document Editor */}
                 <Panel defaultSize={55} minSize={30}>
