@@ -14,6 +14,9 @@
       --primary-10: rgba(71, 85, 105, 0.1);
       --primary-20: rgba(71, 85, 105, 0.2);
       --accent: #64748b;
+      --amber: #b45309;
+      --amber-10: rgba(180, 83, 9, 0.08);
+      --amber-20: rgba(180, 83, 9, 0.18);
       --bg: #f8fafc;
       --accent-light: #f1f5f9;
       --surface: #ffffff;
@@ -24,7 +27,6 @@
       --border: #e2e8f0;
       --radius: 0.5rem;
       --radius-lg: 0.75rem;
-      --radius-xl: 1rem;
       --shadow: 0 1px 3px rgba(0,0,0,0.08);
       --shadow-lg: 0 10px 40px -10px rgba(0,0,0,0.15);
       --font-sans: 'Inter', system-ui, sans-serif;
@@ -34,17 +36,18 @@
       margin: 0;
       font-family: var(--font-sans);
       font-size: 1rem;
-      line-height: 1.6;
+      line-height: 1.65;
       color: var(--text);
       background: var(--bg);
       -webkit-font-smoothing: antialiased;
     }
     .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+    /* ── Header ─────────────────────────────── */
     .report-header {
       background: var(--accent-light);
       color: var(--text);
-      padding: 3rem 1.5rem 3rem;
-      margin-bottom: 0;
+      padding: 3rem 1.5rem 2.5rem;
       border-bottom: 2px solid var(--border);
       box-shadow: var(--shadow);
     }
@@ -52,31 +55,41 @@
     .report-header h1 {
       font-size: clamp(1.75rem, 4vw, 2.5rem);
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       margin: 0 0 0.5rem;
-      line-height: 1.2;
+      line-height: 1.15;
+      color: var(--text);
+    }
+    .report-header .subtitle {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
     .report-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-top: 1rem;
+      gap: 0.75rem 1.25rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
     }
-    .report-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .report-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
     .badge {
       display: inline-block;
-      padding: 0.25rem 0.6rem;
-      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.6875rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       background: var(--primary);
       color: #fff;
       border-radius: 9999px;
-      margin-left: 0.5rem;
     }
+
+    /* ── Summary panel ───────────────────────── */
     .summary-panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -87,23 +100,87 @@
       border-left: 4px solid var(--primary);
     }
     .summary-panel h2 {
-      font-size: 1.125rem;
+      font-size: 1.0625rem;
       font-weight: 700;
-      margin: 0 0 0.75rem;
+      margin: 0 0 0.6rem;
       color: var(--text);
+      border: none;
+      padding: 0;
+      letter-spacing: 0;
     }
     .summary-panel p { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; }
+
+    /* ── TOC ─────────────────────────────────── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin: 0 0 2.5rem;
+      font-size: 0.9375rem;
+    }
+    .toc h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin: 0 0 0.75rem;
+    }
+    .toc-group { margin-bottom: 0.85rem; }
+    .toc-group:last-child { margin-bottom: 0; }
+    .toc-group-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--primary);
+      margin: 0 0 0.3rem;
+    }
+    .toc ul { margin: 0; padding-left: 1.15rem; color: var(--text-secondary); }
+    .toc li { margin-bottom: 0.3rem; }
+    .toc a { color: var(--primary-dark); text-decoration: none; }
+    .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+    /* ── Section headings ───────────────────── */
     h2 {
-      font-size: 1.5rem;
+      font-size: 1.4375rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin: 2.5rem 0 1rem;
+      margin: 2.75rem 0 0.875rem;
       color: var(--text);
       padding-bottom: 0.5rem;
       border-bottom: 2px solid var(--border);
+      line-height: 1.25;
     }
-    h2 .emoji { margin-right: 0.35rem; }
+    .section-id {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 0.2rem;
+    }
     p { margin: 0 0 1rem; color: var(--text-secondary); }
+
+    /* ── Part divider ───────────────────────── */
+    .part-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 3rem 0 0;
+    }
+    .part-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .part-divider-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* ── Video clips ─────────────────────────── */
     .video-container {
       border-radius: var(--radius-lg);
       overflow: hidden;
@@ -119,37 +196,58 @@
       background: #000;
     }
     .video-caption {
-      padding: 1rem 1.25rem;
+      padding: 0.875rem 1.25rem;
       font-style: italic;
       color: var(--text-muted);
       font-size: 0.9375rem;
       background: var(--surface-muted);
       border-top: 1px solid var(--border);
+      line-height: 1.55;
     }
-    .video-caption strong { color: var(--text-secondary); font-style: normal; }
+
+    /* ── Callouts ────────────────────────────── */
     .insight-callout {
       background: linear-gradient(135deg, var(--primary-10) 0%, var(--accent-light) 100%);
       border: 1px solid var(--primary-20);
       border-radius: var(--radius-lg);
-      padding: 1.25rem 1.5rem;
+      padding: 1.125rem 1.4rem;
       margin: 1.25rem 0;
       font-size: 0.9375rem;
+      color: var(--text-secondary);
     }
     .insight-callout strong { color: var(--primary-dark); }
+    .warning-callout {
+      background: var(--amber-10);
+      border: 1px solid var(--amber-20);
+      border-radius: var(--radius-lg);
+      padding: 1.125rem 1.4rem;
+      margin: 1.25rem 0;
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+    }
+    .warning-callout strong { color: var(--amber); }
+
+    /* ── Takeaways list ──────────────────────── */
     .takeaways-list {
-      margin: 1rem 0;
+      margin: 0.75rem 0 0;
       padding-left: 1.25rem;
       color: var(--text-secondary);
     }
-    .takeaways-list li { margin-bottom: 0.5rem; }
+    .takeaways-list li { margin-bottom: 0.5rem; line-height: 1.55; }
+
+    /* ── Recommendations ─────────────────────── */
     .recommendations {
       background: var(--accent-light);
       padding: 2.5rem 1.5rem 3rem;
-      margin-top: 3rem;
+      margin-top: 3.5rem;
       border-top: 2px solid var(--border);
     }
     .recommendations .container { padding-bottom: 2rem; }
-    .recommendations h2 { color: var(--text); border-bottom-color: var(--border); margin-top: 0; }
+    .recommendations h2 {
+      color: var(--text);
+      border-bottom-color: var(--border);
+      margin-top: 0;
+    }
     .rec-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -159,65 +257,87 @@
       margin-bottom: 1rem;
       box-shadow: var(--shadow);
     }
-    .rec-card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text); }
-    .rec-card p { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; }
-    .toc {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem 1.5rem;
-      margin: 2rem 0;
-      font-size: 0.9375rem;
+    .rec-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 0.4rem;
+      color: var(--text);
     }
-    .toc h3 { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 0.75rem; }
-    .toc ul { margin: 0; padding-left: 1.25rem; color: var(--text-secondary); }
-    .toc a { color: var(--primary-dark); text-decoration: none; }
-    .toc a:hover { color: var(--primary); text-decoration: underline; }
-    .section-id { font-size: 0.75rem; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+    .rec-card p { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; }
   </style>
 </head>
 <body>
+
   <header class="report-header">
     <div class="container">
-      <h1>AI Chip War Podcast — Research Report</h1>
-      <p style="margin:0; font-size:1rem; color: #475569;">Deep dive into the AI accelerator chip arms race: hardware as the foundation and constraint for scaling.</p>
+      <h1>AI Chip War Podcast &mdash; Research Report</h1>
+      <p class="subtitle">Deep dive into the AI accelerator chip arms race: hardware as the foundation and constraint for scaling.</p>
       <div class="report-meta">
         <span>Researcher: Min</span>
         <span>Date: 2026-03-08</span>
         <span>Persona: Investor</span>
         <span>Product: Mobile App</span>
-        <span class="badge">Case Study</span>
+        <span><span class="badge">Case Study</span></span>
       </div>
     </div>
   </header>
 
   <main class="container">
+
+    <!-- Executive Summary -->
     <section class="summary-panel">
       <h2>Executive summary</h2>
-      <p>This report synthesizes findings from the AI Chip War Podcast session, framed for an investor lens. The conversation positions hardware—silicon, interconnect, and systems architecture—as the real limiter for scaling large language models. Key themes: the &ldquo;roofline&rdquo; (compute-bound vs communication-bound), the dominance of tensor cores and specialization, and the role of non-matrix operations as a balancing factor. Actionable implications include where to look for value beyond pure compute (interconnect, data center design) and how specialization compounds across generations.</p>
+      <p>This report synthesizes findings from the AI Chip War Podcast session, framed for an investor lens. The central argument is that hardware&mdash;silicon, memory architecture, and interconnect&mdash;is the primary constraint governing where AI models can scale, at what cost, and with what competitive dynamics. The conversation deliberately bypasses software and algorithmic discussion to focus on the physical layer: the chip designs, memory subsystems, and cross-chip communication infrastructure that determine what is actually buildable. For investors evaluating AI-exposed companies, this reframes the competitive moat question from &ldquo;who has the best model&rdquo; to &ldquo;who controls or can access the necessary hardware stack.&rdquo;</p>
+      <p>Modern AI accelerators represent a radical architectural departure from general-purpose CPUs. The entire design center of chips like NVIDIA&rsquo;s H100 and B200 is dense matrix multiplication&mdash;the mathematical core of transformer-based LLMs. At the heart of this architecture is the streaming multiprocessor (SM), a modular parallel compute unit replicated at scale (132 SMs on the H100, 148 on the B200), each fed by high-bandwidth memory (HBM). This modular, memory-first philosophy defines the GPU roadmap: successive generations improve by adding more parallel units and widening the memory pipe, not by chasing general-purpose clock-speed gains.</p>
+      <p>Within each SM, the tensor core is the dominant engine, handling over 90% of all floating-point operations during LLM workloads. The gap between tensor-core throughput and general-purpose vector units on the same chip is enormous&mdash;roughly 15&times; on the H100&mdash;which underscores how completely the architecture has been optimized for matrix math. Critically, this specialization follows a reliable doubling trend across generations: 256 FLOPs/cycle on the V100, 512 on the A100, 1,024 on the H100, and an estimated 2,048 on the B200. Investors can treat this trajectory as a planning input: capacity and cost curves for aligned workloads are broadly predictable over a two-to-three generation horizon.</p>
+      <p>However, peak tensor-core performance is not the sole determinant of real-world throughput. LLM workloads include non-matrix operations&mdash;activation functions (ReLU, GLU), reductions, and normalization steps&mdash;that fall to older general-purpose CUDA cores within the SM. These units are dramatically slower than tensor cores, and as training pipelines become more complex, the &ldquo;other bits and pieces&rdquo; can become the end-to-end bottleneck. This creates a meaningful opportunity space for software and compiler advances: kernel optimizations that reduce the burden on general-purpose units or fuse operations to keep tensor cores fed can unlock substantial system-level gains without any new silicon.</p>
+      <p>At multi-chip scale, the binding constraint shifts further up the stack, away from compute entirely. The roofline model frames this precisely: a training run is either compute-bound (FLOPs are the limit) or communication-bound (data movement is the limit). As training spans thousands of accelerators coordinating across a data center, inter-chip bandwidth&mdash;NVLink, InfiniBand, optical interconnect, and data-center topology&mdash;becomes the practical ceiling, not raw tensor throughput. This is the most important investor insight in the session: the value chain for frontier-scale AI infrastructure extends well beyond GPU vendors. Networking silicon, optical components, advanced packaging, and data-center architecture all capture value when scaling stress shifts to data movement.</p>
+      <p>In aggregate, the findings support a broadened investment lens. Near-term, the doubling trend in tensor-core performance supports continued demand for successive GPU generations among frontier labs. Medium-term, the shift to communication-bound regimes at scale elevates the strategic importance of interconnect and systems vendors. Longer-term, compiler and software advances targeting non-matrix operations represent a differentiated value source that is hardware-agnostic. The roofline should be the standard diagnostic applied to any AI infrastructure investment: explicitly modeling whether a target workload is compute-bound or communication-bound at its intended scale is prerequisite to sound capex and vendor-selection decisions.</p>
     </section>
 
+    <!-- Table of Contents -->
     <nav class="toc">
       <h3>In this report</h3>
-      <ul>
-        <li><a href="#hardware-foundation">Hardware as the foundation (and constraint) for scaling AI</a></li>
-        <li><a href="#bottlenecks">Where bottlenecks appear at scale: compute vs communication</a></li>
-        <li><a href="#bandwidth">Communication bandwidth as the scaling tax</a></li>
-        <li><a href="#matrix">Purpose-built accelerators for matrix multiplication</a></li>
-        <li><a href="#gpu-scale">GPU scale: parallel &ldquo;factories&rdquo; and HBM</a></li>
-        <li><a href="#tensor">Tensor cores as the real engine</a></li>
-        <li><a href="#non-matrix">Non-matrix operations and general-purpose units</a></li>
-        <li><a href="#recommendations">Recommendations</a></li>
-      </ul>
+      <div class="toc-group">
+        <p class="toc-group-label">Part 1 &mdash; Architecture</p>
+        <ul>
+          <li><a href="#hardware-foundation">Hardware as the foundation (and constraint) for scaling AI</a></li>
+          <li><a href="#matrix">Purpose-built accelerators for matrix multiplication</a></li>
+          <li><a href="#gpu-scale">GPU scale: parallel &ldquo;factories&rdquo; and HBM</a></li>
+          <li><a href="#tensor">Tensor cores as the real engine</a></li>
+          <li><a href="#non-matrix">Non-matrix operations and general-purpose units</a></li>
+        </ul>
+      </div>
+      <div class="toc-group">
+        <p class="toc-group-label">Part 2 &mdash; Scaling limits</p>
+        <ul>
+          <li><a href="#bottlenecks">The roofline: compute-bound vs communication-bound</a></li>
+        </ul>
+      </div>
+      <div class="toc-group">
+        <p class="toc-group-label">Conclusions</p>
+        <ul>
+          <li><a href="#takeaways">Key takeaways</a></li>
+          <li><a href="#recommendations">Actionable recommendations</a></li>
+        </ul>
+      </div>
     </nav>
 
+    <!-- ── PART 1: ARCHITECTURE ─────────────────── -->
+    <div class="part-divider">
+      <div class="part-divider-line"></div>
+      <span class="part-divider-label">Part 1 &mdash; Architecture</span>
+      <div class="part-divider-line"></div>
+    </div>
+
+    <!-- Finding 1 -->
     <section id="hardware-foundation">
       <p class="section-id">Finding 1</p>
-      <h2><span class="emoji">&#x1F4BB;</span> Hardware is framed as the foundation (and constraint) for scaling AI</h2>
+      <h2>Hardware is framed as the foundation (and constraint) for scaling AI</h2>
       <p>The conversation opens by shifting attention away from &ldquo;software and algorithms&rdquo; and onto silicon and infrastructure. From an investor perspective, scaling progress is gated by the physical layer: which hardware you can access and the constraints it imposes at scale. This sets up how chip choices and systems architecture determine what is feasible as models and training runs grow.</p>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=0,16">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We're skipping past the software, we're skipping the algorithms, and we're going straight to the foundation, the bedrock. The silicon.&rdquo;</div>
+        <div class="video-caption">&ldquo;Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We&rsquo;re skipping past the software, we&rsquo;re skipping the algorithms, and we&rsquo;re going straight to the foundation, the bedrock. The silicon.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=16,24">Your browser does not support the video tag.</video>
@@ -225,124 +345,138 @@
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=24,39">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;That's exactly right. And look, if you're involved in or you're just tracking the scaling of these massive LLMs, you were constantly, constantly battling constraints that are imposed by the hardware. Right. You know the names. NVIDIA's H100, the new B200, Google's TPUs.&rdquo;</div>
+        <div class="video-caption">&ldquo;That&rsquo;s exactly right. And look, if you&rsquo;re involved in or you&rsquo;re just tracking the scaling of these massive LLMs, you were constantly, constantly battling constraints that are imposed by the hardware. Right. You know the names. NVIDIA&rsquo;s H100, the new B200, Google&rsquo;s TPUs.&rdquo;</div>
       </div>
-      <div class="insight-callout"><strong>Investor takeaway:</strong> Product and model roadmaps are increasingly gated by compute availability, chip selection, and the cost of scaling infrastructure—not just algorithms.</div>
+      <div class="insight-callout"><strong>Investor takeaway:</strong> Product and model roadmaps are increasingly gated by compute availability, chip selection, and the cost of scaling infrastructure&mdash;not just algorithms.</div>
     </section>
 
-    <section id="bottlenecks">
-      <p class="section-id">Finding 2</p>
-      <h2><span class="emoji">&#x26A0;&#xFE0F;</span> The key differentiator is where bottlenecks appear at scale (compute vs communication)</h2>
-      <p>Rather than treating accelerators as interchangeable &ldquo;faster chips,&rdquo; the speakers focus on a &ldquo;philosophical difference&rdquo; between chip families and how that manifests as bottlenecks during large-scale training. Bottlenecks show up concretely when training spans thousands of accelerators. For investors, this maps architecture to a practical ceiling: different stacks hit different limits first, affecting cost, performance, and who wins in certain scaling regimes.</p>
-      <div class="video-container">
-        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=39,52">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;But the critical question, the one we're digging into, is what's the philosophical difference between these chips? And how does that difference create these really specific bottlenecks? You know, when you're training models that have to stretch across thousands of accelerators.&rdquo;</div>
-      </div>
-      <div class="video-container">
-        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=70,95">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;And we really want to get a handle on this one concept that just defines the limits of modern training runs and that the roofline … the roofline is it … the ultimate physical constraint. It tells you mathematically if your multi-parameter model is compute bound … or communication bound, which means you're limited by how fast data can move.&rdquo;</div>
-      </div>
-    </section>
-
-    <section id="bandwidth">
-      <p class="section-id">Finding 3</p>
-      <h2><span class="emoji">&#x1F4E1;</span> Communication bandwidth is called out as the scaling &ldquo;tax,&rdquo; especially between chips</h2>
-      <p>As training distributes across many accelerators, the discussion highlights a shift from raw compute to data movement constraints. The worst-case limiter is explicitly framed as cross-chip movement—implying that interconnect and networking strategy can dominate outcomes in large deployments. For investors, this suggests value capture beyond compute: systems components (interconnect, networking, data-center design) are critical leverage points.</p>
-      <div class="video-container">
-        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=90,98">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;FLOPs get done, or communication bound, which means you're limited by how fast data can move between memory, or even worse, between different chips.&rdquo;</div>
-      </div>
-      <div class="video-container">
-        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=45,52">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;And how does that difference create these really specific bottlenecks? You know, when you're training models that have to stretch across thousands of accelerators.&rdquo;</div>
-      </div>
-    </section>
-
+    <!-- Finding 2 -->
     <section id="matrix">
-      <p class="section-id">Finding 4</p>
-      <h2><span class="emoji">&#x1F9EA;</span> Modern AI accelerators are presented as purpose-built for matrix multiplication</h2>
+      <p class="section-id">Finding 2</p>
+      <h2>Modern AI accelerators are purpose-built for matrix multiplication</h2>
       <p>The transcript draws a sharp line between traditional CPUs and modern AI accelerators, describing the latter as a system optimized for one dominant workload. Dense matrix multiplication is the core game; the surrounding architecture serves that. From an investor lens, specialization is the design center and shapes which vendors and ecosystems compound advantages over time.</p>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=109,125">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;Okay. So let's unpack this starting with the chips themselves. When we look at a modern AI accelerator, like an H100 or a B200, we're not talking about a traditional CPU anymore, right? Not even close. We're looking at a system that's been built for one task. Massive matrix multiplication. That's the game.&rdquo;</div>
+        <div class="video-caption">&ldquo;Okay. So let&rsquo;s unpack this starting with the chips themselves. When we look at a modern AI accelerator, like an H100 or a B200, we&rsquo;re not talking about a traditional CPU anymore, right? Not even close. We&rsquo;re looking at a system that&rsquo;s been built for one task. Massive matrix multiplication. That&rsquo;s the game.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=125,128">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;So what's the fundamental blueprint of a modern GPU then?&rdquo;</div>
+        <div class="video-caption">&ldquo;So what&rsquo;s the fundamental blueprint of a modern GPU then?&rdquo;</div>
       </div>
     </section>
 
+    <!-- Finding 3 -->
     <section id="gpu-scale">
-      <p class="section-id">Finding 5</p>
-      <h2><span class="emoji">&#x1F3D7;&#xFE0F;</span> GPU scale is explained via many parallel &ldquo;factories&rdquo; (SMs) plus fast local memory (HBM)</h2>
-      <p>The GPU is described as a huge array of specialized, parallel compute units—a city/factories analogy. The core building block is the streaming multiprocessor (SM), and scaling is framed as replicating these modules and feeding them with very fast local memory (HBM). For investors, this connects roadmaps to a repeatable pattern: more parallel units and better memory plumbing.</p>
+      <p class="section-id">Finding 3</p>
+      <h2>GPU scale is achieved via many parallel &ldquo;factories&rdquo; (SMs) plus fast local memory (HBM)</h2>
+      <p>The GPU is described as a huge array of specialized, parallel compute units&mdash;a city/factories analogy. The core building block is the streaming multiprocessor (SM), and scaling is framed as replicating these modules and feeding them with very fast local memory (HBM). For investors, this connects roadmaps to a repeatable pattern: more parallel units and better memory plumbing.</p>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=128,144">Your browser does not support the video tag.</video>
         <div class="video-caption">&ldquo;At a really fundamental level, a modern machine learning GPU is just a massive array of specialized, highly parallel compute units. You can think of the whole chip as a city. And the primary factories doing all the work are called streaming multiprocessors, or SMs.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=152,168">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;How many of these factories are actually built into a chip like Hopper or Blackwell? Well on the current generation H100 hopper chip you got 132 SMs … And in the upcoming Blackwell D200 that number bumps up just a little bit to 148 SMs.&rdquo;</div>
+        <div class="video-caption">&ldquo;How many of these factories are actually built into a chip like Hopper or Blackwell? Well on the current generation H100 hopper chip you got 132 SMs&hellip; And in the upcoming Blackwell D200 that number bumps up just a little bit to 148 SMs.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=168,184">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;And crucially, each one of these SMs is connected to this incredibly fast, localized pool of memory called high bandwidth memory or HBM. So it's the sheer number of these independent units that really defines this modular philosophy.&rdquo;</div>
+        <div class="video-caption">&ldquo;And crucially, each one of these SMs is connected to this incredibly fast, localized pool of memory called high bandwidth memory or HBM. So it&rsquo;s the sheer number of these independent units that really defines this modular philosophy.&rdquo;</div>
       </div>
     </section>
 
+    <!-- Finding 4 -->
     <section id="tensor">
-      <p class="section-id">Finding 6</p>
-      <h2><span class="emoji">&#x1F4CA;</span> Tensor cores are positioned as the &ldquo;real engine,&rdquo; with performance compounding generation-over-generation</h2>
-      <p>Inside the SM, the tensor core is described as the specialized subunit that drives the bulk of LLM computation. The gap between tensor cores and general-purpose units is emphasized—specialization is the dominant driver of throughput. The discussion also points to a &ldquo;doubling trend&rdquo; over generations, implying that aligned specialization compounds.</p>
+      <p class="section-id">Finding 4</p>
+      <h2>Tensor cores are the &ldquo;real engine,&rdquo; with performance compounding generation-over-generation</h2>
+      <p>Inside the SM, the tensor core is the specialized subunit that drives the bulk of LLM computation. The gap between tensor cores and general-purpose units is emphasized&mdash;specialization is the dominant driver of throughput. The discussion also points to a &ldquo;doubling trend&rdquo; over generations, implying that aligned specialization compounds across product cycles.</p>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=203,214">Your browser does not support the video tag.</video>
         <div class="video-caption">&ldquo;But the real engine of the LLM calculation is the tensor core, the TC. The tensor core. This is the dedicated, highly specialized matrix multiplication subunit.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=230,253">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;The specialization is relentless. On an H100 the Tensor cores deliver an incredible … TFLOPs per second of processing power. Now if you look at the general purpose vector cores on that same chip they only manage about 66 TFLOPs per second. … So the tensor cores are doing what, over 90% of the work? Well over 90% of the chip's total floating point operations, yeah.&rdquo;</div>
+        <div class="video-caption">&ldquo;The specialization is relentless. On an H100 the tensor cores deliver an incredible&hellip; TFLOPs per second of processing power. Now if you look at the general purpose vector cores on that same chip they only manage about 66 TFLOPs per second.&hellip; So the tensor cores are doing what, over 90% of the work? Well over 90% of the chip&rsquo;s total floating point operations, yeah.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=273,296">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;I mean, it follows this powerful doubling trend. The V100 Tensor Cores, they perform 256 FLOPs per cycle. The A100 double that to 512. The H100 doubled it again … And while the B200 is brand new, industry estimates … suggest it's likely going to double again to 2048 FLOPs per cycle.&rdquo;</div>
+        <div class="video-caption">&ldquo;I mean, it follows this powerful doubling trend. The V100 tensor cores, they perform 256 FLOPs per cycle. The A100 double that to 512. The H100 doubled it again&hellip; And while the B200 is brand new, industry estimates&hellip; suggest it&rsquo;s likely going to double again to 2048 FLOPs per cycle.&rdquo;</div>
       </div>
+      <div class="insight-callout"><strong>Investor takeaway:</strong> Expect continued doubling in tensor-core capability per generation for aligned vendors; factor this into long-horizon capacity and cost projections.</div>
     </section>
 
+    <!-- Finding 5 -->
     <section id="non-matrix">
-      <p class="section-id">Finding 7</p>
-      <h2><span class="emoji">&#x2699;&#xFE0F;</span> Non-matrix operations remain important, and they fall back to older general-purpose units</h2>
-      <p>Even while emphasizing matrix throughput, the transcript notes that LLM workloads include other operations (activations, reductions) that do not map cleanly to tensor cores. Those tasks are handled by older general-purpose units within the SM—implying an architectural balancing act: end-to-end performance depends on more than peak tensor-core FLOPs. For investors, optimizations (kernels, compilers, architectural balance) matter because the &ldquo;other bits and pieces&rdquo; can become the limiting factor.</p>
+      <p class="section-id">Finding 5</p>
+      <h2>Non-matrix operations remain important, falling back to older general-purpose units</h2>
+      <p>Even while emphasizing matrix throughput, the transcript notes that LLM workloads include other operations&mdash;activations, reductions&mdash;that do not map cleanly to tensor cores. Those tasks are handled by older general-purpose units within the SM, implying an architectural balancing act: end-to-end performance depends on more than peak tensor-core FLOPs. For investors, optimizations (kernels, compilers, architectural balance) matter because the &ldquo;other bits and pieces&rdquo; can become the limiting factor.</p>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=299,317">Your browser does not support the video tag.</video>
-        <div class="video-caption">&ldquo;But LLMs aren't just massive matrix multiplications, you have to handle all the other bits and pieces. You know, activation functions like ReLUs and GLUs and these essential vector-based operations like reductions. So where do those tasks fit into the SM? Ah, okay. So those tasks fall to the older, more general purpose units, which are known as CIDI-ACOR.&rdquo;</div>
+        <div class="video-caption">&ldquo;But LLMs aren&rsquo;t just massive matrix multiplications, you have to handle all the other bits and pieces. You know, activation functions like ReLUs and GLUs and these essential vector-based operations like reductions. So where do those tasks fit into the SM? Ah, okay. So those tasks fall to the older, more general purpose units, which are known as CIDI-ACOR.&rdquo;</div>
       </div>
       <div class="video-container">
         <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=314,322">Your browser does not support the video tag.</video>
         <div class="video-caption">&ldquo;So those tasks fall to the older, more general purpose units, which are known as CIDI-ACOR. CIDI-ACOR, right.&rdquo;</div>
       </div>
+      <div class="warning-callout"><strong>Watch closely:</strong> Software and compiler advances that improve activation and reduction performance on general-purpose units can unlock end-to-end gains even when tensor cores are not the bottleneck.</div>
     </section>
 
-    <section class="summary-panel">
+    <!-- ── PART 2: SCALING LIMITS ─────────────── -->
+    <div class="part-divider">
+      <div class="part-divider-line"></div>
+      <span class="part-divider-label">Part 2 &mdash; Scaling limits</span>
+      <div class="part-divider-line"></div>
+    </div>
+
+    <!-- Finding 6 (merged findings 2+3 from original) -->
+    <section id="bottlenecks">
+      <p class="section-id">Finding 6</p>
+      <h2>At scale, the binding constraint shifts from compute to communication</h2>
+      <p>Rather than treating accelerators as interchangeable &ldquo;faster chips,&rdquo; the speakers introduce a &ldquo;philosophical difference&rdquo; between chip families and map it to a single diagnostic: the <em>roofline</em>. The roofline tells you mathematically whether a given multi-parameter training run is compute-bound (FLOPs are the limit) or communication-bound (data movement is the limit). As training stretches across thousands of accelerators, the worst-case limiter becomes explicitly cross-chip: the bandwidth and latency of inter-chip interconnect, not raw compute. For investors, this reveals leverage points far beyond chip vendors.</p>
+      <div class="video-container">
+        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=39,52">Your browser does not support the video tag.</video>
+        <div class="video-caption">&ldquo;But the critical question, the one we&rsquo;re digging into, is what&rsquo;s the philosophical difference between these chips? And how does that difference create these really specific bottlenecks? You know, when you&rsquo;re training models that have to stretch across thousands of accelerators.&rdquo;</div>
+      </div>
+      <div class="video-container">
+        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=70,95">Your browser does not support the video tag.</video>
+        <div class="video-caption">&ldquo;And we really want to get a handle on this one concept that just defines the limits of modern training runs and that the roofline&hellip; the roofline is it&hellip; the ultimate physical constraint. It tells you mathematically if your multi-parameter model is compute bound&hellip; or communication bound, which means you&rsquo;re limited by how fast data can move.&rdquo;</div>
+      </div>
+      <div class="video-container">
+        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=90,98">Your browser does not support the video tag.</video>
+        <div class="video-caption">&ldquo;FLOPs get done, or communication bound, which means you&rsquo;re limited by how fast data can move between memory, or even worse, between different chips.&rdquo;</div>
+      </div>
+      <div class="video-container">
+        <video controls preload="none" src="/api/projects/ai-chip-war-podcast/files/videos/session-1.mp4#t=45,52">Your browser does not support the video tag.</video>
+        <div class="video-caption">&ldquo;And how does that difference create these really specific bottlenecks? You know, when you&rsquo;re training models that have to stretch across thousands of accelerators.&rdquo;</div>
+      </div>
+      <div class="insight-callout"><strong>Investor takeaway:</strong> When evaluating AI infrastructure, explicitly model whether target workloads are compute-bound or communication-bound at scale. This drives capex and vendor selection. Consider interconnect, memory bandwidth, and data-center topology&mdash;not just peak tensor performance. Companies in networking, optical, and packaging can capture value as scaling stress shifts to data movement.</div>
+    </section>
+
+    <!-- Key Takeaways -->
+    <section id="takeaways" class="summary-panel" style="border-left-color: var(--amber); margin-top: 3rem;">
       <h2>Key takeaways</h2>
       <ul class="takeaways-list">
-        <li>Hardware and systems architecture gate scaling progress as much as (or more than) algorithms.</li>
-        <li>The &ldquo;roofline&rdquo; (compute-bound vs communication-bound) is the right mental model for where different stacks hit limits.</li>
-        <li>Interconnect and data-center design are leverage points for value capture alongside chip vendors.</li>
-        <li>Specialization (tensor cores, matrix throughput) compounds across generations; general-purpose fallbacks still matter for end-to-end performance.</li>
+        <li>Hardware and systems architecture gate scaling progress as much as&mdash;or more than&mdash;algorithms.</li>
+        <li>Modern AI accelerators are purpose-built for matrix multiplication; the tensor core is the dominant unit, delivering &gt;90% of floating-point operations on current GPUs.</li>
+        <li>Specialization compounds: tensor-core throughput has followed a doubling trend each generation (V100 &rarr; A100 &rarr; H100 &rarr; B200).</li>
+        <li>The &ldquo;roofline&rdquo; (compute-bound vs communication-bound) is the right mental model for where different stacks hit their ceiling.</li>
+        <li>As training scales across thousands of chips, the binding constraint shifts from compute to interconnect and data movement&mdash;suggesting value capture opportunities beyond chip vendors.</li>
+        <li>Non-matrix operations (activations, reductions) run on general-purpose units and can become the end-to-end bottleneck; compiler and kernel advances here matter for realized performance.</li>
       </ul>
     </section>
+
   </main>
 
+  <!-- Recommendations -->
   <section class="recommendations" id="recommendations">
     <div class="container">
-      <h2><span class="emoji">&#x1F4BC;</span> Actionable recommendations</h2>
+      <h2>Actionable recommendations</h2>
       <div class="rec-card">
         <h3>1. Model the roofline for target workloads</h3>
         <p>When evaluating AI infrastructure or chip vendors, explicitly model whether your target training/inference workloads are compute-bound or communication-bound at scale. This drives capex and vendor selection.</p>
       </div>
       <div class="rec-card">
         <h3>2. Look beyond pure FLOPs</h3>
-        <p>Consider interconnect, memory bandwidth, and data-center topology—not just peak tensor performance. Companies in networking, optical, and packaging can capture value as scaling stress shifts to data movement.</p>
+        <p>Consider interconnect, memory bandwidth, and data-center topology&mdash;not just peak tensor performance. Companies in networking, optical, and packaging can capture value as scaling stress shifts to data movement.</p>
       </div>
       <div class="rec-card">
         <h3>3. Track the non-matrix pipeline</h3>
@@ -354,5 +488,6 @@
       </div>
     </div>
   </section>
+
 </body>
 </html>
