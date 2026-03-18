@@ -43,11 +43,16 @@ export async function POST(req: NextRequest) {
 
       let proc: ReturnType<typeof spawn>;
 
+      // On Windows, npm-installed CLIs are .cmd wrappers and require shell:true
+      // or an explicit .cmd suffix to be found without a full path.
+      const isWindows = process.platform === "win32";
+
       if (settings.cli === "claude") {
         const args = ["--output-format", "stream-json", "--print"];
         if (sessionId) args.push("--resume", sessionId);
         args.push(prompt);
-        proc = spawn("claude", args, { shell: false });
+        const cmd = isWindows ? "claude.cmd" : "claude";
+        proc = spawn(cmd, args, { shell: false });
       } else {
         const parts = parseCustomTemplate(settings.customTemplate ?? "", prompt);
         if (!parts) {
@@ -58,7 +63,8 @@ export async function POST(req: NextRequest) {
           controller.close();
           return;
         }
-        proc = spawn(parts[0], parts.slice(1), { shell: false });
+        // For custom CLI on Windows, use shell so .cmd/.bat wrappers resolve
+        proc = spawn(parts[0], parts.slice(1), { shell: isWindows });
       }
 
       req.signal.addEventListener("abort", () => {

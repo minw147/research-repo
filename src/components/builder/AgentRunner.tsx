@@ -10,6 +10,8 @@ interface AgentRunnerProps {
   onRefreshFile: () => void;
   /** Extra buttons rendered on the right side of the controls row (e.g. a Done button). */
   sideActions?: React.ReactNode;
+  /** Called whenever the run state changes — lets the parent collapse/expand content. */
+  onRunStateChange?: (isActive: boolean) => void;
 }
 
 type RunState = "idle" | "running" | "done" | "error";
@@ -53,7 +55,7 @@ function AgentSettingsPanel({
   );
 }
 
-export function AgentRunner({ prompt, onRefreshFile, sideActions }: AgentRunnerProps) {
+export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChange }: AgentRunnerProps) {
   const [runState, setRunState] = useState<RunState>("idle");
   const [logLines, setLogLines] = useState<string[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -72,6 +74,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions }: AgentRunnerP
     async (promptText: string, resumeId?: string) => {
       setRunState("running");
       setLogLines([]);
+      onRunStateChange?.(true);
       try {
         const res = await fetch("/api/agent/run", {
           method: "POST",
@@ -148,6 +151,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions }: AgentRunnerP
                       setRunState("idle");
                       setLogLines([]);
                       setSessionId(null);
+                      onRunStateChange?.(false);
                     }}
                     className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                   >
