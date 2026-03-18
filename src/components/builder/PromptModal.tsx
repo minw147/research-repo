@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Sparkles, Copy, Check } from "lucide-react";
+import { AgentRunner } from "./AgentRunner";
 import { Codebook, Project } from "@/types";
 import {
   buildAnalyzeTranscriptsPrompt,
@@ -35,6 +36,8 @@ interface PromptModalProps {
   reportStyle?: "blog" | "slides";
   /** Context for "Other templates" (findings, tags, or report). Required when actions include "other-templates". */
   otherTemplateContext?: OtherTemplateContext;
+  /** Called when the user clicks "Refresh file" in the AgentRunner. */
+  onRefreshFile?: () => void;
 }
 
 const FINDINGS_ACTIONS: AIAction[] = ["thematic-transcripts", "thematic-findings", "tagging-findings", "tagging-transcripts", "other-templates"];
@@ -56,6 +59,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
   actions = FINDINGS_ACTIONS,
   reportStyle = "blog",
   otherTemplateContext = "findings",
+  onRefreshFile,
 }) => {
   const [selectedAction, setSelectedAction] = useState<AIAction>(() =>
     actions.includes(initialAction) ? initialAction : actions[0]
@@ -256,6 +260,10 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
+            <AgentRunner
+              prompt={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
+              onRefreshFile={onRefreshFile ?? (() => {})}
+            />
             <p className="mt-2 text-xs text-slate-500">
               <span className="font-medium text-slate-600">How it works:</span>{" "}
               {selectedAction === "other-templates" && !selectedTemplateId ? (

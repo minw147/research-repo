@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
 import { PromptModal } from "./PromptModal";
 import type { Project, Codebook } from "@/types";
 
@@ -30,7 +31,16 @@ describe("PromptModal", () => {
     vi.stubGlobal("navigator", {
       clipboard: { writeText: vi.fn() },
     });
+    // Mock fetch to prevent real network calls from useAgentSettings
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      json: async () => ({ cli: "claude" }),
+    }));
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
   });
 
   it("renders action options and prompt textarea", () => {
@@ -43,6 +53,13 @@ describe("PromptModal", () => {
     expect(screen.getByText("Refine Findings")).toBeDefined();
     expect(screen.getByLabelText(/generated prompt/i)).toBeDefined();
     expect(screen.getByText("Done")).toBeDefined();
+  });
+
+  it("Run in Agent button is present in the DOM", () => {
+    render(
+      <PromptModal project={mockProject} codebook={mockCodebook} onClose={mockOnClose} />
+    );
+    expect(screen.getByRole("button", { name: /run in agent/i })).toBeDefined();
   });
 
   it("shows findings.md hint when findings action is selected", () => {

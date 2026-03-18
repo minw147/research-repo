@@ -578,6 +578,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                     actions={aiActions}
                     initialAction={initialAIAction}
                     otherTemplateContext={otherTemplateContext}
+                    onRefreshFile={refetchDoc}
                 />
             )}
 
