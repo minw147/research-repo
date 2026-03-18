@@ -1,3 +1,5 @@
+import { Info, Lightbulb, AlertTriangle, Sparkles } from "lucide-react";
+
 interface CalloutProps {
   children: React.ReactNode;
   /** "info" | "tip" | "warning" | "insight" */
@@ -10,25 +12,25 @@ const variants = {
   info: {
     bg: "bg-primary/10 dark:bg-primary/20",
     border: "border-l-primary",
-    icon: "ℹ️",
+    icon: <Info className="w-4 h-4 shrink-0" aria-hidden="true" />,
     title: "text-primary-dark dark:text-primary",
   },
   tip: {
     bg: "bg-emerald-50 dark:bg-emerald-950/40",
     border: "border-l-emerald-500",
-    icon: "💡",
+    icon: <Lightbulb className="w-4 h-4 shrink-0" aria-hidden="true" />,
     title: "text-emerald-800 dark:text-emerald-300",
   },
   warning: {
     bg: "bg-amber-50 dark:bg-amber-950/40",
     border: "border-l-amber-500",
-    icon: "⚠️",
+    icon: <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />,
     title: "text-amber-800 dark:text-amber-300",
   },
   insight: {
     bg: "bg-violet-50 dark:bg-violet-950/40",
     border: "border-l-violet-500",
-    icon: "✨",
+    icon: <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />,
     title: "text-violet-800 dark:text-violet-300",
   },
 };
@@ -54,6 +56,7 @@ export function Callout({
             v.title,
           ].join(" ")}
         >
+          {v.icon}
           <span>{title}</span>
         </div>
       )}
