@@ -13,3 +13,10 @@ it("home link does not use low-opacity focus ring", () => {
   expect(homeLink.className).not.toContain("focus:ring-primary/20");
   expect(homeLink.className).toMatch(/focus:ring-primary(?!\/)/);
 });
+
+it("renders a skip-to-content link as first focusable element", () => {
+  render(<WorkspaceNav slug="test" />);
+  const skipLink = screen.getByRole("link", { name: /skip to content/i });
+  expect(skipLink).toBeInTheDocument();
+  expect(skipLink.getAttribute("href")).toBe("#main-content");
+});

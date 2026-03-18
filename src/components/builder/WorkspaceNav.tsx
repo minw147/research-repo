@@ -39,6 +39,12 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
 
   return (
     <nav className="flex h-12 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold"
+      >
+        Skip to content
+      </a>
       <Link
         href="/"
         className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
