@@ -53,7 +53,7 @@
 .slides-mode {
   counter-reset: slide-num;
   /* Slightly recessed background so white cards "float" */
-  background: linear-gradient(180deg, #f0f4f8 0%, #f6f7f8 100%);
+  background: var(--color-background-light);
   border-radius: 1rem;
   padding: 1.5rem 0 2rem;
 }
@@ -73,7 +73,7 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #94a3b8;
+  color: #b87a30;
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }
@@ -82,7 +82,7 @@
 .slides-mode .slide-section h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #1a1008;
   margin-top: 0;
   margin-bottom: 1rem;
   line-height: 1.25;
@@ -93,7 +93,7 @@
 .slides-mode .slide-section p {
   font-size: 1rem;
   line-height: 1.75;
-  color: #475569;
+  color: #4a3a2a;
   margin-bottom: 1rem;
 }
 
