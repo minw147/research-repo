@@ -260,10 +260,6 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
-            <AgentRunner
-              prompt={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
-              onRefreshFile={onRefreshFile ?? (() => {})}
-            />
             <p className="mt-2 text-xs text-slate-500">
               <span className="font-medium text-slate-600">How it works:</span>{" "}
               {selectedAction === "other-templates" && !selectedTemplateId ? (
@@ -290,14 +286,20 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           </div>
         </div>
 
-        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
-          >
-            Done
-          </button>
+        <div className="border-t border-slate-100 shrink-0">
+          <AgentRunner
+            prompt={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
+            onRefreshFile={onRefreshFile ?? (() => {})}
+            sideActions={
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
+              >
+                Done
+              </button>
+            }
+          />
         </div>
       </div>
     </div>
