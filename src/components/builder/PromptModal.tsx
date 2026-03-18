@@ -262,16 +262,18 @@ export const PromptModal: React.FC<PromptModalProps> = ({
             </div>
             <p className="mt-2 text-xs text-slate-500">
               <span className="font-medium text-slate-600">How it works:</span>{" "}
-              {selectedAction === "other-templates" && !selectedTemplateId ? (
-                "Select a template above, then copy the generated prompt, paste it into Cursor, and run the agent."
-              ) : selectedAction === "change-theme" && !selectedThemeId ? (
-                "Select a theme above, then copy the generated prompt, paste it into Cursor, and run the agent."
+              {(selectedAction === "other-templates" && !selectedTemplateId) ? (
+                "Select a template above to generate the prompt."
+              ) : (selectedAction === "change-theme" && !selectedThemeId) ? (
+                "Select a theme above to generate the prompt."
               ) : (
-                <>Copy this prompt, paste it into Cursor, and run the agent. The prompt instructs the AI to follow the relevant skill ({(selectedAction === "other-templates" && otherTemplateContext === "report") || selectedAction === "change-theme" ? (
-                  <code className="bg-slate-100 px-1 rounded">report-publication</code>
-                ) : (
-                  <code className="bg-slate-100 px-1 rounded">research-analysis</code>
-                )}). The AI will create or update <code className="bg-slate-100 px-1 rounded">{targetFile}</code> in your project. Use the refresh button or wait for auto-refresh to see the changes.</>
+                <>
+                  <span className="font-medium text-slate-600">▶ Run in Agent</span> — runs the prompt directly using your local{" "}
+                  <code className="bg-slate-100 px-1 rounded">claude</code> CLI and streams output here.{" "}
+                  <span className="font-medium text-slate-600">Copy</span> — paste into Cursor or another AI tool manually.{" "}
+                  Either way the AI will create or update{" "}
+                  <code className="bg-slate-100 px-1 rounded">{targetFile}</code>.
+                </>
               )}
             </p>
             {toast && (

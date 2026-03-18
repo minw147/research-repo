@@ -194,7 +194,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions }: AgentRunnerP
           <button
             onClick={() => runAgent(prompt)}
             disabled={runState === "running"}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {runState === "running" ? "Running..." : "▶ Run in Agent"}
           </button>
