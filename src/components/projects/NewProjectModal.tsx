@@ -213,7 +213,7 @@ export function NewProjectModal() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-[border-color,background-color] duration-200 cursor-pointer"
       >
         <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
           <Plus className="w-5 h-5 text-slate-500 group-hover:text-primary" />
@@ -264,7 +264,7 @@ export function NewProjectModal() {
                       <input
                         id="project-title"
                         required
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                         placeholder="e.g. Checkout Flow Usability"
                         value={formData.title}
                         onChange={(e) =>
@@ -281,7 +281,7 @@ export function NewProjectModal() {
                         <input
                           id="project-researcher"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                           placeholder="Your Name"
                           value={formData.researcher}
                           onChange={(e) =>
@@ -296,7 +296,7 @@ export function NewProjectModal() {
                         <input
                           id="project-persona"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                           placeholder="e.g. New User"
                           value={formData.persona}
                           onChange={(e) =>
@@ -312,7 +312,7 @@ export function NewProjectModal() {
                       </label>
                       <input
                         id="project-product"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                         placeholder="e.g. Mobile App"
                         value={formData.product}
                         onChange={(e) =>
@@ -328,7 +328,7 @@ export function NewProjectModal() {
                       <textarea
                         id="project-research-plan"
                         rows={3}
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400 resize-none"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400 resize-none"
                         placeholder="Study goals and questions..."
                         value={formData.researchPlan}
                         onChange={(e) =>
@@ -344,7 +344,7 @@ export function NewProjectModal() {
                       <div className="relative">
                         <select
                           id="project-codebook"
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-all text-slate-900 appearance-none cursor-pointer"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 appearance-none cursor-pointer"
                           value={formData.codebook || ""}
                           onChange={(e) =>
                             setFormData({

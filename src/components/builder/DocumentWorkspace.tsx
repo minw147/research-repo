@@ -519,7 +519,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                                 </p>
                                                 <button
                                                     onClick={() => setShowPromptModal(true)}
-                                                    className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
+                                                    className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
                                                 >
                                                     Generate tags.md
                                                 </button>

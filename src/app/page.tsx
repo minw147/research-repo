@@ -58,7 +58,7 @@ export default function HomePage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
             <input
               aria-label="Search projects by title, researcher, or persona"
-              className="w-full bg-slate-100 border border-transparent rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:bg-white focus:border-slate-200 transition-all outline-none"
+              className="w-full bg-slate-100 border border-transparent rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:bg-white focus:border-slate-200 transition-[background-color,border-color,box-shadow] outline-none"
               placeholder="Search projects by title, researcher, or persona..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}

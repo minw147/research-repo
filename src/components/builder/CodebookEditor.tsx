@@ -252,7 +252,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   ) : (
                     <div className="flex items-center justify-between w-full">
                       <span>{cat}</span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleStartCategoryEdit(cat)}
                           className="p-1 text-slate-400 hover:text-primary transition-colors"
@@ -277,7 +277,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   <input
                     autoFocus
                     type="text"
-                    className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-all"
+                    className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-[border-color,box-shadow]"
                     placeholder="Category name..."
                     value={newCategory}
                     onChange={e => setNewCategory(e.target.value)}
@@ -344,7 +344,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                     {categoryTags.map(tag => (
                       <div
                         key={tag.id}
-                        className="group p-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-between"
+                        className="group p-3 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3">
                           <div
@@ -473,7 +473,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   id="tag-id"
                   disabled={!!editingTagId}
                   type="text"
-                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-all disabled:bg-slate-50 disabled:text-slate-400"
+                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-[border-color,box-shadow] disabled:bg-slate-50 disabled:text-slate-400"
                   placeholder="e.g. pain-point-ui"
                   value={tagForm.id}
                   onChange={e => setTagForm({ ...tagForm, id: e.target.value })}
@@ -485,7 +485,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                 <input
                   id="tag-label"
                   type="text"
-                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-all"
+                  className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-[border-color,box-shadow]"
                   placeholder="e.g. UI Friction"
                   value={tagForm.label}
                   onChange={e => setTagForm({ ...tagForm, label: e.target.value })}
@@ -497,7 +497,7 @@ export const CodebookEditor: React.FC<CodebookEditorProps> = (props) => {
                   <label htmlFor="tag-category" className="text-xs font-bold text-slate-500 uppercase">Category</label>
                   <select
                     id="tag-category"
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary outline-none transition-[border-color,box-shadow]"
                     value={tagForm.category}
                     onChange={e => setTagForm({ ...tagForm, category: e.target.value })}
                   >

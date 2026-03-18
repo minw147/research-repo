@@ -140,7 +140,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           </button>
         </div>
 
-        <div className={`flex-1 overflow-y-auto transition-all duration-300 ${agentActive ? "max-h-0 !p-0 opacity-0 pointer-events-none" : "p-4 space-y-4"}`}>
+        <div className={`flex-1 overflow-y-auto transition-[max-height,opacity,padding] duration-300 ${agentActive ? "max-h-0 !p-0 opacity-0 pointer-events-none" : "p-4 space-y-4"}`}>
           <div className={`grid gap-2 ${actions.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
             {[
               { id: "thematic-transcripts" as const, label: "Initial Findings", sub: "Create or rewrite findings.md" },

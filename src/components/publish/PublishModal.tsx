@@ -331,7 +331,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <button
                       key={adapter.id}
                       onClick={() => setSelectedAdapter(adapter)}
-                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-xl border-2 border-slate-100 bg-white p-5 text-left transition-all hover:border-primary/30 hover:bg-primary/5"
+                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-xl border-2 border-slate-100 bg-white p-5 text-left transition-[border-color,background-color] hover:border-primary/30 hover:bg-primary/5"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-primary/10">
                         <Icon className="h-4 w-4 text-slate-500 transition-colors group-hover:text-primary" />
@@ -554,7 +554,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <button
                       type="submit"
                       disabled={isPublishing || !oauthConnected}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isPublishing ? (
                         <>

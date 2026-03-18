@@ -141,7 +141,7 @@ export const ClipCreator = forwardRef<ClipCreatorHandle, ClipCreatorProps>(funct
             createClip();
           }}
           aria-label="Create Clip"
-          className="clip-creator-button fixed z-50 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-primary-dark active:scale-95"
+          className="clip-creator-button fixed z-50 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-[background-color,transform] hover:bg-primary-dark active:scale-95"
           style={{
             top: selection.rect.top - 40,
             left: selection.rect.left + selection.rect.width / 2,

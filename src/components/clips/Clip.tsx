@@ -110,7 +110,7 @@ export default function Clip({
     const embedSrc = toCloudEmbedUrl(src);
 
     return (
-      <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+      <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
           <div className="relative shrink-0">
             {isOneDrive ? (
@@ -168,7 +168,7 @@ export default function Clip({
   }
 
   return (
-    <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+    <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
         {/* Video Area */}
         <div className="relative shrink-0">
