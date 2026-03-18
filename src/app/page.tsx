@@ -5,7 +5,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import type { Project } from "@/types";
 import Link from "next/link";
-import { Search, Loader2, HelpCircle, Box } from "lucide-react";
+import { Search, Loader2, HelpCircle, FlaskConical } from "lucide-react";
 
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -50,7 +50,7 @@ export default function HomePage() {
       <header className="font-sans bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
-            <Box className="h-5 w-5 text-primary" />
+            <FlaskConical className="h-5 w-5 text-primary" />
             <span>Research Hub</span>
           </Link>
 

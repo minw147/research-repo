@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Box, HelpCircle } from "lucide-react";
+import { FlaskConical, HelpCircle } from "lucide-react";
 
 export const metadata = {
   title: "Help — AI workflow",
@@ -18,7 +18,7 @@ export default function HelpPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
-            <Box className="h-5 w-5 text-primary" />
+            <FlaskConical className="h-5 w-5 text-primary" />
             <span>Research Hub</span>
           </Link>
           <span className="flex items-center gap-2 text-slate-500 text-sm">

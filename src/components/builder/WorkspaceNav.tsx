@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, FileText, Tag, Cloud, Box, HelpCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Tag, Cloud, FlaskConical, HelpCircle } from "lucide-react";
 import type { Project } from "@/types";
 
 interface WorkspaceNavProps {
@@ -50,7 +50,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
         className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
         aria-label="Research Hub home"
       >
-        <Box className="h-5 w-5 text-primary" />
+        <FlaskConical className="h-5 w-5 text-primary" />
         <span className="hidden sm:inline font-bold">Research Hub</span>
       </Link>
 
