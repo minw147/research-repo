@@ -16,6 +16,12 @@ interface AgentRunnerProps {
 
 type RunState = "idle" | "running" | "done" | "error";
 
+type LogEntry =
+  | { kind: "text"; content: string }
+  | { kind: "tool"; name: string; summary: string }
+  | { kind: "stderr"; content: string }
+  | { kind: "info"; content: string };
+
 function AgentSettingsPanel({
   settings,
   onSave,
@@ -57,11 +63,12 @@ function AgentSettingsPanel({
 
 export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChange }: AgentRunnerProps) {
   const [runState, setRunState] = useState<RunState>("idle");
-  const [logLines, setLogLines] = useState<string[]>([]);
+  const [logLines, setLogLines] = useState<LogEntry[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [followUp, setFollowUp] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const { settings, save } = useAgentSettings();
 
   useEffect(() => {
@@ -75,13 +82,19 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
       setRunState("running");
       setLogLines([]);
       onRunStateChange?.(true);
+      const abort = new AbortController();
+      abortRef.current = abort;
       try {
         const res = await fetch("/api/agent/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt: promptText, sessionId: resumeId }),
+          signal: abort.signal,
         });
-        if (!res.ok || !res.body) throw new Error("Agent run failed");
+        if (!res.ok || !res.body) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error ?? `Agent run failed (HTTP ${res.status})`);
+        }
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         while (true) {
@@ -91,11 +104,14 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
             if (!line.startsWith("data: ")) continue;
             try {
               const evt = JSON.parse(line.slice(6));
-              if (evt.type === "text") setLogLines((p) => [...p, evt.content]);
+              if (evt.type === "text")
+                setLogLines((p) => [...p, { kind: "text", content: evt.content }]);
+              if (evt.type === "tool")
+                setLogLines((p) => [...p, { kind: "tool", name: evt.name, summary: evt.summary }]);
               if (evt.type === "session") setSessionId(evt.id);
               if (evt.type === "done") setRunState("done");
               if (evt.type === "error") {
-                setLogLines((p) => [...p, `Error: ${evt.message}`]);
+                setLogLines((p) => [...p, { kind: "stderr", content: `Error: ${evt.message}` }]);
                 setRunState("error");
               }
             } catch {
@@ -104,8 +120,14 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
           }
         }
       } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") {
+          setLogLines((p) => [...p, { kind: "info", content: "Stopped." }]);
+          setRunState("idle");
+          onRunStateChange?.(false);
+          return;
+        }
         const message = err instanceof Error ? err.message : "Unknown error";
-        setLogLines((p) => [...p, message]);
+        setLogLines((p) => [...p, { kind: "stderr", content: message }]);
         setRunState("error");
       }
     },
@@ -135,7 +157,15 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
             <span>Agent output</span>
             <div className="flex items-center gap-3">
               {runState === "running" && (
-                <span className="animate-pulse text-green-400">● Running...</span>
+                <div className="flex items-center gap-2">
+                  <span className="animate-pulse text-green-400">● Running...</span>
+                  <button
+                    onClick={() => abortRef.current?.abort()}
+                    className="px-2 py-0.5 rounded border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                  >
+                    Stop
+                  </button>
+                </div>
               )}
               {(runState === "done" || runState === "error") && (
                 <div className="flex items-center gap-2">
@@ -151,6 +181,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
                       setRunState("idle");
                       setLogLines([]);
                       setSessionId(null);
+                      abortRef.current = null;
                       onRunStateChange?.(false);
                     }}
                     className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
@@ -161,9 +192,25 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
               )}
             </div>
           </div>
-          <div className="bg-slate-900 text-green-300 font-mono text-xs p-3 max-h-48 overflow-y-auto">
-            {logLines.map((line, i) => (
-              <div key={i}>{line}</div>
+          <div className="bg-slate-900 font-mono text-xs p-3 max-h-48 overflow-y-auto">
+            {logLines.map((entry, i) => (
+              <div key={i}>
+                {entry.kind === "tool" ? (
+                  <span className="text-slate-400">
+                    <span className="text-yellow-500">⚙</span>{" "}
+                    <span className="text-yellow-400">{entry.name}</span>
+                    {entry.summary ? (
+                      <span className="text-slate-500"> {entry.summary}</span>
+                    ) : null}
+                  </span>
+                ) : entry.kind === "stderr" ? (
+                  <span className="text-red-400">{entry.content}</span>
+                ) : entry.kind === "info" ? (
+                  <span className="text-slate-500 italic">{entry.content}</span>
+                ) : (
+                  <span className="text-green-300">{entry.content}</span>
+                )}
+              </div>
             ))}
             <div ref={logEndRef} />
           </div>

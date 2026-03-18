@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
   const settings = getAgentSettings();
   const encoder = new TextEncoder();
 
+  // On Windows, npm-installed CLIs are .cmd wrappers that require shell:true
+  // so cmd.exe resolves the PATHEXT (.cmd/.bat) automatically.
+  const isWindows = process.platform === "win32";
+
   const stream = new ReadableStream({
     async start(controller) {
       const send = (data: object) =>
@@ -41,80 +45,101 @@ export async function POST(req: NextRequest) {
           encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
         );
 
-      let proc: ReturnType<typeof spawn>;
+      try {
+        let proc: ReturnType<typeof spawn>;
 
-      // On Windows, npm-installed CLIs are .cmd wrappers and require shell:true
-      // or an explicit .cmd suffix to be found without a full path.
-      const isWindows = process.platform === "win32";
-
-      if (settings.cli === "claude") {
-        const args = ["--output-format", "stream-json", "--print"];
-        if (sessionId) args.push("--resume", sessionId);
-        args.push(prompt);
-        const cmd = isWindows ? "claude.cmd" : "claude";
-        proc = spawn(cmd, args, { shell: false });
-      } else {
-        const parts = parseCustomTemplate(settings.customTemplate ?? "", prompt);
-        if (!parts) {
-          send({
-            type: "error",
-            message: "Invalid CLI template — must contain {prompt}",
-          });
-          controller.close();
-          return;
-        }
-        // For custom CLI on Windows, use shell so .cmd/.bat wrappers resolve
-        proc = spawn(parts[0], parts.slice(1), { shell: isWindows });
-      }
-
-      req.signal.addEventListener("abort", () => {
-        proc.kill();
-        controller.close();
-      });
-
-      let lineBuffer = "";
-      proc.stdout.on("data", (chunk: Buffer) => {
-        lineBuffer += chunk.toString("utf8");
-        const lines = lineBuffer.split("\n");
-        lineBuffer = lines.pop() ?? "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          if (settings.cli === "claude") {
-            try {
-              const parsed = JSON.parse(trimmed);
-              if (parsed.type === "assistant") {
-                const text = parsed.message?.content?.[0]?.text ?? "";
-                if (text) send({ type: "text", content: text });
-              } else if (parsed.type === "result") {
-                if (parsed.session_id)
-                  send({ type: "session", id: parsed.session_id });
-                send({ type: "done" });
-              }
-            } catch {
-              /* skip malformed lines */
-            }
-          } else {
-            send({ type: "text", content: trimmed });
+        if (settings.cli === "claude") {
+          // Pass prompt via stdin — avoids command-line length limits (~8 KB on
+          // Windows) and shell injection risks. `claude --print` reads stdin
+          // when no positional prompt argument is given.
+          const args = [
+            "--output-format", "stream-json",
+            "--verbose",
+            "--print",
+            "--dangerously-skip-permissions",
+          ];
+          if (sessionId) args.push("--resume", sessionId);
+          proc = spawn("claude", args, { shell: isWindows });
+          proc.stdin?.write(prompt);
+          proc.stdin?.end();
+        } else {
+          const parts = parseCustomTemplate(settings.customTemplate ?? "", prompt);
+          if (!parts) {
+            send({ type: "error", message: "Invalid CLI template — must contain {prompt}" });
+            controller.close();
+            return;
           }
+          proc = spawn(parts[0], parts.slice(1), { shell: isWindows });
         }
-      });
 
-      proc.stderr.on("data", (chunk: Buffer) => {
-        send({ type: "text", content: `[stderr] ${chunk.toString("utf8")}` });
-      });
+        req.signal.addEventListener("abort", () => {
+          proc.kill();
+          controller.close();
+        });
 
-      proc.on("close", (code) => {
-        if (settings.cli === "custom") send({ type: "done" });
-        if (code !== 0 && code !== null)
-          send({ type: "error", message: `Process exited with code ${code}` });
+        let lineBuffer = "";
+        proc.stdout.on("data", (chunk: Buffer) => {
+          lineBuffer += chunk.toString("utf8");
+          const lines = lineBuffer.split("\n");
+          lineBuffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            if (settings.cli === "claude") {
+              try {
+                const parsed = JSON.parse(trimmed);
+                if (parsed.type === "assistant") {
+                  const blocks: Array<{ type: string; text?: string; name?: string; input?: Record<string, unknown> }> =
+                    parsed.message?.content ?? [];
+                  for (const block of blocks) {
+                    if (block.type === "text" && block.text) {
+                      send({ type: "text", content: block.text });
+                    } else if (block.type === "tool_use" && block.name) {
+                      // Summarise the tool call so the user sees activity
+                      const inp = block.input ?? {};
+                      const summary =
+                        (inp.command as string) ??
+                        (inp.file_path as string) ??
+                        (inp.pattern as string) ??
+                        (inp.path as string) ??
+                        JSON.stringify(inp).slice(0, 80);
+                      send({ type: "tool", name: block.name, summary });
+                    }
+                  }
+                } else if (parsed.type === "result") {
+                  if (parsed.session_id)
+                    send({ type: "session", id: parsed.session_id });
+                  send({ type: "done" });
+                }
+              } catch {
+                /* skip malformed lines */
+              }
+            } else {
+              send({ type: "text", content: trimmed });
+            }
+          }
+        });
+
+        proc.stderr.on("data", (chunk: Buffer) => {
+          send({ type: "text", content: `[stderr] ${chunk.toString("utf8")}` });
+        });
+
+        proc.on("close", (code) => {
+          if (settings.cli === "custom") send({ type: "done" });
+          if (code !== 0 && code !== null)
+            send({ type: "error", message: `Process exited with code ${code}` });
+          controller.close();
+        });
+
+        proc.on("error", (err) => {
+          send({ type: "error", message: `Failed to start CLI: ${err.message}` });
+          controller.close();
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        send({ type: "error", message: `Server error: ${msg}` });
         controller.close();
-      });
-
-      proc.on("error", (err) => {
-        send({ type: "error", message: err.message });
-        controller.close();
-      });
+      }
     },
   });
 

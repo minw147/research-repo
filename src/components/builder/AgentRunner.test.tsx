@@ -77,6 +77,23 @@ describe("AgentRunner", () => {
     expect(screen.getByText("Second line")).toBeDefined();
   });
 
+  it("3b. tool events appear with tool name in the log panel", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ json: async () => ({ cli: "claude" }) })
+      .mockResolvedValueOnce(
+        makeSSEStream([
+          { type: "tool", name: "Read", summary: "findings.md" },
+          { type: "done" },
+        ])
+      );
+
+    render(<AgentRunner {...defaultProps} />);
+    fireEvent.click(screen.getByRole("button", { name: /run in agent/i }));
+
+    await waitFor(() => expect(screen.getByText("Read")).toBeDefined());
+    expect(screen.getByText("findings.md")).toBeDefined();
+  });
+
   it("4. done + session event → follow-up input appears", async () => {
     mockFetch
       .mockResolvedValueOnce({ json: async () => ({ cli: "claude" }) })
