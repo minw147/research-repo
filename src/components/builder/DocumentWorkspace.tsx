@@ -433,25 +433,27 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                 <div className="flex p-0.5 bg-slate-100 rounded-lg" role="group" aria-label="View mode">
                                     <button
                                         onClick={() => setViewMode("formatted")}
-                                        className={`flex items-center justify-center p-1.5 rounded-md transition-colors duration-200 cursor-pointer ${viewMode === "formatted"
+                                        className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 cursor-pointer ${viewMode === "formatted"
                                             ? "bg-white text-primary shadow-sm"
                                             : "text-slate-500 hover:text-slate-700"
                                             }`}
                                         aria-pressed={viewMode === "formatted"}
-                                        aria-label="Formatted view"
+                                        aria-label="Preview (formatted)"
                                     >
                                         <Eye className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="hidden sm:inline">Preview</span>
                                     </button>
                                     <button
                                         onClick={() => setViewMode("raw")}
-                                        className={`flex items-center justify-center p-1.5 rounded-md transition-colors duration-200 cursor-pointer ${viewMode === "raw"
+                                        className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 cursor-pointer ${viewMode === "raw"
                                             ? "bg-white text-primary shadow-sm"
                                             : "text-slate-500 hover:text-slate-700"
                                             }`}
                                         aria-pressed={viewMode === "raw"}
-                                        aria-label="Raw view"
+                                        aria-label="Source (markdown)"
                                     >
                                         <Code className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="hidden sm:inline">Source</span>
                                     </button>
                                 </div>
                             </div>
@@ -459,7 +461,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                                 <button
                                     onClick={() => setShowPromptModal(true)}
-                                    className="flex items-center gap-1.5 px-2 py-1.5 lg:px-2.5 lg:gap-2 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 shadow-sm cursor-pointer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors duration-200 shadow-sm cursor-pointer"
                                     title="Run AI Analysis"
                                     aria-label="Run AI Analysis"
                                 >
@@ -469,12 +471,11 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
                                 <button
                                     onClick={handleRefresh}
-                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer"
+                                    className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer"
                                     title="Refresh from disk"
                                     aria-label="Refresh from disk"
                                 >
                                     <RefreshCw className="h-3.5 w-3.5 shrink-0" />
-                                    Refresh
                                 </button>
 
                                 <div className="w-px h-4 bg-slate-200" aria-hidden />
