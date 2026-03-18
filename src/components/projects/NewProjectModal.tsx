@@ -372,8 +372,8 @@ export function NewProjectModal() {
                 {step === "codebook" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm text-white/70 mb-1">Upload codebook CSV</label>
-                      <p className="text-xs text-white/40 mb-2">
+                      <label className="block text-sm text-slate-700 mb-1">Upload codebook CSV</label>
+                      <p className="text-xs text-slate-400 mb-2">
                         Required columns: <code>label</code>, <code>category</code>
                       </p>
                       <input
@@ -401,7 +401,7 @@ export function NewProjectModal() {
                             setError(`CSV parse error: ${err instanceof Error ? err.message : String(err)}`);
                           }
                         }}
-                        className="block w-full text-sm text-white/60 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-white/10 file:text-white hover:file:bg-white/20"
+                        className="block w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
                       />
                     </div>
 
@@ -410,7 +410,7 @@ export function NewProjectModal() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="text-white/50 text-left border-b border-white/10">
+                              <tr className="text-slate-500 text-left border-b border-slate-200">
                                 <th className="pb-2 pr-4">Label</th>
                                 <th className="pb-2 pr-4">Category</th>
                                 <th className="pb-2 pr-4">ID</th>
@@ -420,8 +420,8 @@ export function NewProjectModal() {
                             </thead>
                             <tbody>
                               {csvRows.map((row, i) => (
-                                <tr key={i} className="border-b border-white/5">
-                                  <td className="py-2 pr-4 text-white">{row.label}</td>
+                                <tr key={i} className="border-b border-slate-100">
+                                  <td className="py-2 pr-4 text-slate-900">{row.label}</td>
                                   <td className="py-2 pr-4">
                                     <CategoryCombobox
                                       value={row.category}
@@ -436,10 +436,10 @@ export function NewProjectModal() {
                                       }}
                                     />
                                   </td>
-                                  <td className="py-2 pr-4 text-white/40 font-mono text-xs">{row.id}</td>
+                                  <td className="py-2 pr-4 text-slate-400 font-mono text-xs">{row.id}</td>
                                   <td className="py-2 pr-4">
                                     <span
-                                      className="inline-block w-4 h-4 rounded-full border border-white/20"
+                                      className="inline-block w-4 h-4 rounded-full border border-slate-300"
                                       style={{ backgroundColor: row.color }}
                                     />
                                   </td>
@@ -457,18 +457,18 @@ export function NewProjectModal() {
                         </div>
 
                         {newCategories.length > 0 && (
-                          <p className="text-xs text-white/50">
+                          <p className="text-xs text-slate-500">
                             New categories:{" "}
                             {newCategories.map((c, i) => (
                               <span key={i} className="inline-flex items-center gap-1 mr-2">
-                                <span className="text-white/70">{c}</span>
-                                <span className="text-xs bg-white/10 px-1 rounded text-white/50">New</span>
+                                <span className="text-slate-700">{c}</span>
+                                <span className="text-xs bg-slate-100 px-1 rounded text-slate-500">New</span>
                               </span>
                             ))}
                           </p>
                         )}
 
-                        <p className="text-xs text-white/40 mt-2">
+                        <p className="text-xs text-slate-400 mt-2">
                           You can update your codebook anytime from the Codebook link in the header.
                         </p>
                       </>
@@ -477,7 +477,7 @@ export function NewProjectModal() {
                     <button
                       type="button"
                       onClick={() => setStep("details")}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
+                      className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
                     >
                       ← Back
                     </button>
