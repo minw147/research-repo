@@ -84,7 +84,7 @@ export default function HomePage() {
       <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl font-extrabold text-slate-900 tracking-tight">
               Dashboard
             </h1>
             <p className="text-slate-600 mt-1 text-sm">
