@@ -339,6 +339,7 @@ export default function ReportPage({ params }: ReportPageProps) {
           reportStyle="blog"
           otherTemplateContext="report"
           onClose={handleModalClose}
+          onRefreshFile={refetchReport}
         />
       )}
     </div>

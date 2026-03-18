@@ -63,3 +63,6 @@ raw_videos/
 !/public/videos/README.md
 /public/reports-portable/
 /public/reports-pptx/
+
+# Agent CLI settings (local preference, not for version control)
+agent-settings.json

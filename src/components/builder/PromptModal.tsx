@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Sparkles, Copy, Check } from "lucide-react";
+import { AgentRunner } from "./AgentRunner";
 import { Codebook, Project } from "@/types";
 import {
   buildAnalyzeTranscriptsPrompt,
@@ -35,6 +36,8 @@ interface PromptModalProps {
   reportStyle?: "blog" | "slides";
   /** Context for "Other templates" (findings, tags, or report). Required when actions include "other-templates". */
   otherTemplateContext?: OtherTemplateContext;
+  /** Called when the user clicks "Refresh file" in the AgentRunner. */
+  onRefreshFile?: () => void;
 }
 
 const FINDINGS_ACTIONS: AIAction[] = ["thematic-transcripts", "thematic-findings", "tagging-findings", "tagging-transcripts", "other-templates"];
@@ -56,6 +59,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
   actions = FINDINGS_ACTIONS,
   reportStyle = "blog",
   otherTemplateContext = "findings",
+  onRefreshFile,
 }) => {
   const [selectedAction, setSelectedAction] = useState<AIAction>(() =>
     actions.includes(initialAction) ? initialAction : actions[0]
@@ -64,6 +68,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [agentActive, setAgentActive] = useState(false);
 
   const otherTemplates = otherTemplateContext ? getOtherTemplatesForContext(otherTemplateContext) : [];
 
@@ -135,7 +140,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className={`flex-1 overflow-y-auto transition-all duration-300 ${agentActive ? "max-h-0 !p-0 opacity-0 pointer-events-none" : "p-4 space-y-4"}`}>
           <div className={`grid gap-2 ${actions.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
             {[
               { id: "thematic-transcripts" as const, label: "Initial Findings", sub: "Create or rewrite findings.md" },
@@ -258,16 +263,18 @@ export const PromptModal: React.FC<PromptModalProps> = ({
             </div>
             <p className="mt-2 text-xs text-slate-500">
               <span className="font-medium text-slate-600">How it works:</span>{" "}
-              {selectedAction === "other-templates" && !selectedTemplateId ? (
-                "Select a template above, then copy the generated prompt, paste it into Cursor, and run the agent."
-              ) : selectedAction === "change-theme" && !selectedThemeId ? (
-                "Select a theme above, then copy the generated prompt, paste it into Cursor, and run the agent."
+              {(selectedAction === "other-templates" && !selectedTemplateId) ? (
+                "Select a template above to generate the prompt."
+              ) : (selectedAction === "change-theme" && !selectedThemeId) ? (
+                "Select a theme above to generate the prompt."
               ) : (
-                <>Copy this prompt, paste it into Cursor, and run the agent. The prompt instructs the AI to follow the relevant skill ({(selectedAction === "other-templates" && otherTemplateContext === "report") || selectedAction === "change-theme" ? (
-                  <code className="bg-slate-100 px-1 rounded">report-publication</code>
-                ) : (
-                  <code className="bg-slate-100 px-1 rounded">research-analysis</code>
-                )}). The AI will create or update <code className="bg-slate-100 px-1 rounded">{targetFile}</code> in your project. Use the refresh button or wait for auto-refresh to see the changes.</>
+                <>
+                  <span className="font-medium text-slate-600">▶ Run in Agent</span> — runs the prompt directly using your local{" "}
+                  <code className="bg-slate-100 px-1 rounded">claude</code> CLI and streams output here.{" "}
+                  <span className="font-medium text-slate-600">Copy</span> — paste into Cursor or another AI tool manually.{" "}
+                  Either way the AI will create or update{" "}
+                  <code className="bg-slate-100 px-1 rounded">{targetFile}</code>.
+                </>
               )}
             </p>
             {toast && (
@@ -282,14 +289,21 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           </div>
         </div>
 
-        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
-          >
-            Done
-          </button>
+        <div className="border-t border-slate-100 shrink-0">
+          <AgentRunner
+            prompt={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
+            onRefreshFile={onRefreshFile ?? (() => {})}
+            onRunStateChange={setAgentActive}
+            sideActions={
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
+              >
+                Done
+              </button>
+            }
+          />
         </div>
       </div>
     </div>
