@@ -96,7 +96,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
         </button>
       )}
       <div className="flex flex-col gap-2">
-        <p className="text-gray-800 italic leading-relaxed pr-0">
+        <p className="text-slate-800 italic leading-relaxed pr-0">
           &ldquo;{stripTimestampFragments(quote.text)}&rdquo;
         </p>
         
@@ -104,14 +104,14 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
           {quote.tags.map((tagId) => (
             <span
               key={tagId}
-              className="inline-flex items-center gap-2 bg-gray-100 pl-1.5 pr-2 py-0.5 rounded-full shrink-0"
+              className="inline-flex items-center gap-2 bg-slate-100 pl-1.5 pr-2 py-0.5 rounded-full shrink-0"
             >
               <span
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: getTagColor(tagId) }}
                 aria-hidden
               />
-              <span className="text-[10px] font-medium text-gray-600 uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-slate-600 uppercase tracking-wider">
                 {getTagLabel(tagId)}
               </span>
             </span>
@@ -127,7 +127,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
           <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
             Session {quote.sessionIndex}
           </span>
-          <span className="text-[10px] font-mono text-gray-400">
+          <span className="text-[10px] font-mono text-slate-400">
             {timeRange}
           </span>
         </div>
