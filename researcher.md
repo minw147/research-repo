@@ -1,0 +1,29 @@
+# Researcher Profile
+
+## Identity
+- Name: 
+- Preferred name: 
+- Role: 
+- Bot name: Sage
+
+## Work Scope
+<!-- What kinds of research do you do? Products, industries, methods? -->
+
+## Research Habits
+<!-- Documented by the bot over time. Example:
+- Cross-references prior sessions at the start of each new session (3x observed)
+-->
+
+## Suppressed Patterns
+<!-- Patterns the bot should stop asking to document. Format:
+- keyword: cross-reference sessions
+- keyword: compare with previous
+-->
+
+## References
+<!-- Paths the bot should know about but not load by default -->
+- data/research-index.json
+- (add product/company background files here)
+
+## Notes
+<!-- Anything else you want the bot to know -->
