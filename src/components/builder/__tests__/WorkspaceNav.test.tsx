@@ -1,11 +1,18 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, it, expect, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { WorkspaceNav } from "../WorkspaceNav";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/builder/test/findings" }));
 
-afterEach(cleanup);
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  cleanup();
+});
 
 it("home link does not use low-opacity focus ring", () => {
   render(<WorkspaceNav slug="test" />);
