@@ -331,7 +331,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <button
                       key={adapter.id}
                       onClick={() => setSelectedAdapter(adapter)}
-                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-xl border-2 border-slate-100 bg-white p-5 text-left transition-all hover:border-primary/30 hover:bg-primary/5"
+                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-xl border-2 border-slate-100 bg-white p-5 text-left transition-[border-color,background-color] hover:border-primary/30 hover:bg-primary/5"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-primary/10">
                         <Icon className="h-4 w-4 text-slate-500 transition-colors group-hover:text-primary" />
@@ -431,7 +431,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                       {field.type === "select" ? (
                         <select
                           required={field.required}
-                          className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         >
@@ -448,7 +448,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               type="text"
                               required={field.required}
                               placeholder={field.placeholder}
-                              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                               value={config[field.key] || ""}
                               onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                             />
@@ -519,7 +519,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                           type={field.type === "password" ? "password" : "text"}
                           required={field.required}
                           placeholder={field.placeholder}
-                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         />
@@ -554,7 +554,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <button
                       type="submit"
                       disabled={isPublishing || !oauthConnected}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isPublishing ? (
                         <>

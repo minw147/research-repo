@@ -291,7 +291,7 @@ export default function ReportPage({ params }: ReportPageProps) {
             </p>
             <button
               onClick={() => setShowPromptModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/20 mb-2"
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20 mb-2"
             >
               <Sparkles className="h-4 w-4" />
               Generate Report
@@ -314,7 +314,7 @@ export default function ReportPage({ params }: ReportPageProps) {
             </p>
             <button
               onClick={() => setShowPromptModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
             >
               <Sparkles className="h-4 w-4" />
               Generate Report

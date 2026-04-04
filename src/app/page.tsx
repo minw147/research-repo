@@ -5,7 +5,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import type { Project } from "@/types";
 import Link from "next/link";
-import { Search, Loader2, HelpCircle, Box } from "lucide-react";
+import { Search, Loader2, HelpCircle, FlaskConical } from "lucide-react";
 
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -40,11 +40,17 @@ export default function HomePage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold"
+      >
+        Skip to content
+      </a>
       <header className="font-sans bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
-            <Box className="h-5 w-5 text-primary" />
+            <FlaskConical className="h-5 w-5 text-primary" />
             <span>Research Hub</span>
           </Link>
 
@@ -52,7 +58,7 @@ export default function HomePage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
             <input
               aria-label="Search projects by title, researcher, or persona"
-              className="w-full bg-slate-100 border border-transparent rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:bg-white focus:border-slate-200 transition-all outline-none"
+              className="w-full bg-slate-100 border border-transparent rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:bg-white focus:border-slate-200 transition-[background-color,border-color,box-shadow] outline-none"
               placeholder="Search projects by title, researcher, or persona..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -75,10 +81,10 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl font-extrabold text-slate-900 tracking-tight">
               Dashboard
             </h1>
             <p className="text-slate-600 mt-1 text-sm">
@@ -116,7 +122,7 @@ export default function HomePage() {
                 </p>
                 <button
                   onClick={() => setSearch("")}
-                  className="text-primary mt-3 text-sm font-semibold hover:underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
+                  className="text-primary mt-3 text-sm font-semibold hover:underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                 >
                   Clear search filters
                 </button>
@@ -124,7 +130,7 @@ export default function HomePage() {
             )}
           </>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

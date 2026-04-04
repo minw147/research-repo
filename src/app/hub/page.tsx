@@ -16,11 +16,6 @@ interface RepoEntry {
   };
 }
 
-const DS = {
-  bg: "#f8f7f5", surface: "#ffffff", primary: "#f59f0a",
-  text: "#0f172a", textMuted: "#64748b", border: "#e2e8f0",
-};
-
 export default function HubPage() {
   const [projects, setProjects] = useState<RepoEntry[]>([]);
   const [filtered, setFiltered] = useState<RepoEntry[]>([]);
@@ -63,67 +58,71 @@ export default function HubPage() {
   const unique = (key: keyof RepoEntry) =>
     [...new Set(projects.map(p => p[key] as string).filter(Boolean))].sort();
 
-  const sel: React.CSSProperties = {
-    padding: "0.5rem 0.75rem", border: `1px solid ${DS.border}`,
-    borderRadius: "0.5rem", fontSize: "0.875rem", background: DS.surface,
-    color: DS.text, cursor: "pointer",
-  };
+  const selClass = "px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-900 cursor-pointer";
 
-  if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: DS.bg, fontFamily: "system-ui" }}><p style={{ color: DS.textMuted }}>Loading…</p></div>;
-  if (error) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: DS.bg, fontFamily: "system-ui" }}><p style={{ color: "#dc2626" }}>{error}</p></div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-background-light font-sans">
+      <p className="text-slate-500">Loading…</p>
+    </div>
+  );
+  if (error) return (
+    <div className="flex items-center justify-center min-h-screen bg-background-light font-sans">
+      <p className="text-red-600">{error}</p>
+    </div>
+  );
 
   return (
-    <div style={{ minHeight: "100vh", background: DS.bg, fontFamily: "'Inter', system-ui, sans-serif", padding: "2rem" }}>
-      <header style={{ maxWidth: "1200px", margin: "0 auto 2rem" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: 800, color: DS.text, letterSpacing: "-0.025em", margin: "0 0 0.25rem" }}>Research Hub</h1>
-        <p style={{ color: DS.textMuted, margin: 0 }}>{filtered.length} {filtered.length === 1 ? "study" : "studies"}</p>
+    <div className="min-h-screen bg-background-light font-sans p-8">
+      <header className="max-w-[1200px] mx-auto mb-8">
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">Research Hub</h1>
+        <p className="text-slate-500">{filtered.length} {filtered.length === 1 ? "study" : "studies"}</p>
       </header>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto 2rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
+      <div className="max-w-[1200px] mx-auto mb-8 flex flex-wrap gap-3 items-center">
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
-          style={{ ...sel, flex: "1", minWidth: "200px", maxWidth: "360px" }} />
+          className={`${selClass} flex-1 min-w-[200px] max-w-[360px]`} />
         {(["researcher", "persona", "product"] as const).map(key => (
           <select key={key}
             value={key === "researcher" ? researcher : key === "persona" ? persona : product}
             onChange={e => { const v = e.target.value; key === "researcher" ? setResearcher(v) : key === "persona" ? setPersona(v) : setProduct(v); }}
-            style={sel}>
+            className={selClass}>
             <option value="all">{key.charAt(0).toUpperCase() + key.slice(1)}: All</option>
             {unique(key).map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         ))}
-        <select value={sort} onChange={e => setSort(e.target.value)} style={sel}>
+        <select value={sort} onChange={e => setSort(e.target.value)} className={selClass}>
           <option value="date-desc">Newest first</option>
           <option value="date-asc">Oldest first</option>
           <option value="title-asc">A–Z</option>
         </select>
         {(search || researcher !== "all" || persona !== "all" || product !== "all") && (
           <button onClick={() => { setSearch(""); setResearcher("all"); setPersona("all"); setProduct("all"); }}
-            style={{ ...sel, background: "transparent", border: `1px solid ${DS.primary}`, color: DS.primary }}>
+            className="px-3 py-2 border border-primary text-primary bg-transparent rounded-lg text-sm cursor-pointer">
             Clear filters
           </button>
         )}
       </div>
 
-      <main style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+      <main className="max-w-[1200px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.length === 0 && (
-          <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem", color: DS.textMuted }}>
+          <div className="col-span-full text-center py-16 text-slate-500">
             No studies match your filters.
           </div>
         )}
         {filtered.map(p => (
-          <div key={p.id} style={{ background: DS.surface, border: `1px solid ${DS.border}`, borderRadius: "0.75rem", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: DS.text, margin: 0 }}>{p.title}</h2>
-            <div style={{ fontSize: "0.875rem", color: DS.textMuted, display: "flex", flexDirection: "column", gap: "0.25rem", flex: 1 }}>
-              {p.researcher && <span><strong style={{ color: "#475569" }}>Researcher:</strong> {p.researcher}</span>}
-              {p.persona && <span><strong style={{ color: "#475569" }}>Persona:</strong> {p.persona}</span>}
-              {p.product && <span><strong style={{ color: "#475569" }}>Product:</strong> {p.product}</span>}
-              {p.date && <span><strong style={{ color: "#475569" }}>Date:</strong> {p.date}</span>}
+          <div key={p.id} className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col gap-3">
+            <h2 className="text-lg font-bold text-slate-900">{p.title}</h2>
+            <div className="text-sm text-slate-500 flex flex-col gap-1 flex-1">
+              {p.researcher && <span><strong className="text-slate-600">Researcher:</strong> {p.researcher}</span>}
+              {p.persona && <span><strong className="text-slate-600">Persona:</strong> {p.persona}</span>}
+              {p.product && <span><strong className="text-slate-600">Product:</strong> {p.product}</span>}
+              {p.date && <span><strong className="text-slate-600">Date:</strong> {p.date}</span>}
             </div>
             {p.driveFileIds?.clips && Object.entries(p.driveFileIds.clips).length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div className="flex flex-col gap-2">
                 {Object.entries(p.driveFileIds.clips).map(([name, fileId]) => (
                   <video key={name} controls preload="none"
-                    style={{ width: "100%", borderRadius: "0.5rem", background: "#000" }}>
+                    className="w-full rounded-lg bg-black">
                     <source src={`/api/drive/video/${fileId}`} type="video/mp4" />
                   </video>
                 ))}
@@ -131,7 +130,7 @@ export default function HubPage() {
             )}
             {p.driveFileIds?.report && (
               <a href={`/api/drive/report/${p.driveFileIds.report}`} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0.5rem 1rem", background: DS.primary, color: "white", borderRadius: "0.5rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
+                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold no-underline">
                 View Report
               </a>
             )}

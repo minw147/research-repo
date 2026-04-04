@@ -213,7 +213,7 @@ export function NewProjectModal() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-[border-color,background-color] duration-200 cursor-pointer"
       >
         <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
           <Plus className="w-5 h-5 text-slate-500 group-hover:text-primary" />
@@ -264,7 +264,7 @@ export function NewProjectModal() {
                       <input
                         id="project-title"
                         required
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                         placeholder="e.g. Checkout Flow Usability"
                         value={formData.title}
                         onChange={(e) =>
@@ -281,7 +281,7 @@ export function NewProjectModal() {
                         <input
                           id="project-researcher"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                           placeholder="Your Name"
                           value={formData.researcher}
                           onChange={(e) =>
@@ -296,7 +296,7 @@ export function NewProjectModal() {
                         <input
                           id="project-persona"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                           placeholder="e.g. New User"
                           value={formData.persona}
                           onChange={(e) =>
@@ -312,7 +312,7 @@ export function NewProjectModal() {
                       </label>
                       <input
                         id="project-product"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
                         placeholder="e.g. Mobile App"
                         value={formData.product}
                         onChange={(e) =>
@@ -328,7 +328,7 @@ export function NewProjectModal() {
                       <textarea
                         id="project-research-plan"
                         rows={3}
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 placeholder:text-slate-400 resize-none"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400 resize-none"
                         placeholder="Study goals and questions..."
                         value={formData.researchPlan}
                         onChange={(e) =>
@@ -344,7 +344,7 @@ export function NewProjectModal() {
                       <div className="relative">
                         <select
                           id="project-codebook"
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 appearance-none cursor-pointer"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 appearance-none cursor-pointer"
                           value={formData.codebook || ""}
                           onChange={(e) =>
                             setFormData({
@@ -372,8 +372,8 @@ export function NewProjectModal() {
                 {step === "codebook" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm text-white/70 mb-1">Upload codebook CSV</label>
-                      <p className="text-xs text-white/40 mb-2">
+                      <label className="block text-sm text-slate-700 mb-1">Upload codebook CSV</label>
+                      <p className="text-xs text-slate-400 mb-2">
                         Required columns: <code>label</code>, <code>category</code>
                       </p>
                       <input
@@ -401,7 +401,7 @@ export function NewProjectModal() {
                             setError(`CSV parse error: ${err instanceof Error ? err.message : String(err)}`);
                           }
                         }}
-                        className="block w-full text-sm text-white/60 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-white/10 file:text-white hover:file:bg-white/20"
+                        className="block w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
                       />
                     </div>
 
@@ -410,7 +410,7 @@ export function NewProjectModal() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="text-white/50 text-left border-b border-white/10">
+                              <tr className="text-slate-500 text-left border-b border-slate-200">
                                 <th className="pb-2 pr-4">Label</th>
                                 <th className="pb-2 pr-4">Category</th>
                                 <th className="pb-2 pr-4">ID</th>
@@ -420,8 +420,8 @@ export function NewProjectModal() {
                             </thead>
                             <tbody>
                               {csvRows.map((row, i) => (
-                                <tr key={i} className="border-b border-white/5">
-                                  <td className="py-2 pr-4 text-white">{row.label}</td>
+                                <tr key={i} className="border-b border-slate-100">
+                                  <td className="py-2 pr-4 text-slate-900">{row.label}</td>
                                   <td className="py-2 pr-4">
                                     <CategoryCombobox
                                       value={row.category}
@@ -436,10 +436,10 @@ export function NewProjectModal() {
                                       }}
                                     />
                                   </td>
-                                  <td className="py-2 pr-4 text-white/40 font-mono text-xs">{row.id}</td>
+                                  <td className="py-2 pr-4 text-slate-400 font-mono text-xs">{row.id}</td>
                                   <td className="py-2 pr-4">
                                     <span
-                                      className="inline-block w-4 h-4 rounded-full border border-white/20"
+                                      className="inline-block w-4 h-4 rounded-full border border-slate-300"
                                       style={{ backgroundColor: row.color }}
                                     />
                                   </td>
@@ -457,18 +457,18 @@ export function NewProjectModal() {
                         </div>
 
                         {newCategories.length > 0 && (
-                          <p className="text-xs text-white/50">
+                          <p className="text-xs text-slate-500">
                             New categories:{" "}
                             {newCategories.map((c, i) => (
                               <span key={i} className="inline-flex items-center gap-1 mr-2">
-                                <span className="text-white/70">{c}</span>
-                                <span className="text-xs bg-white/10 px-1 rounded text-white/50">New</span>
+                                <span className="text-slate-700">{c}</span>
+                                <span className="text-xs bg-slate-100 px-1 rounded text-slate-500">New</span>
                               </span>
                             ))}
                           </p>
                         )}
 
-                        <p className="text-xs text-white/40 mt-2">
+                        <p className="text-xs text-slate-400 mt-2">
                           You can update your codebook anytime from the Codebook link in the header.
                         </p>
                       </>
@@ -477,7 +477,7 @@ export function NewProjectModal() {
                     <button
                       type="button"
                       onClick={() => setStep("details")}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
+                      className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
                     >
                       ← Back
                     </button>

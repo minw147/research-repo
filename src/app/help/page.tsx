@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Box, HelpCircle } from "lucide-react";
+import { FlaskConical, HelpCircle } from "lucide-react";
 
 export const metadata = {
   title: "Help — AI workflow",
@@ -8,11 +8,17 @@ export const metadata = {
 
 export default function HelpPage() {
   return (
-    <main className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold"
+      >
+        Skip to content
+      </a>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
-            <Box className="h-5 w-5 text-primary" />
+            <FlaskConical className="h-5 w-5 text-primary" />
             <span>Research Hub</span>
           </Link>
           <span className="flex items-center gap-2 text-slate-500 text-sm">
@@ -22,7 +28,7 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main id="main-content" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
           AI Analysis workflow
         </h1>
@@ -76,7 +82,7 @@ export default function HelpPage() {
             ← Back to Research Hub
           </Link>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

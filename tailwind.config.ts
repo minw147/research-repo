@@ -15,12 +15,12 @@ const config: Config = {
         "background-light": "#f8f7f5",
         "background-dark": "#221c10",
         "surface-light": "#ffffff",
-        "surface-dark": "#1a2632",
+        "surface-dark": "#2a1f0e",
         "border-light": "#e2e8f0",
-        "border-dark": "#334155",
+        "border-dark": "#4a3520",
       },
       fontFamily: {
-        display: ["var(--font-inter)", "Inter", "sans-serif"],
+        display: ["var(--font-dm-sans)", "DM Sans", "sans-serif"],
         sans: ["var(--font-inter)", "Inter", "sans-serif"],
       },
       borderRadius: {

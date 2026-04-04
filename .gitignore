@@ -1,6 +1,9 @@
 # OAuth tokens (contain secrets, must not be committed)
 content/.oauth-tokens.json
 
+# Git worktrees
+.worktrees/
+
 # Dependencies
 node_modules
 /.pnp
@@ -66,3 +69,8 @@ raw_videos/
 
 # Agent CLI settings (local preference, not for version control)
 agent-settings.json
+.gstack/
+
+# Researcher soul file — personal data, not for version control
+# Copy researcher.md.example → researcher.md to get started
+researcher.md

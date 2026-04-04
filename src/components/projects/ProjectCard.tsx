@@ -1,8 +1,17 @@
 import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Calendar, User, Users, Layers, ArrowRight } from "lucide-react";
+import { Calendar, User, Users, Layers, ArrowRight, Circle, Search, Tag, FileText, Upload, Globe } from "lucide-react";
 import type { Project, ProjectStatus } from "@/types";
+
+const statusIcons: Record<ProjectStatus, React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>> = {
+  setup: Circle,
+  findings: Search,
+  tagged: Tag,
+  report: FileText,
+  exported: Upload,
+  published: Globe,
+};
 
 const statusColors: Record<ProjectStatus, string> = {
   setup: "bg-gray-100 text-gray-700 border-gray-200",
@@ -18,6 +27,8 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const StatusIcon = statusIcons[project.status] || statusIcons.setup;
+
   // Safe date parsing in case of invalid date strings
   const displayDate = (() => {
     try {
@@ -30,17 +41,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/builder/${project.id}/findings`}
-      className="group block p-4 bg-white border border-slate-200 rounded-xl hover:border-primary/40 hover:shadow-lg transition-all duration-200"
+      className="group block p-4 bg-white border border-slate-200 rounded-xl hover:border-primary/40 hover:shadow-lg transition-[border-color,box-shadow] duration-200"
     >
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">
+        <h3 className="font-display text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">
           {project.title}
         </h3>
-        <span
-          className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border ${
-            statusColors[project.status] || statusColors.setup
-          }`}
-        >
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border ${statusColors[project.status] || statusColors.setup}`}>
+          <StatusIcon className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
           {project.status}
         </span>
       </div>

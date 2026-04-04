@@ -30,10 +30,10 @@ function AgentSettingsPanel({
   onSave: (s: AgentSettings) => void;
 }) {
   return (
-    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 space-y-2">
-      <label className="block text-xs font-medium text-slate-600">CLI tool</label>
+    <div className="px-4 py-3 border-b border-[#4a3520]/40 bg-[#2a1f0e] space-y-2">
+      <label className="block text-xs font-medium text-amber-200/70">CLI tool</label>
       <select
-        className="w-full text-xs border border-slate-200 rounded px-2 py-1 bg-white"
+        className="w-full text-xs border border-[#4a3520] rounded px-2 py-1 bg-[#1c1108] text-amber-50"
         value={settings.cli}
         onChange={(e) =>
           onSave({ ...settings, cli: e.target.value as AgentSettings["cli"] })
@@ -44,7 +44,7 @@ function AgentSettingsPanel({
       </select>
       {settings.cli === "custom" && (
         <>
-          <label className="block text-xs font-medium text-slate-600 mt-2">
+          <label className="block text-xs font-medium text-amber-200/70 mt-2">
             Command template — use {"{prompt}"} as placeholder
           </label>
           <input
@@ -53,7 +53,7 @@ function AgentSettingsPanel({
               onSave({ ...settings, customTemplate: e.target.value })
             }
             placeholder="opencode run {prompt}"
-            className="w-full text-xs border border-slate-200 rounded px-2 py-1 bg-white"
+            className="w-full text-xs border border-[#4a3520] rounded px-2 py-1 bg-[#1c1108] text-amber-50"
           />
         </>
       )}
@@ -192,7 +192,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
               )}
             </div>
           </div>
-          <div className="bg-slate-900 font-mono text-xs p-3 max-h-48 overflow-y-auto">
+          <div className="bg-[#1c1108] font-mono text-xs p-3 max-h-48 overflow-y-auto">
             {logLines.map((entry, i) => (
               <div key={i}>
                 {entry.kind === "tool" ? (
@@ -217,7 +217,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
 
           {/* Follow-up input — inline below log when session available */}
           {runState === "done" && sessionId && (
-            <div className="bg-slate-900 border-t border-slate-700 px-3 pb-2 flex gap-2">
+            <div className="bg-[#1c1108] border-t border-[#4a3520] px-3 pb-2 flex gap-2">
               <input
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
@@ -225,7 +225,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
                   if (e.key === "Enter" && followUp.trim()) handleSendFollowUp();
                 }}
                 placeholder="Follow-up message..."
-                className="flex-1 text-xs bg-slate-800 text-slate-200 border border-slate-600 rounded px-2 py-1.5 focus:outline-none focus:border-primary placeholder:text-slate-500"
+                className="flex-1 text-xs bg-[#2a1f0e] text-amber-50 border border-[#4a3520] rounded px-2 py-1.5 focus:outline-none focus:border-primary placeholder:text-amber-900/50"
               />
               <button
                 onClick={handleSendFollowUp}
