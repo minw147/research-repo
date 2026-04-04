@@ -70,12 +70,17 @@ function buildProfileContent(data: {
 `;
 }
 
+type CliStatus = "checking" | "ok" | "error";
+
 export function ResearchAssistantBot() {
   const [open, setOpen] = useState(false);
+  const [docked, setDocked] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [nudge, setNudge] = useState<PatternNudgeState | null>(null);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const [saveError, setSaveError] = useState(false);
+  const [cliStatus, setCliStatus] = useState<CliStatus>("checking");
+  const [cliVersion, setCliVersion] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
@@ -108,6 +113,27 @@ export function ResearchAssistantBot() {
     const el = document.getElementById("ra-portal");
     if (el) setPortalEl(el);
   }, []);
+
+  // CLI health check on mount
+  useEffect(() => {
+    fetch("/api/agent/health")
+      .then((r) => r.json())
+      .then((data) => {
+        setCliStatus(data.ok ? "ok" : "error");
+        setCliVersion(data.version ?? null);
+      })
+      .catch(() => setCliStatus("error"));
+  }, []);
+
+  // Apply/remove docked body class so pages can respond
+  useEffect(() => {
+    if (docked && open) {
+      document.body.classList.add("ra-docked");
+    } else {
+      document.body.classList.remove("ra-docked");
+    }
+    return () => document.body.classList.remove("ra-docked");
+  }, [docked, open]);
 
   // Escape key closes panel
   useEffect(() => {
@@ -174,8 +200,12 @@ export function ResearchAssistantBot() {
 
   if (!portalEl) return null;
 
+  const panelClass = docked && open
+    ? "fixed right-0 top-0 z-[9999] flex h-screen w-[380px] flex-col border-l border-slate-200 bg-white shadow-xl"
+    : "relative flex h-[500px] w-[100vw] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl sm:w-[min(400px,100vw-3rem)]";
+
   return createPortal(
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
+    <div className={docked && open ? "contents" : "fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3"}>
       {/* Panel */}
       {open && (
         <div
@@ -184,45 +214,95 @@ export function ResearchAssistantBot() {
           aria-labelledby="ra-bot-name"
           aria-modal="true"
           tabIndex={-1}
-          className="relative flex h-[500px] w-[100vw] flex-col overflow-hidden rounded-xl border border-[#4a3520]/60 bg-[#2a1f0e] shadow-2xl sm:w-[min(400px,100vw-3rem)]"
+          className={panelClass}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#4a3520]/60 px-3 py-2">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-3 py-2">
             <div className="flex items-center gap-2">
               {state === "loading" ? (
-                <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400/60" />
+                <span className="h-2 w-2 animate-pulse rounded-full bg-slate-300" />
               ) : (
                 <span className="h-2 w-2 rounded-full bg-primary" />
               )}
               <h2
                 id="ra-bot-name"
-                className="text-sm font-semibold text-amber-100"
+                className="text-sm font-semibold text-slate-900"
               >
                 {botName}
                 {preferredName ? ` — Hi, ${preferredName}` : ""}
               </h2>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
+              {/* CLI status — dot only, tooltip carries the detail */}
+              <span
+                title={
+                  cliStatus === "checking"
+                    ? "Checking Claude Code CLI…"
+                    : cliStatus === "ok"
+                    ? `Claude Code CLI ready${cliVersion ? ` — ${cliVersion}` : ""}`
+                    : "Claude Code CLI not found — check PATH"
+                }
+                className="flex h-7 w-7 items-center justify-center"
+              >
+                <span className={`h-2 w-2 rounded-full ${
+                  cliStatus === "ok"
+                    ? "bg-emerald-400"
+                    : cliStatus === "error"
+                    ? "bg-red-400"
+                    : "bg-slate-300 animate-pulse"
+                }`} />
+              </span>
+              {/* Dock toggle — panel-right icon */}
+              <button
+                onClick={() => setDocked((v) => !v)}
+                aria-label={docked ? "Float panel" : "Dock to sidebar"}
+                title={docked ? "Float panel" : "Dock to right sidebar"}
+                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                {docked ? (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <rect x="1" y="1" width="12" height="12" rx="1.5" />
+                    <line x1="5" y1="1" x2="5" y2="13" />
+                    <path d="M8 5l2 2-2 2" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <rect x="1" y="1" width="12" height="12" rx="1.5" />
+                    <line x1="9" y1="1" x2="9" y2="13" />
+                    <rect x="9.5" y="1" width="3.5" height="12" rx="0" fill="currentColor" stroke="none" opacity="0.15" />
+                  </svg>
+                )}
+              </button>
               <button
                 onClick={() => setShowSettings((v) => !v)}
                 aria-label="Settings"
-                className="min-h-[44px] min-w-[44px] rounded text-amber-500 hover:text-amber-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#2a1f0e]"
+                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                ⚙
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <line x1="2" y1="4" x2="12" y2="4" />
+                  <line x1="2" y1="7" x2="12" y2="7" />
+                  <line x1="2" y1="10" x2="12" y2="10" />
+                  <circle cx="9" cy="4" r="1.5" fill="white" />
+                  <circle cx="5" cy="7" r="1.5" fill="white" />
+                  <circle cx="8" cy="10" r="1.5" fill="white" />
+                </svg>
               </button>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close assistant"
-                className="min-h-[44px] min-w-[44px] rounded text-amber-500 hover:text-amber-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#2a1f0e]"
+                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                ✕
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <line x1="1" y1="1" x2="11" y2="11" />
+                  <line x1="11" y1="1" x2="1" y2="11" />
+                </svg>
               </button>
             </div>
           </div>
 
           {/* Context strip */}
           {state === "ready" && (
-            <div className="border-b border-amber-800/30 bg-amber-950/30 px-3 py-1 text-[10px] text-amber-600/80">
+            <div className="border-b border-slate-100 bg-slate-50 px-3 py-1 text-[10px] text-slate-400">
               {pathname}
             </div>
           )}
@@ -283,14 +363,16 @@ export function ResearchAssistantBot() {
         </div>
       )}
 
-      {/* FAB */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? "Close research assistant" : "Open research assistant"}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl text-white shadow-lg hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white"
-      >
-        {open ? "✕" : "✦"}
-      </button>
+      {/* FAB — hidden when docked (panel is always visible on the side) */}
+      {!docked && (
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? "Close research assistant" : "Open research assistant"}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl text-white shadow-lg hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white"
+        >
+          {open ? "✕" : "✦"}
+        </button>
+      )}
     </div>,
     portalEl
   );

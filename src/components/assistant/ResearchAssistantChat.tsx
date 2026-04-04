@@ -75,7 +75,7 @@ export function ResearchAssistantChat({
         className="flex-1 overflow-y-auto px-3 py-2 space-y-3"
       >
         {visibleHistory.length === 0 && !streaming && (
-          <p className="text-center text-xs text-amber-700 mt-4">
+          <p className="text-center text-xs text-slate-400 mt-4">
             Ask {botName} anything about your research.
           </p>
         )}
@@ -87,10 +87,10 @@ export function ResearchAssistantChat({
         {streaming && (
           <div
             aria-busy="true"
-            className="max-w-[85%] self-start rounded-lg bg-[#1c1108] px-3 py-2"
+            className="max-w-[85%] self-start rounded-lg bg-slate-50 px-3 py-2"
           >
             {streamingContent ? (
-              <p className="text-sm text-amber-100 italic opacity-60 whitespace-pre-wrap">
+              <p className="text-sm text-slate-600 italic opacity-70 whitespace-pre-wrap">
                 {streamingContent}
               </p>
             ) : (
@@ -100,11 +100,11 @@ export function ResearchAssistantChat({
         )}
 
         {connectionError && (
-          <div role="alert" className="rounded border border-amber-800/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-400">
+          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             Connection lost —{" "}
             <button
               onClick={onRetry}
-              className="underline hover:text-amber-200"
+              className="underline hover:text-red-900"
             >
               Retry
             </button>
@@ -113,7 +113,7 @@ export function ResearchAssistantChat({
       </div>
 
       {/* Input row */}
-      <div className="border-t border-[#4a3520]/60 px-3 py-2">
+      <div className="border-t border-slate-100 px-3 py-2">
         <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
@@ -123,20 +123,20 @@ export function ResearchAssistantChat({
             rows={1}
             placeholder={PLACEHOLDERS[placeholderIdx]}
             disabled={streaming}
-            className="min-h-[44px] flex-1 resize-none rounded border border-[#4a3520] bg-[#1c1108] px-3 py-2 text-sm text-amber-50 placeholder:text-amber-900/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#2a1f0e] disabled:opacity-50"
+            className="min-h-[44px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || streaming}
             aria-label="Send message"
-            className="min-h-[44px] min-w-[44px] rounded bg-primary px-3 text-white hover:bg-primary/90 disabled:opacity-40 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#2a1f0e]"
+            className="min-h-[44px] min-w-[44px] rounded-lg bg-primary px-3 text-white hover:bg-primary-dark disabled:opacity-40 focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             ↑
           </button>
         </div>
         <button
           onClick={onClear}
-          className="mt-1 text-xs text-amber-700 hover:text-amber-500 focus:ring-2 focus:ring-primary"
+          className="mt-1 text-xs text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary"
         >
           Clear history
         </button>
@@ -152,12 +152,12 @@ function MessageBubble({ msg, botName }: { msg: ChatMessage; botName: string }) 
       <div
         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
           isUser
-            ? "bg-primary/80 text-white"
-            : "bg-[#1c1108] text-amber-100"
+            ? "bg-primary text-white"
+            : "bg-slate-50 text-slate-900 border border-slate-100"
         }`}
       >
         {!isUser && (
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
             {botName}
           </p>
         )}
@@ -173,7 +173,7 @@ function TypingIndicator() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 rounded-full bg-amber-400/60 animate-pulse"
+          className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse"
           style={{ animationDelay: `${i * 150}ms` }}
         />
       ))}

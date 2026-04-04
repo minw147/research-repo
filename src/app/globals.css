@@ -13,6 +13,13 @@
   }
 }
 
+/* ─── Research assistant docked sidebar ─────────────────────────────── */
+
+body.ra-docked {
+  padding-right: 380px;
+  transition: padding-right 150ms ease-out;
+}
+
 /* ─── Reduced motion ────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

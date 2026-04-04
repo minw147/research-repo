@@ -183,20 +183,18 @@ export function useResearchChat({ profileContent, pathname }: UseResearchChatOpt
             try {
               const event = JSON.parse(line.slice(6));
 
-              if (event.type === "system" && event.session_id) {
-                newSessionId = event.session_id;
+              // Route emits: { type: "text", content }, { type: "session", id },
+              //              { type: "tool", name, summary }, { type: "done" }, { type: "error", message }
+              if (event.type === "session" && event.id) {
+                newSessionId = event.id;
                 if (SESSION_ID_RE.test(newSessionId!)) {
                   localStorage.setItem(SESSION_KEY, newSessionId!);
                 }
               }
 
-              if (event.type === "assistant" && event.message?.content) {
-                for (const block of event.message.content) {
-                  if (block.type === "text") {
-                    accumulated += block.text;
-                    setStreamingContent(accumulated);
-                  }
-                }
+              if (event.type === "text" && typeof event.content === "string") {
+                accumulated += event.content;
+                setStreamingContent(accumulated);
               }
 
               if (event.type === "error") {
