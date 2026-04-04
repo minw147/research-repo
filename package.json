@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "slice-clips": "node .cursor/skills/report-publication/scripts/slice-clips.js",
-    "update-clip-urls": "node .cursor/skills/report-publication/scripts/update-clip-urls.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
