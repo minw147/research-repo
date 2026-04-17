@@ -21,6 +21,8 @@ const OUTPUT_FORMAT_PREFIX = `**Output format (CRITICAL):**
 
 **MANDATORY: Follow the skill.** Read \`.cursor/skills/research-analysis/SKILL.md\` and execute its Steps 1–3, then the appropriate Step 4 (4a for findings.md, 4b for tags.md). Use the quote format and conventions from the "Quote format" section exactly.
 
+**ANTI-HALLUCINATION (CRITICAL):** NEVER fabricate, paraphrase, summarize, or blend quotes. Every quote must be the exact verbatim text found in the transcript at the specified timestamp. If you cannot find the exact text in the transcript for a claimed timestamp, omit that quote entirely. It is better to have fewer quotes than one fabricated quote.
+
 ---
 `;
 
@@ -49,6 +51,7 @@ function projectContextBlock(project: Project): string {
 - **Date:** ${project.date}
 - **Persona:** ${project.persona}
 - **Product / focus:** ${project.product ?? "Not specified"}
+- **Methodology:** ${project.methodology ?? "Mixed methods (interviews + usability)"}
 - **Research plan / goals:** ${project.researchPlan ?? "Not specified"}
 
 ### Sessions to analyze (default: all)
@@ -80,8 +83,15 @@ ${formatCodebook(codebook)}
 - Identify 5–8 key research findings and themes.
 - For each finding: H2 heading, 1–2 paragraph summary, 2–3 supporting quotes.
 - **Quote text:** Use the full verbatim transcript for each clip—include everything spoken in that segment. Do not truncate or summarize.
-- Each quote MUST be exactly one line: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: 20s | session: X | tags: tag1, tag2\`
+- **Duration:** Calculate from the transcript timestamps (end − start). Only estimate 15–20s when transcript timestamps are unavailable for a segment.
+- Each quote MUST be exactly one line: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: DURATIONs | session: X | tags: tag1, tag2\`
 - Up to 3 tags per quote; only assign if ≥80% confident; otherwise leave \`tags: \` empty.
+
+**Finding quality checklist — each finding must:**
+1. Be supported by ≥2 quotes from different sessions (when multiple sessions exist)
+2. Distinguish between **frequency** (how many participants) and **severity/impact** (how much it matters)
+3. Include a concrete **implication or recommendation** — not just "users said X" but "therefore we should Y"
+4. Have a concise, descriptive H2 title (not just a tag name — describe the insight)
 
 **Output Rule:** Your output will be saved directly to \`findings.md\`. Do not include preamble or code blocks.`;
 }
@@ -104,8 +114,14 @@ Read the existing \`findings.md\` in the project directory. You may also re-chec
 - Follow \`.cursor/skills/research-analysis/SKILL.md\` Steps 1–3, then Step 4a, and the "Quote format" section.
 - Identify 3–5 key themes; merge or split sections as needed.
 - **Quote text:** Use the full verbatim transcript for each clip. Do not truncate or summarize.
-- Keep or add quotes in the exact line format: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: 20s | session: X | tags: tag1, tag2\`
+- **Duration:** Calculate from the transcript timestamps (end − start). Only estimate 15–20s when transcript timestamps are unavailable.
+- Keep or add quotes in the exact line format: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: DURATIONs | session: X | tags: tag1, tag2\`
 - Use the available tags when they fit; up to 3 per quote.
+
+**Finding quality checklist — each finding must:**
+1. Be supported by ≥2 quotes from different sessions (when multiple sessions exist)
+2. Distinguish between **frequency** (how many participants) and **severity/impact** (how much it matters)
+3. Include a concrete **implication or recommendation**
 
 **Output Rule:** Your output will be saved directly to \`findings.md\`. Do not include preamble or code blocks.`;
 }
@@ -128,7 +144,8 @@ Analyze research data (findings.md and transcripts/) in the current project to f
 - Follow \`.cursor/skills/research-analysis/SKILL.md\` Steps 1–3, then Step 4a, and the "Quote format" section.
 1. Provide a summary of how this theme manifested.
 2. Include at least 3 supporting quotes. **Quote text** = full verbatim transcript of the clip.
-   Quotes MUST be in this EXACT format: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: 20s | session: X | tags: tag1, tag2\`
+   Quotes MUST be in this EXACT format: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: DURATIONs | session: X | tags: tag1, tag2\`
+   **Duration:** Calculate from transcript timestamps (end − start). Only estimate 15–20s when timestamps unavailable.
    Tagging rules: Up to 3 tags per quote.
 
 **Output Rule:** Provide ONLY the new markdown section. No preamble or code blocks.`;
@@ -188,6 +205,17 @@ const REPORT_OUTPUT_PREFIX = `**Output format (CRITICAL):**
 - DO NOT wrap your output in a markdown code block (no \\\`\\\`\\\`html).
 - NO preamble, NO lead-in text.
 - APPLY the /ui-ux-pro-max aesthetics per the skill guidelines.
+
+**Visual Design Principles (blog post style — presentable & scannable):**
+- The report should read like a polished Medium/Substack article — engaging, scannable, and ready to present to stakeholders.
+- **Information hierarchy:** Use large bold headings (H1/H2), short paragraphs, and generous whitespace.
+- **Information panels / callout boxes:** Wrap key statistics, critical findings, or important caveats in styled bordered boxes (e.g., light tinted background + left accent border). Use these for: key metrics, severity callouts, participant count, methodology summary.
+- **Visual elements:** Add emojis as bullet decorators (📊 🔍 ⚡ 💡 🎯), subtle dividers between sections, and icon-like indicators for finding severity (🔴 critical / 🟡 moderate / 🟢 positive).
+- **Typography:** Use a clean sans-serif stack (Inter, system-ui). Headings should be significantly larger than body text. Bold key phrases within paragraphs for easy scanning.
+- **Data tables:** When comparing perspectives across sessions or participants, use clean bordered tables with alternating row tints.
+- **Executive summary:** Start with a concise 2–3 paragraph summary that a busy stakeholder can read in 30 seconds — key findings + top recommendations.
+- **Recommendations section:** End with numbered, actionable recommendations. Each should be one sentence: what to do + why.
+- **Light backgrounds only throughout — no dark sections.** Create visual hierarchy with borders, subtle tints (e.g., primary/10), left-accent borders, and light shaded panels — never dark fills.
 
 **MANDATORY: Follow the skill.** Read \`.cursor/skills/report-publication/SKILL.md\` and execute its steps to build a beautiful \`findings.html\`.
 
@@ -403,6 +431,35 @@ Goal: Synthesize all findings into a final report.
 - Use light backgrounds only throughout—no dark header or recommendation sections (research reports use light, professional layouts).
 
 Format as a professional, beautiful ${style === "blog" ? "research report HTML" : "presentation deck HTML"}.`;
+}
+
+/**
+ * Cross-session comparative analysis: compare responses across sessions for a theme or feature.
+ */
+export function buildCrossSessionPrompt(
+  project: Project,
+  themeOrFeature: string
+): string {
+  return `${OUTPUT_FORMAT_PREFIX}${projectContextBlock(project)}
+
+**Task:** Cross-session comparative analysis for the theme/feature: "${themeOrFeature}"
+
+Read ALL session transcripts in the project directory. Compare how different participants responded to or experienced this theme/feature.
+
+**Analysis framework:**
+1. **Agreement / consensus:** What did most participants agree on? Quote the majority view with evidence from ≥2 sessions.
+2. **Disagreement / divergence:** Where did participants contradict each other? Present both sides with quotes.
+3. **Edge cases / outliers:** Did any single participant have a notably different experience? Flag it explicitly.
+4. **Frequency vs. severity:** How many participants mentioned this? How impactful was it for each?
+5. **Behavioral patterns:** Did participants approach or talk about this differently based on their background, role, or usage patterns?
+
+**Output format:** Write a comparative analysis section (H2: the theme/feature name) suitable for insertion into \`findings.md\`.
+- Use the standard quote format: \`- **"full quote text"** @ MM:SS (SECONDSs) | duration: DURATIONs | session: X | tags: tag1, tag2\`
+- **Duration:** Calculate from transcript timestamps (end − start). Only estimate 15–20s when timestamps unavailable.
+- Clearly attribute each quote to its session/participant.
+- End with a synthesis: what does this comparison mean for the product/feature?
+
+**Output Rule:** Produce the comparative analysis section only. No preamble or code blocks.`;
 }
 
 /**

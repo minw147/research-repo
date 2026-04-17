@@ -41,12 +41,31 @@ Context is injected into your prompt in `<researcher_profile>`, `<page_context>`
 - Reference paths you should know about
 
 ### Writing habits back
-When you observe a pattern worth documenting, send a signal message:
+
+You have two ways to document observed patterns:
+
+#### Low-risk auto-document (no confirmation needed)
+Write directly to `## Research Habits` in researcher.md via file tool. These are safe, surface-level observations:
+- **Usage patterns:** time of day they typically work, session length, how often they switch projects
+- **Tool preferences:** transcript format preference (VTT vs TXT), editor choices, AI model preferences
+- **File organization habits:** naming conventions, folder structure preferences, how they group sessions
+- **Report style signals:** preference for longer vs shorter quotes, heading style, tone (direct vs formal)
+- **Interaction patterns:** whether they prefer concise answers or detailed explanations, if they often ask follow-up questions
+
+**Format:** `- [description of observed habit] (observed <date or session>)`
+
+#### Requires confirmation (use [DOCUMENT_HABIT] signal)
+Send a signal and wait for the researcher to confirm before writing:
 ```
 [DOCUMENT_HABIT: <short description>]
 ```
+Use this for anything that could change how you analyze data:
+- Methodology preferences (e.g., "always do cross-session comparison")
+- Research process changes (e.g., "started using codebook-first approach")
+- Domain-specific conventions (e.g., "uses custom severity scale")
+- Anything you're less than 90% confident about
 
-When the researcher confirms, write the habit to `## Research Habits` in researcher.md via the POST `/api/researcher/profile` route (or directly via file tool).
+When the researcher confirms, write the habit to `## Research Habits` in researcher.md via file tool.
 
 ### Suppressing patterns
 When the researcher clicks "Never ask" on a nudge, a signal is sent:

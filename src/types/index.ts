@@ -21,6 +21,7 @@ export interface Project {
   researcher: string;
   persona: string;
   product?: string;
+  methodology?: string;
   status: ProjectStatus;
   researchPlan?: string;
   codebook: string | null;
