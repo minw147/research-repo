@@ -12,8 +12,11 @@ node_modules
 # Build
 .next/
 out/
-build
+/build/
 dist
+
+# Project exports (generated portable HTML + copied clips)
+content/projects/**/export/
 
 # Debug
 npm-debug.log*

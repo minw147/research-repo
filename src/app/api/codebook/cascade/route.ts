@@ -25,7 +25,7 @@ function patchTagsLine(line: string, oldId: string, newId: string | null): strin
   return line.replace(/\|\s*tags:\s*.+$/, `| tags: ${tags.join(", ")}`);
 }
 
-export async function runCascade(
+async function runCascade(
   opts: CascadeOptions
 ): Promise<{ affectedFiles: string[]; affectedQuoteCount: number }> {
   const { dryRun, action, oldId, newId, projectsRoot } = opts;

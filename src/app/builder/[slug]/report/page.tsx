@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { RefreshCw, Loader2, Sparkles, AlertCircle, Download, ExternalLink } from "lucide-react";
+import { RefreshCw, Loader2, Sparkles, AlertCircle, Download, ExternalLink, Wand2 } from "lucide-react";
 
 import { useFileContent } from "@/hooks/useFileContent";
 import { PromptModal } from "@/components/builder/PromptModal";
@@ -21,6 +21,8 @@ export default function ReportPage({ params }: ReportPageProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [showRefreshToast, setShowRefreshToast] = useState(false);
+  const [buildStatus, setBuildStatus] = useState<"idle" | "running" | "success" | "error">("idle");
+  const [buildError, setBuildError] = useState<string | null>(null);
 
   const [exportStatus, setExportStatus] = useState<"idle" | "running" | "success" | "error">("idle");
   const [exportProgress, setExportProgress] = useState(0);
@@ -102,6 +104,23 @@ export default function ReportPage({ params }: ReportPageProps) {
   const handleRefresh = useCallback(() => {
     refetchReport();
   }, [refetchReport]);
+
+  const handleBuildHtml = useCallback(async () => {
+    setBuildStatus("running");
+    setBuildError(null);
+    try {
+      const res = await fetch(`/api/projects/${slug}/report/build`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Build failed");
+      }
+      setBuildStatus("success");
+      refetchReport();
+    } catch (err: unknown) {
+      setBuildStatus("error");
+      setBuildError(err instanceof Error ? err.message : "Build failed");
+    }
+  }, [slug, refetchReport]);
 
   const handleExport = useCallback(async () => {
     if (!reportContent) return;
@@ -192,6 +211,21 @@ export default function ReportPage({ params }: ReportPageProps) {
       {/* Header / Toolbar */}
       <div className="h-12 flex items-center justify-end gap-1.5 px-4 sm:px-6 border-b border-slate-200 bg-white shrink-0 shadow-sm">
         <button
+          onClick={handleBuildHtml}
+          disabled={buildStatus === "running"}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Build findings.html from findings.md (no AI)"
+          aria-label="Build HTML"
+        >
+          {buildStatus === "running" ? (
+            <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+          ) : (
+            <Wand2 className="h-3.5 w-3.5 shrink-0" />
+          )}
+          <span>Build HTML</span>
+        </button>
+
+        <button
           onClick={() => setShowPromptModal(true)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 shadow-sm cursor-pointer"
           title="Run AI Synthesis"
@@ -260,6 +294,16 @@ export default function ReportPage({ params }: ReportPageProps) {
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
           {exportError}
+        </div>
+      )}
+
+      {buildError && (
+        <div
+          role="alert"
+          className="mx-4 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {buildError}
         </div>
       )}
 

@@ -50,6 +50,41 @@ body.ra-docked {
   margin-bottom: 0;
 }
 
+/* ─── Tiptap editor tables (visible grid + comfortable cells) ───────── */
+
+.ProseMirror table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.ProseMirror table th,
+.ProseMirror table td {
+  border: 1px solid rgb(226 232 240); /* slate-200 */
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+
+.ProseMirror table th {
+  background: rgb(248 250 252); /* slate-50 */
+  font-weight: 600;
+}
+
+.ProseMirror table td > p,
+.ProseMirror table th > p {
+  margin: 0;
+}
+
+.ProseMirror table td:focus,
+.ProseMirror table th:focus {
+  outline: none;
+}
+
+.ProseMirror .selectedCell:after {
+  /* ProseMirror adds .selectedCell on cell selections */
+  background: rgba(245, 159, 10, 0.12); /* primary @ 12% */
+}
+
 /* ─── Slides layout ────────────────────────────────────────────────── */
 
 /*

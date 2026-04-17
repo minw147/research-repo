@@ -4,7 +4,7 @@ import { getAgentSettings } from "@/lib/agent-settings";
 
 export const dynamic = "force-dynamic";
 
-export function parseCustomTemplate(
+function parseCustomTemplate(
   template: string,
   prompt: string
 ): string[] | null {
@@ -16,7 +16,7 @@ export function parseCustomTemplate(
     .map((p) => (p === "{prompt}" ? prompt : p));
 }
 
-export function isValidSessionId(id: string): boolean {
+function isValidSessionId(id: string): boolean {
   return /^[a-zA-Z0-9_-]{1,128}$/.test(id);
 }
 

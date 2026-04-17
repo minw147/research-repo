@@ -1,7 +1,12 @@
 import React, { useMemo } from "react";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkDirective from "remark-directive";
+import { visit } from "unist-util-visit";
+import type { Plugin } from "unified";
+import type { Root } from "mdast";
 import { QuoteCard } from "./QuoteCard";
+import { Callout } from "@/components/shared/Callout";
 import { parseQuote, parseQuotesFromMarkdown } from "@/lib/quote-parser";
 import { Codebook, ParsedQuote } from "@/types";
 
@@ -17,8 +22,35 @@ interface HastNode {
   type: string;
   value?: string;
   tagName?: string;
+  properties?: Record<string, unknown>;
   children?: HastNode[];
 }
+
+type CalloutVariant = "info" | "tip" | "warning" | "insight";
+const CALLOUT_VARIANTS = new Set<string>(["info", "tip", "warning", "insight"]);
+
+// Converts leafDirective / containerDirective nodes to hast-compatible elements
+const remarkCalloutDirectives: Plugin<[], Root> = () => (tree) => {
+  visit(tree, (node) => {
+    if (
+      node.type === "containerDirective" ||
+      node.type === "leafDirective" ||
+      node.type === "textDirective"
+    ) {
+      const directive = node as {
+        type: string;
+        name: string;
+        data?: { hName?: string; hProperties?: Record<string, unknown> };
+      };
+      directive.data = directive.data ?? {};
+      directive.data.hName = "div";
+      directive.data.hProperties = {
+        "data-callout-type": directive.name,
+        className: "callout-directive",
+      };
+    }
+  });
+};
 
 /**
  * MarkdownRenderer component that renders markdown content with inline QuoteCard rendering.
@@ -35,6 +67,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
   const components: Components = useMemo(
     () => ({
+      div: ({ node, children, ...props }: { node?: HastNode; children?: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>) => {
+        const calloutType = (node?.properties?.["data-callout-type"] as string) ?? "";
+        if (CALLOUT_VARIANTS.has(calloutType)) {
+          return <Callout variant={calloutType as CalloutVariant}>{children}</Callout>;
+        }
+        return <div {...props}>{children}</div>;
+      },
       li: ({ node, children, ...props }: { node?: HastNode; children?: React.ReactNode }) => {
         const getRawText = (n: HastNode | undefined): string => {
           if (!n) return "";
@@ -84,7 +123,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
   return (
     <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-li:my-0">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkDirective, remarkCalloutDirectives]} components={components}>
         {content}
       </ReactMarkdown>
     </div>

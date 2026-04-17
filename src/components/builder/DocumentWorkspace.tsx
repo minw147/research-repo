@@ -11,6 +11,7 @@ import VideoPlayer, { VideoPlayerRef } from "@/components/builder/VideoPlayer";
 import { ClipCreator, type ClipCreatorHandle } from "@/components/builder/ClipCreator";
 import { MarkdownEditor, type MarkdownEditorHandle } from "@/components/builder/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
+import { RichMarkdownEditor, type RichMarkdownEditorHandle } from "@/components/builder/RichMarkdownEditor";
 import { QuoteEditModal } from "@/components/builder/QuoteEditModal";
 import { CodebookEditor } from "@/components/builder/CodebookEditor";
 import { PromptModal, type AIAction } from "@/components/builder/PromptModal";
@@ -44,6 +45,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
     const videoPlayerRef = useRef<VideoPlayerRef>(null);
     const markdownEditorRef = useRef<MarkdownEditorHandle>(null);
+    const richEditorRef = useRef<RichMarkdownEditorHandle>(null);
     const clipCreatorRef = useRef<ClipCreatorHandle>(null);
     const lastSaveRef = useRef<number>(0);
 
@@ -250,10 +252,9 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
         if (viewMode === "raw") {
             markdownEditorRef.current?.save();
         } else {
-            lastSaveRef.current = Date.now();
-            saveDoc(docContent ?? "");
+            richEditorRef.current?.save();
         }
-    }, [viewMode, saveDoc, docContent]);
+    }, [viewMode]);
 
     const handleRevertDoc = useCallback(() => {
         refetchDoc();
@@ -450,10 +451,10 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                             : "text-slate-500 hover:text-slate-700"
                                             }`}
                                         aria-pressed={viewMode === "formatted"}
-                                        aria-label="Preview (formatted)"
+                                        aria-label="Edit (formatted)"
                                     >
                                         <Eye className="h-3.5 w-3.5 shrink-0" />
-                                        <span className="hidden sm:inline">Preview</span>
+                                        <span className="hidden sm:inline">Edit</span>
                                     </button>
                                     <button
                                         onClick={() => setViewMode("raw")}
@@ -512,8 +513,8 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                         </div>
 
                         {/* Content Area */}
-                        <div className={`flex-1 min-h-0 p-6 flex flex-col ${viewMode === "raw" ? "overflow-hidden" : "overflow-y-auto"}`}>
-                            <div className={`max-w-3xl mx-auto flex-1 min-w-0 ${viewMode === "raw" ? "min-h-0 flex flex-col" : ""}`}>
+                        <div className="flex-1 min-h-0 p-6 flex flex-col overflow-hidden">
+                            <div className="max-w-3xl mx-auto flex-1 min-w-0 min-h-0 flex flex-col">
                                 {docLoading ? (
                                     <div className="flex h-full items-center justify-center">
                                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -549,9 +550,12 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                         )}
                                     </div>
                                 ) : viewMode === "formatted" ? (
-                                    <div className="bg-white rounded-xl border p-8 shadow-sm prose prose-slate max-w-none">
-                                        <MarkdownRenderer
-                                            content={docContent || `# No content yet`}
+                                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                                        <RichMarkdownEditor
+                                            ref={richEditorRef}
+                                            content={docContent || ""}
+                                            onChange={handleDocChange}
+                                            onSave={handleDocChange}
                                             codebook={codebook}
                                             onQuoteClick={handleQuoteClick}
                                             onQuoteDoubleClick={handleQuoteDoubleClick}
