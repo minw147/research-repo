@@ -1,111 +1,65 @@
-# Research Hub
+# 🧪 Research Hub: The Local-First Research Powerhouse
 
-A local-first UX research repository for managing interview transcripts, extracting insights, and publishing reports with embedded video clips. Built for researchers using [Cursor](https://cursor.com) and local AI — no LLM API calls from the app.
+Research Hub is a **100% open-source, local-first UX research repository** designed for speed, privacy, and deep AI integration. It’s not just a place to dump transcripts; it’s a living analysis engine that evolves with you.
 
-## What it does
+Built to run alongside [Cursor](https://cursor.com) and [Claude Code](https://claude.ai/code), Research Hub gives you the power of frontier AI models applied directly to your local files—no complex cloud configuration required.
 
-- **Project-based workflow** — Create projects, add sessions (video + transcript), edit findings and tags in the Report Builder
-- **Codebook** — Define tags and categories (project-level or global) for thematic analysis
-- **Transcript analysis** — Use Cursor skills to extract themes, pain points, and verbatim quotes with timestamps
-- **Report Builder** — Edit findings.md, tags.md, and report.mdx with live preview; AI analysis via copy-and-run prompts
-- **Video clips** — Slice clips from full videos via FFmpeg based on quote timestamps
-- **Export** — Generate portable HTML reports (self-contained, with clips) or publish to local folder, Google Drive
-- **Cursor skills** — Built-in skills in `.cursor/skills/` guide AI to analyze transcripts and publish reports
+---
 
-## Quick start
+## Why Research Hub?
 
-```bash
-git clone https://github.com/minw147/research-repo.git
-cd research-repo
-npm install
-npm run dev
-```
+*   **⚡ Local-First, Zero Latency** — Your data lives on your disk as plain JSON and Markdown. It’s fast, searchable, and works 100% offline if you use a local LLM or stick to the deterministic toolchain.
+*   **🧠 An Assistant That Learns** — The built-in AI Assistant isn't a static bot. Through `researcher.md`, it learns your methodology, documents your research habits, and adapts to your personal style. It gets smarter the more you use it.
+*   **🛠️ Deep IDE Integration** — Because it hooks directly into Cursor and Claude Code, the assistant can use **any skill or plugin** you already have installed. It’s a seamless bridge between your research data and your development environment.
+*   **🎨 WYSIWYG + Markdown** — Write in a beautiful, formatted editor (Tiptap) while maintaining a clean, portable GFM Markdown source. Drop quote cards directly into your prose—they're atomic, indestructible, and link straight to the video.
+*   **🔗 Deterministic Reports** — Skip the AI and "Build HTML" instantly from your findings. You get a beautiful, interactive report with embedded video clips and styled callouts in one click. Want more? Use **AI Synthesis** for a high-end, agent-crafted narrative.
 
-Open [http://localhost:3000](http://localhost:3000). The dashboard lists projects; create one or open an existing project to start.
+---
 
-## Project structure
+## The Workflow
 
-```
-research-repo/
-├── content/projects/[slug]/   # Per-project data
-│   ├── project.json           # Metadata (title, researcher, sessions)
-│   ├── codebook.json          # Project-specific tags & categories
-│   ├── findings.md            # Thematic findings & quotes
-│   ├── tags.md                # Tag board (quotes by tag)
-│   ├── report.mdx             # Published report (MDX with clips)
-│   ├── export/                # Portable HTML export (index.html + clips/)
-│   ├── transcripts/           # Session transcripts (.vtt, .txt)
-│   └── videos/                # Session videos (gitignored)
-├── data/
-│   ├── global-codebook.json   # Shared tags across all projects
-│   └── research-index.json   # Legacy study metadata
-├── .cursor/skills/            # Cursor skills (research-analysis, report-publication)
-├── repo-viewer-template/     # Static viewer template (index.html, viewer.js, viewer.css)
-├── docs/                      # Plans, setup guides
-└── src/                       # Next.js app (App Router)
-```
+1.  **Ingest** — Drop in your video and transcripts (VTT/TXT).
+2.  **Tag** — Build a flexible codebook that spans projects or stays hyper-local.
+3.  **Analyze** — Use the **AI Analyze** bridge to trigger Cursor/Claude. They’ll read your data, extract verbatim evidence, and update your `findings.md` or `tags.md` in real-time.
+4.  **Refine** — Edit in the rich WYSIWYG editor. Drag and drop clips from the sidebar. Everything stays synced.
+5.  **Ship** — Click **Build HTML** for an instant report, then **Export** to create a portable folder (with sliced MP4 clips!) you can drop onto a synced SharePoint, OneDrive, or Google Drive.
 
-## Workflow
+---
 
-1. **Create a project** — From the dashboard, click **New Project**. Add title, researcher, persona, product.
-2. **Add sessions** — In the Report Builder, add sessions with video and transcript files (or auto-generated VTT from Teams/Zoom).
-3. **Manage codebook** — Open **Codebook** to define tags and categories. Project tags are per-project; global tags are shared.
-4. **Analyze** — In Findings or Tags, click **AI Analyze**, copy the prompt, run it in Cursor. The AI creates/updates `findings.md` or `tags.md`. Refresh the app to see changes.
-5. **Generate report** — On the Report tab, use **AI Synthesis** to produce `findings.html` from `findings.md`. Export HTML for a portable bundle.
-6. **Publish** — On the Storage tab, publish the export to a local folder, Google Drive, or other destinations.
-
-See [docs/report-builder-cli.md](docs/report-builder-cli.md) for the AI copy-and-run workflow.
-
-## Commands
+## 🛠️ Commands
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Start dev server |
-| `npm run build` | Production static export |
-| `npm run test` | Run Vitest test suite |
-| `npm run test:watch` | Tests in watch mode |
-| `npm run lint` | ESLint |
-| `npm run slice-clips` | Extract video clips from MDX via FFmpeg |
-| `npm run update-clip-urls` | Sync clip URLs from OneDrive/SharePoint JSON |
-| `npm run refresh-viewer` | Rebuild `repo-viewer-template` viewer index |
+| `npm run dev` | Start the engine |
+| `npm run build` | Static production export |
+| `npm run slice-clips` | Use FFmpeg to extract video evidence automatically |
+| `npm run test` | Run the Vitest suite |
+| `npm run lint` | Keep the code clean |
 
-## Report Builder
+---
 
-The Report Builder (`/builder/[slug]`) has four tabs:
+## 🏗️ Project Structure
 
-| Tab | Purpose |
-|-----|---------|
-| **Findings** | Edit `findings.md` — thematic findings with timestamped quotes |
-| **Tags** | Edit `tags.md` — tag board grouping quotes by codebook tags |
-| **Report** | Preview and export HTML; run AI Synthesis to generate `findings.html` |
-| **Storage** | Publish exported reports to local folder or Google Drive |
+Your research is structured to be readable by humans, bots, and browsers alike:
 
-The app uses **file watching** — changes to markdown files on disk refresh the UI automatically. AI analysis runs externally in Cursor; prompts are copied and executed there.
+```
+research-repo/
+├── content/projects/[slug]/   # Your research "Brain"
+│   ├── project.json           # Metadata & session index
+│   ├── findings.md            # Thematic analysis (GFM)
+│   ├── tags.md                # The Tag Board (Evidence)
+│   ├── findings.html          # The interactive report
+│   ├── export/                # A portable, shareable bundle
+│   └── transcripts/           # Verbatim session data
+├── researcher.md              # The Assistant's Memory (gitignored)
+├── .cursor/skills/            # Pro-grade Research Skills
+└── src/                       # Next.js 14 App (App Router)
+```
 
-## Cursor skills
+## 🛡️ Privacy & Ownership
 
-Two skills in `.cursor/skills/`:
+Research Hub is **100% Open Source**. You own your data, your codebook, and your assistant's memory. You can configure it to be entirely local, or use cloud-sync adapters for easy sharing. No lock-in, no proprietary formats, just better research.
 
-| Skill | Purpose |
-|-------|---------|
-| **research-analysis** | Analyze transcripts, extract findings, transcribe videos (Groq/Whisper) |
-| **report-publication** | Convert findings to MDX, slice clips, export HTML/PPTX |
+---
 
-Use them when asking the AI to analyze transcripts or publish reports. The app does not call LLM APIs; all AI runs in Cursor via copy-paste prompts.
-
-## Publishing & sharing
-
-- **Local folder** — Export a portable `/export` folder; zip and upload to SharePoint, OneDrive, or Google Drive. Stakeholders can view HTML and watch clips in the browser.
-- **Google Drive** — Publish directly to a Drive folder. Optionally host a Research Hub viewer on Vercel that reads from the same folder.
-
-See [docs/setup-hub-server.md](docs/setup-hub-server.md) for Google Drive and viewer setup.
-
-## Requirements
-
-- Node.js 18+
-- FFmpeg (for `slice-clips`; [ffmpeg-static](https://www.npmjs.com/package/ffmpeg-static) is bundled)
-- Optional: `GROQ_API_KEY` in `.env` for Groq/Whisper transcription in Cursor skill
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT — Crafted with 🧡 for researchers who want more.
