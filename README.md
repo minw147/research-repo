@@ -1,6 +1,6 @@
 # 🧪 Research Hub: The Local-First Research Powerhouse
 
-Research Hub is a **100% open-source, local-first UX research repository** designed for speed, privacy, and deep AI integration. It’s not just a place to dump transcripts; it’s a living analysis engine that evolves with you.
+A local-first UX research hub for transforming transcripts into insight-rich reports with embedded video clips. Optimized for AI-assisted analysis via Cursor or Claude Code without external API calls.
 
 Built to run alongside [Cursor](https://cursor.com) and [Claude Code](https://claude.ai/code), Research Hub gives you the power of frontier AI models applied directly to your local files—no complex cloud configuration required.
 
