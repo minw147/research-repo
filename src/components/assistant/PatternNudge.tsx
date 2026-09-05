@@ -28,13 +28,13 @@ export function PatternNudge({ nudge, onDocument, onDismiss, onNever }: PatternN
         </button>
         <button
           onClick={onDismiss}
-          className="min-h-[44px] min-w-[44px] rounded px-3 py-1 text-xs text-slate-600 hover:text-slate-900 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="min-h-[44px] min-w-[44px] rounded px-3 py-1 text-xs text-[#615d59] hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           Not now
         </button>
         <button
           onClick={onNever}
-          className="min-h-[44px] min-w-[44px] rounded px-3 py-1 text-xs text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="min-h-[44px] min-w-[44px] rounded px-3 py-1 text-xs text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           Never ask
         </button>

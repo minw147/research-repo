@@ -210,17 +210,17 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
       />
 
       <div
-        className="w-full max-w-lg overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-t-md border border-stone-200 bg-white shadow-dialog sm:rounded-md"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
             {selectedAdapter && !publishedUrl ? (
               <button
                 type="button"
                 onClick={() => { setSelectedAdapter(null); setOpenHelpKey(null); setError(null); }}
-                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-800"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-stone-500 transition-colors hover:text-stone-900"
                 aria-label="Back to adapters"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -229,14 +229,14 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
             ) : (
               <>
                 <Share2 className="h-4 w-4 text-primary" />
-                <h2 className="text-base font-semibold text-slate-900">Publish Report</h2>
+                <h2 className="font-serif text-base font-semibold text-stone-900">Publish Report</h2>
               </>
             )}
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
           >
             <X className="h-4 w-4" />
           </button>
@@ -251,19 +251,19 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                 <CheckCircle2 className="h-7 w-7" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Published!</h3>
-                <p className="mt-1 text-sm text-slate-500">Your report is now available at:</p>
+                <h3 className="font-serif text-lg font-semibold text-stone-900">Published!</h3>
+                <p className="mt-1 text-sm text-stone-500">Your report is now available at:</p>
               </div>
 
-              <div className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="break-all text-sm text-slate-700">{publishedUrl}</p>
+              <div className="w-full rounded-md border border-stone-200 bg-stone-50 p-4">
+                <p className="break-all text-sm text-stone-700">{publishedUrl}</p>
                 <div className="mt-3 flex items-center justify-center gap-3">
                   {publishedUrl.startsWith("http") ? (
                     <a
                       href={publishedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      className="flex cursor-pointer items-center gap-2 rounded bg-clay-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
                     >
                       Open <ExternalLink className="h-3.5 w-3.5" />
                     </a>
@@ -279,7 +279,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                             setTimeout(() => setPathCopied(false), 2000);
                           } catch {}
                         }}
-                        className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                        className="flex cursor-pointer items-center gap-2 rounded border border-stone-200 px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
                       >
                         <Copy className="h-3.5 w-3.5" />
                         {pathCopied ? "Copied!" : "Copy path"}
@@ -296,7 +296,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                             });
                           } catch {}
                         }}
-                        className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        className="flex cursor-pointer items-center gap-2 rounded bg-clay-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
                       >
                         <FolderOpen className="h-3.5 w-3.5" />
                         Open folder
@@ -308,7 +308,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
 
               <button
                 onClick={onClose}
-                className="cursor-pointer text-sm font-medium text-slate-500 underline underline-offset-2 transition-colors hover:text-slate-800"
+                className="cursor-pointer text-sm font-medium text-stone-500 underline underline-offset-2 transition-colors hover:text-stone-900"
               >
                 Done
               </button>
@@ -318,12 +318,12 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
           ) : !selectedAdapter ? (
             <div className="p-6">
               {error && (
-                <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mb-4 flex items-center gap-2.5 rounded border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
                 </div>
               )}
-              <p className="mb-4 text-sm text-slate-500">Choose where to publish your report:</p>
+              <p className="mb-4 text-sm text-stone-500">Choose where to publish your report:</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {adapters.map((adapter) => {
                   const Icon = (Icons as any)[adapter.icon] || Box;
@@ -331,14 +331,14 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <button
                       key={adapter.id}
                       onClick={() => setSelectedAdapter(adapter)}
-                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-xl border-2 border-slate-100 bg-white p-5 text-left transition-[border-color,background-color] hover:border-primary/30 hover:bg-primary/5"
+                      className="group flex cursor-pointer flex-col items-start gap-3 rounded-md border-2 border-stone-200 bg-white p-5 text-left transition-[border-color,background-color] hover:border-primary/30 hover:bg-primary/5"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-primary/10">
-                        <Icon className="h-4 w-4 text-slate-500 transition-colors group-hover:text-primary" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded bg-stone-100 transition-colors group-hover:bg-primary/10">
+                        <Icon className="h-4 w-4 text-stone-500 transition-colors group-hover:text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{adapter.name}</p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{adapter.description}</p>
+                        <p className="text-sm font-semibold text-stone-900">{adapter.name}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-stone-500">{adapter.description}</p>
                       </div>
                     </button>
                   );
@@ -349,24 +349,24 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
           /* ── Config form ── */
           ) : configLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+              <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
             </div>
           ) : (
             <form onSubmit={handlePublish} className="flex flex-col">
               {/* Adapter header */}
-              <div className="border-b border-slate-100 px-6 py-4">
+              <div className="border-b border-stone-200 px-6 py-4">
                 <div className="flex items-center gap-3">
                   {(() => {
                     const Icon = (Icons as any)[selectedAdapter.icon] || Box;
                     return (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-primary/10">
                         <Icon className="h-4 w-4 text-primary" />
                       </div>
                     );
                   })()}
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{selectedAdapter.name}</p>
-                    <p className="text-xs text-slate-400">{selectedAdapter.description}</p>
+                    <p className="text-sm font-semibold text-stone-900">{selectedAdapter.name}</p>
+                    <p className="text-xs text-stone-400">{selectedAdapter.description}</p>
                   </div>
                 </div>
               </div>
@@ -379,7 +379,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                     <div key={field.key}>
                       {/* Label row */}
                       <div className="mb-1.5 flex items-center gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                           {field.label}
                           {field.required && field.type !== "oauth" && (
                             <span className="ml-1 text-red-400">*</span>
@@ -390,7 +390,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                             type="button"
                             aria-label={`Help for ${field.label}`}
                             onClick={() => setOpenHelpKey(openHelpKey === field.key ? null : field.key)}
-                            className="cursor-pointer text-slate-300 transition-colors hover:text-primary"
+                            className="cursor-pointer text-stone-400 transition-colors hover:text-primary"
                           >
                             <HelpCircle className="h-3.5 w-3.5" />
                           </button>
@@ -399,15 +399,15 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
 
                       {/* Help popover */}
                       {openHelpKey === field.key && field.help && (
-                        <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                          <p className="mb-2.5 text-xs font-semibold text-slate-700">{field.help.title}</p>
+                        <div className="mb-3 rounded-md border border-stone-200 bg-stone-50 p-4">
+                          <p className="mb-2.5 text-xs font-semibold text-stone-700">{field.help.title}</p>
                           <ol className="space-y-2">
                             {field.help.steps.map((step, i) => (
                               <li key={i} className="flex gap-2.5">
-                                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
                                   {i + 1}
                                 </span>
-                                <span className="text-xs leading-relaxed text-slate-600">
+                                <span className="text-xs leading-relaxed text-stone-600">
                                   {step.url ? (
                                     <a
                                       href={step.url}
@@ -431,7 +431,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                       {field.type === "select" ? (
                         <select
                           required={field.required}
-                          className="w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                          className="w-full cursor-pointer appearance-none rounded border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         >
@@ -448,7 +448,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               type="text"
                               required={field.required}
                               placeholder={field.placeholder}
-                              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                              className="min-w-0 flex-1 rounded border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                               value={config[field.key] || ""}
                               onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                             />
@@ -456,7 +456,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               type="button"
                               onClick={handleBrowseDirectory(field.key)}
                               disabled={isPickerLoading}
-                              className="flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-50"
+                              className="flex shrink-0 cursor-pointer items-center gap-2 rounded border border-stone-200 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 disabled:cursor-wait disabled:opacity-50"
                             >
                               {isPickerLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -478,7 +478,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               </button>
                             </div>
                           ) : (
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-stone-400">
                               Use Browse for an absolute path, or paste one manually.
                             </p>
                           )}
@@ -494,7 +494,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                               </div>
                               <button
                                 type="button"
-                                className="cursor-pointer text-xs text-slate-400 underline underline-offset-2 transition-colors hover:text-slate-600"
+                                className="cursor-pointer text-xs text-stone-400 underline underline-offset-2 transition-colors hover:text-stone-600"
                                 onClick={async () => {
                                   await fetch(`/api/auth/${oauthProvider}/status`, { method: "DELETE" });
                                   setOauthStatus(prev => ({ ...prev, [oauthProvider]: false }));
@@ -506,7 +506,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                           ) : (
                             <button
                               type="button"
-                              className="flex cursor-pointer items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                              className="flex cursor-pointer items-center gap-2 rounded border border-primary/30 bg-primary/10/50 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
                               onClick={() => startOAuth(oauthProvider)}
                             >
                               Connect
@@ -519,7 +519,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                           type={field.type === "password" ? "password" : "text"}
                           required={field.required}
                           placeholder={field.placeholder}
-                          className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                          className="w-full rounded border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                           value={config[field.key] || ""}
                           onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         />
@@ -531,7 +531,7 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
 
               {/* Error */}
               {error && (
-                <div className="mx-6 mb-2 flex items-start gap-2.5 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mx-6 mb-2 flex items-start gap-2.5 rounded border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   {error}
                 </div>
@@ -543,18 +543,18 @@ export function PublishModal({ slug, isOpen, onClose, onSuccess }: PublishModalP
                 const oauthProvider = oauthField?.provider ?? selectedAdapter?.id ?? "";
                 const oauthConnected = !oauthField || oauthStatus[oauthProvider] === true;
                 return (
-                  <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
+                  <div className="flex items-center justify-end gap-3 border-t border-stone-200 px-6 py-4">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                      className="cursor-pointer rounded px-4 py-2.5 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isPublishing || !oauthConnected}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex cursor-pointer items-center gap-2 rounded bg-clay-600 px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isPublishing ? (
                         <>

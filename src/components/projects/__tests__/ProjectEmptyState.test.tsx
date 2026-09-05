@@ -5,10 +5,10 @@ import { ProjectEmptyState } from "../ProjectEmptyState";
 
 afterEach(cleanup);
 
-it("uses amber icon background, not gray", () => {
+it("uses accent-tint icon background, not gray", () => {
   render(<ProjectEmptyState slug="test-project" onAddSession={() => {}} />);
   const iconWrapper = screen.getByTestId("empty-state-icon");
-  expect(iconWrapper.className).toContain("bg-primary");
+  expect(iconWrapper.className).toContain("bg-[#e6f3fe]");
   expect(iconWrapper.className).not.toContain("bg-slate-200");
 });
 

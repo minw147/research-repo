@@ -2,16 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design tokens (burnt orange accent) ─────────────────────────────── */
+/* ─── Design tokens (Mint Leaf: warm stone/pine/clay/ochre) ───────────── */
 
 @layer base {
   :root {
-    --color-primary: #f59f0a;
-    --color-primary-dark: #d97706;
-    --color-background-light: #f8f7f5;
-    --color-background-dark: #221c10;
+    --color-primary: #6B7A5E;       /* sage */
+    --color-primary-dark: #55624B;
+    --color-background-light: #FAF7F2; /* stone-50 */
+    --color-stone-200: #E4DDD0;
+    --color-stone-900: #24211D;
   }
 }
+
+/* The app is fully light — no dark surfaces, no `dark:` variants anywhere,
+   including the Agent Terminal. */
 
 /* ─── Research assistant docked sidebar ─────────────────────────────── */
 
@@ -23,9 +27,7 @@ body.ra-docked {
 /* ─── Reduced motion ────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -38,137 +40,61 @@ body.ra-docked {
   color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
-  transition: color 0.15s;
+  transition: color 0.2s ease;
 }
-.report-prose a:hover {
-  color: var(--color-primary-dark);
-}
-.report-prose .report-callout-content p {
-  margin-bottom: 0.5rem;
-}
-.report-prose .report-callout-content p:last-child {
-  margin-bottom: 0;
-}
+.report-prose a:hover { color: var(--color-primary-dark); }
+.report-prose .report-callout-content p { margin-bottom: 0.5rem; }
+.report-prose .report-callout-content p:last-child { margin-bottom: 0; }
 
-/* ─── Tiptap editor tables (visible grid + comfortable cells) ───────── */
+/* ─── Tiptap editor tables ───────────────────────────────────────────── */
 
-.ProseMirror table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.ProseMirror table th,
-.ProseMirror table td {
-  border: 1px solid rgb(226 232 240); /* slate-200 */
+.ProseMirror table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.ProseMirror table th, .ProseMirror table td {
+  border: 1px solid #E4DDD0; /* stone-200 */
   padding: 0.5rem 0.75rem;
   vertical-align: top;
 }
+.ProseMirror table th { background: #F1ECE3; font-weight: 600; } /* stone-100 */
+.ProseMirror table td > p, .ProseMirror table th > p { margin: 0; }
+.ProseMirror table td:focus, .ProseMirror table th:focus { outline: none; }
+.ProseMirror .selectedCell:after { background: rgba(107, 122, 94, 0.12); } /* primary (sage) @ 12% */
+.ProseMirror a { color: #6B7A5E; } /* primary — overrides prose-slate's default link color */
+.ProseMirror a:hover { color: #55624B; }
 
-.ProseMirror table th {
-  background: rgb(248 250 252); /* slate-50 */
-  font-weight: 600;
-}
+/* ─── Slides layout ──────────────────────────────────────────────────── */
 
-.ProseMirror table td > p,
-.ProseMirror table th > p {
-  margin: 0;
-}
-
-.ProseMirror table td:focus,
-.ProseMirror table th:focus {
-  outline: none;
-}
-
-.ProseMirror .selectedCell:after {
-  /* ProseMirror adds .selectedCell on cell selections */
-  background: rgba(245, 159, 10, 0.12); /* primary @ 12% */
-}
-
-/* ─── Slides layout ────────────────────────────────────────────────── */
-
-/*
- * Wrap the MDX article in `.slides-mode` (set when frontmatter layout: "slides").
- * Each <Slide> renders a `.slide-section` div; CSS counters provide slide numbers
- * without requiring any JS state.
- */
 .slides-mode {
   counter-reset: slide-num;
-  /* Slightly recessed background so white cards "float" */
   background: var(--color-background-light);
-  border-radius: 1rem;
+  border-radius: 12px;
   padding: 1.5rem 0 2rem;
 }
-
-.slides-mode .slide-section {
-  counter-increment: slide-num;
-}
-
-/* Badge: "01" injected via CSS counter, positioned top-right inside the card */
-.slides-mode .slide-section .slide-counter-badge {
-  position: absolute;
-  top: 1.1rem;
-  right: 1.25rem;
-}
+.slides-mode .slide-section { counter-increment: slide-num; }
+.slides-mode .slide-section .slide-counter-badge { position: absolute; top: 1.1rem; right: 1.25rem; }
 .slides-mode .slide-section .slide-counter-badge::before {
   content: counter(slide-num, decimal-leading-zero);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #b87a30;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+  color: #8A7F6E; /* stone-500 */
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }
-
-/* Section headings inside slides get a larger, bolder treatment */
 .slides-mode .slide-section h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a1008;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  font-size: 1.5rem; font-weight: 700; color: #24211D; /* stone-900 */
+  margin-top: 0; margin-bottom: 1rem; line-height: 1.25; letter-spacing: -0.02em;
 }
-
-/* Paragraphs in slides — slightly more breathing room */
 .slides-mode .slide-section p {
-  font-size: 1rem;
-  line-height: 1.75;
-  color: #4a3a2a;
+  font-size: 1rem; line-height: 1.75; color: #4F473C; /* stone-700 */
   margin-bottom: 1rem;
 }
+.slides-mode hr { display: none; }
 
-/* Horizontal rules between slides become invisible — spacing handles separation */
-.slides-mode hr {
-  display: none;
-}
+/* ─── Print ──────────────────────────────────────────────────────────── */
 
-/* ─── Print ────────────────────────────────────────────────────────── */
-
-/* Print: hide nav, show only report content */
 @media print {
-  header,
-  aside,
-  nav,
-  .no-print {
-    display: none !important;
-  }
-  main {
-    max-width: none !important;
-  }
-  body {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-  /* Expand transcript sections for PDF export */
-  details {
-    display: block !important;
-  }
-  details summary {
-    list-style: none;
-  }
-  details summary::-webkit-details-marker {
-    display: none;
-  }
+  header, aside, nav, .no-print { display: none !important; }
+  main { max-width: none !important; }
+  body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  details { display: block !important; }
+  details summary { list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
 }

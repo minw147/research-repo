@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, FileText, Tag, Cloud, FlaskConical, HelpCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Tag, Cloud, HelpCircle } from "lucide-react";
+import { BrandMark } from "@/components/shared/BrandMark";
 import type { Project } from "@/types";
 
 interface WorkspaceNavProps {
@@ -38,7 +39,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
   ];
 
   return (
-    <nav className="flex h-12 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
+    <nav className="flex h-12 items-center gap-3 border-b border-stone-200 bg-white px-4 sm:px-6">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold"
@@ -47,17 +48,16 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
       </a>
       <Link
         href="/"
-        className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
+        className="flex shrink-0 items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 rounded-lg -m-1 p-1 cursor-pointer"
         aria-label="Research Hub home"
       >
-        <FlaskConical className="h-5 w-5 text-primary" />
-        <span className="hidden sm:inline font-bold">Research Hub</span>
+        <BrandMark size={22} wordmarkClassName="text-sm hidden sm:inline" />
       </Link>
 
-      <div className="h-5 w-px shrink-0 bg-slate-200" aria-hidden />
+      <div className="h-4 w-px shrink-0 bg-stone-200" aria-hidden />
 
       <div className="flex min-w-0 shrink items-center gap-2 mr-2">
-        <span className="truncate text-sm font-medium text-slate-600">
+        <span className="truncate text-xs font-medium text-stone-600">
           {project?.title || "Loading..."}
         </span>
       </div>
@@ -78,13 +78,13 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
               role="tab"
               aria-selected={isActive}
               aria-label={tab.label}
-              className={`flex h-full min-w-[44px] items-center justify-center gap-2 border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-0 cursor-pointer ${
+              className={`flex h-full min-w-[44px] items-center justify-center gap-1.5 border-b-2 px-3 text-[12.5px] whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-0 cursor-pointer ${
                 isActive
-                  ? "border-primary text-slate-900 font-semibold"
-                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                  ? "border-primary text-stone-900 font-semibold"
+                  : "border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300"
               }`}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-primary" : ""}`} />
               <span className="hidden md:inline">{tab.label}</span>
             </Link>
           );
@@ -94,7 +94,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
       {onOpenCodebook && (
         <button
           onClick={onOpenCodebook}
-          className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer"
+          className="ml-auto flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer"
           aria-label="Codebook"
         >
           <Tag className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function WorkspaceNav({ slug, onOpenCodebook }: WorkspaceNavProps) {
 
       <Link
         href="/help"
-        className={`${onOpenCodebook ? "" : "ml-auto "}flex shrink-0 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer`}
+        className={`${onOpenCodebook ? "" : "ml-auto "}flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-xs text-stone-600 transition-colors hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-1 cursor-pointer`}
         title="Help: CLI setup"
         aria-label="Help"
       >

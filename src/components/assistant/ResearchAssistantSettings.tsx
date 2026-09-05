@@ -31,7 +31,7 @@ export function ResearchAssistantSettings({
 
   return (
     <div
-      className="absolute right-0 top-0 z-10 h-full w-full rounded-xl border border-slate-200 bg-white p-4"
+      className="absolute right-0 top-0 z-10 h-full w-full rounded-xl border border-black/[.08] bg-white p-4"
       style={{ animation: "slideInRight 100ms ease-out" }}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -39,7 +39,7 @@ export function ResearchAssistantSettings({
         <button
           onClick={onClose}
           aria-label="Close settings"
-          className="min-h-[44px] min-w-[44px] rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="min-h-[44px] min-w-[44px] rounded text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           ✕
         </button>
@@ -47,7 +47,7 @@ export function ResearchAssistantSettings({
 
       <div className="space-y-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ra-preferred-name">
+          <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ra-preferred-name">
             Your preferred name
           </label>
           <input
@@ -56,13 +56,13 @@ export function ResearchAssistantSettings({
             type="text"
             value={localPreferredName}
             onChange={(e) => setLocalPreferredName(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             placeholder="e.g. Alex"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ra-bot-name">
+          <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ra-bot-name">
             Bot name
           </label>
           <input
@@ -70,7 +70,7 @@ export function ResearchAssistantSettings({
             type="text"
             value={localBotName}
             onChange={(e) => setLocalBotName(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             placeholder="Sage"
           />
         </div>
@@ -82,11 +82,11 @@ export function ResearchAssistantSettings({
           Save
         </button>
 
-        <hr className="border-slate-100" />
+        <hr className="border-black/[.08]" />
 
         <button
           onClick={onResetProfile}
-          className="min-h-[44px] w-full rounded-lg px-4 py-2 text-xs text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="min-h-[44px] w-full rounded-lg px-4 py-2 text-xs text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           Reset profile &amp; re-run onboarding
         </button>

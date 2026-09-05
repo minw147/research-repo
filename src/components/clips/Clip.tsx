@@ -110,7 +110,7 @@ export default function Clip({
     const embedSrc = toCloudEmbedUrl(src);
 
     return (
-      <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
+      <div className="group my-8 rounded-md border-l-4 border-primary border border-stone-200 bg-white">
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
           <div className="relative shrink-0">
             {isOneDrive ? (
@@ -118,12 +118,12 @@ export default function Clip({
                 href={watchUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-[180px] w-full max-w-md flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition-colors hover:border-primary hover:bg-slate-100"
+                className="flex h-[180px] w-full max-w-md flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed border-stone-200 bg-stone-50 transition-colors hover:border-primary hover:bg-stone-100"
               >
-                <svg className="h-12 w-12 text-slate-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <svg className="h-12 w-12 text-stone-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-stone-600">
                   Watch clip at {formatTime(start)}–{formatTime(clipEnd)}
                 </span>
               </a>
@@ -131,13 +131,13 @@ export default function Clip({
               <iframe
                 src={embedSrc}
                 title="Video clip"
-                className="h-[240px] w-full max-w-md rounded-xl bg-black"
+                className="h-[240px] w-full max-w-md rounded-md bg-black"
                 allow="autoplay"
                 allowFullScreen
               />
             )}
             {start > 0 && (
-              <div className="absolute -bottom-2 -right-2 rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              <div className="absolute -bottom-2 -right-2 rounded bg-stone-900 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
                 {formatTime(start)}–{formatTime(clipEnd)}
               </div>
             )}
@@ -145,20 +145,20 @@ export default function Clip({
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             {participant && (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{participant}</span>
-                {duration && <><span className="h-1 w-1 rounded-full bg-slate-300" /><span className="text-xs text-slate-400">{duration}</span></>}
+                <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">{participant}</span>
+                {duration && <><span className="h-1 w-1 rounded-full bg-stone-300" /><span className="text-xs text-stone-400">{duration}</span></>}
               </div>
             )}
             <blockquote>
-              <p className="text-lg font-medium leading-normal text-slate-800">{label}</p>
+              <p className="font-serif italic text-lg leading-normal text-stone-900">{label}</p>
             </blockquote>
-            <a href={watchUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-primary transition-colors">
+            <a href={watchUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-stone-400 hover:text-primary transition-colors">
               Watch clip at {formatTime(start)}–{formatTime(clipEnd)}
             </a>
             {transcriptExcerpt && (
-              <details className="mt-2 rounded-lg border border-slate-200 overflow-hidden">
-                <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50">Transcript ({formatTime(start)}–{formatTime(clipEnd)})</summary>
-                <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-relaxed text-slate-600">{transcriptExcerpt}</div>
+              <details className="mt-2 rounded border border-stone-200 overflow-hidden">
+                <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-stone-500 hover:bg-stone-50">Transcript ({formatTime(start)}–{formatTime(clipEnd)})</summary>
+                <div className="border-t border-stone-200 bg-stone-50 px-3 py-2 text-sm leading-relaxed text-stone-600">{transcriptExcerpt}</div>
               </details>
             )}
           </div>
@@ -168,7 +168,7 @@ export default function Clip({
   }
 
   return (
-    <div className="group my-8 rounded-xl border-l-4 border-primary bg-white shadow-sm ring-1 ring-slate-200 transition-shadow hover:shadow-md">
+    <div className="group my-8 rounded-md border-l-4 border-primary border border-stone-200 bg-white">
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
         {/* Video Area */}
         <div className="relative shrink-0">
@@ -176,7 +176,7 @@ export default function Clip({
             ref={videoRef}
             src={srcWithStart}
             controls
-            className="h-auto max-w-md rounded-xl bg-black"
+            className="h-auto max-w-md rounded-md bg-black"
             preload="metadata"
           >
             {trackSrc && (
@@ -184,7 +184,7 @@ export default function Clip({
             )}
           </video>
           {start > 0 && (
-            <div className="absolute -bottom-2 -right-2 rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+            <div className="absolute -bottom-2 -right-2 rounded bg-stone-900 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
               {formatTime(start)}–{formatTime(clipEnd)}
             </div>
           )}
@@ -194,34 +194,34 @@ export default function Clip({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           {participant && (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                 {participant}
               </span>
               {duration && (
                 <>
-                  <span className="h-1 w-1 rounded-full bg-slate-300" />
-                  <span className="text-xs text-slate-400">{duration}</span>
+                  <span className="h-1 w-1 rounded-full bg-stone-300" />
+                  <span className="text-xs text-stone-400">{duration}</span>
                 </>
               )}
             </div>
           )}
           <blockquote>
-            <p className="text-lg font-medium leading-normal text-slate-800">{label}</p>
+            <p className="font-serif italic text-lg leading-normal text-stone-900">{label}</p>
           </blockquote>
           <a
             href={watchUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-400 hover:text-primary transition-colors"
+            className="text-xs text-stone-400 hover:text-primary transition-colors"
           >
             Watch clip at {formatTime(start)}–{formatTime(clipEnd)}
           </a>
           {transcriptExcerpt && (
-            <details className="mt-2 rounded-lg border border-slate-200 overflow-hidden">
-              <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50">
+            <details className="mt-2 rounded border border-stone-200 overflow-hidden">
+              <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-stone-500 hover:bg-stone-50">
                 Transcript ({formatTime(start)}–{formatTime(clipEnd)})
               </summary>
-              <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-relaxed text-slate-600">
+              <div className="border-t border-stone-200 bg-stone-50 px-3 py-2 text-sm leading-relaxed text-stone-600">
                 {transcriptExcerpt}
               </div>
             </details>

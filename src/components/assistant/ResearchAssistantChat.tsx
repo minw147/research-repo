@@ -75,7 +75,7 @@ export function ResearchAssistantChat({
         className="flex-1 overflow-y-auto px-3 py-2 space-y-3"
       >
         {visibleHistory.length === 0 && !streaming && (
-          <p className="text-center text-xs text-slate-400 mt-4">
+          <p className="text-center text-xs text-black/54 mt-4">
             Ask {botName} anything about your research.
           </p>
         )}
@@ -87,10 +87,10 @@ export function ResearchAssistantChat({
         {streaming && (
           <div
             aria-busy="true"
-            className="max-w-[85%] self-start rounded-lg bg-slate-50 px-3 py-2"
+            className="max-w-[85%] self-start rounded-lg bg-[#f6f5f4] px-3 py-2"
           >
             {streamingContent ? (
-              <p className="text-sm text-slate-600 italic opacity-70 whitespace-pre-wrap">
+              <p className="text-sm text-[#615d59] italic opacity-70 whitespace-pre-wrap">
                 {streamingContent}
               </p>
             ) : (
@@ -113,7 +113,7 @@ export function ResearchAssistantChat({
       </div>
 
       {/* Input row */}
-      <div className="border-t border-slate-100 px-3 py-2">
+      <div className="border-t border-black/[.08] px-3 py-2">
         <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
@@ -123,7 +123,7 @@ export function ResearchAssistantChat({
             rows={1}
             placeholder={PLACEHOLDERS[placeholderIdx]}
             disabled={streaming}
-            className="min-h-[44px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+            className="min-h-[44px] flex-1 resize-none rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
           />
           <button
             onClick={handleSend}
@@ -136,7 +136,7 @@ export function ResearchAssistantChat({
         </div>
         <button
           onClick={onClear}
-          className="mt-1 text-xs text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary"
+          className="mt-1 text-xs text-black/54 hover:text-black focus:ring-2 focus:ring-primary"
         >
           Clear history
         </button>
@@ -153,7 +153,7 @@ function MessageBubble({ msg, botName }: { msg: ChatMessage; botName: string }) 
         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
           isUser
             ? "bg-primary text-white"
-            : "bg-slate-50 text-slate-900 border border-slate-100"
+            : "bg-[#f6f5f4] text-slate-900 border border-black/[.08]"
         }`}
       >
         {!isUser && (

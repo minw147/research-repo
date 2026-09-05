@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Loader2, FolderPlus } from "lucide-react";
+import { X, Loader2, FolderPlus } from "lucide-react";
 import { parseCsvCodebook } from "@/lib/csv-codebook";
 import { generateTagId } from "@/lib/codebook-utils";
 import { assignTagColor } from "@/lib/color-themes";
@@ -43,10 +43,10 @@ function CategoryCombobox({
           }, 150);
         }}
         placeholder="Select or type new..."
-        className="w-full bg-transparent text-white text-sm border-b border-white/20 focus:outline-none focus:border-primary py-0.5"
+        className="w-full bg-transparent text-stone-900 text-sm border-b border-stone-300 focus:outline-none focus:border-primary py-0.5"
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-10 top-full left-0 bg-surface border border-white/10 rounded-lg shadow-xl w-48 mt-1">
+        <div className="absolute z-10 top-full left-0 bg-white border border-stone-200 rounded shadow-dialog w-48 mt-1">
           {filtered.map((c) => (
             <button
               key={c}
@@ -57,7 +57,7 @@ function CategoryCombobox({
                 onChange(c);
                 setOpen(false);
               }}
-              className="block w-full text-left px-3 py-1.5 text-sm text-white/80 hover:bg-white/5"
+              className="block w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
             >
               {c}
             </button>
@@ -68,8 +68,12 @@ function CategoryCombobox({
   );
 }
 
-export function NewProjectModal() {
-  const [isOpen, setIsOpen] = useState(false);
+interface NewProjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function NewProjectModal({ isOpen, onClose }: NewProjectModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -99,7 +103,7 @@ export function NewProjectModal() {
     setCsvRows([]);
     setNewCategories([]);
     setError(null);
-    setIsOpen(false);
+    onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,34 +215,22 @@ export function NewProjectModal() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="group flex flex-col items-center justify-center p-4 h-full min-h-[200px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-[border-color,background-color] duration-200 cursor-pointer"
-      >
-        <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
-          <Plus className="w-5 h-5 text-slate-500 group-hover:text-primary" />
-        </div>
-          <span className="text-sm text-slate-600 group-hover:text-primary-dark font-medium">
-          New Project
-        </span>
-      </button>
-
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200"
+            className="bg-white rounded-md shadow-dialog w-full max-w-lg overflow-hidden border border-stone-200 animate-in fade-in zoom-in duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-200 bg-stone-100/50 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                <div className="p-1.5 bg-clay-600/10 rounded text-clay-600">
                   <FolderPlus className="w-4 h-4" />
                 </div>
-                <h2 className="text-lg font-semibold text-slate-900">Create New Project</h2>
+                <h2 className="font-serif font-semibold text-stone-900">Create New Project</h2>
               </div>
               <button
                 onClick={handleClose}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                className="text-stone-400 hover:text-stone-900 p-1 rounded-md hover:bg-stone-100 transition-colors duration-200 cursor-pointer"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -258,13 +250,13 @@ export function NewProjectModal() {
                 {step === "details" && (
                   <>
                     <div className="space-y-1.5">
-                      <label htmlFor="project-title" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <label htmlFor="project-title" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                         Project Title *
                       </label>
                       <input
                         id="project-title"
                         required
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-stone-400"
                         placeholder="e.g. Checkout Flow Usability"
                         value={formData.title}
                         onChange={(e) =>
@@ -275,13 +267,13 @@ export function NewProjectModal() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label htmlFor="project-researcher" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <label htmlFor="project-researcher" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                           Researcher *
                         </label>
                         <input
                           id="project-researcher"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-stone-400"
                           placeholder="Your Name"
                           value={formData.researcher}
                           onChange={(e) =>
@@ -290,13 +282,13 @@ export function NewProjectModal() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="project-persona" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <label htmlFor="project-persona" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                           Persona *
                         </label>
                         <input
                           id="project-persona"
                           required
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
+                          className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-stone-400"
                           placeholder="e.g. New User"
                           value={formData.persona}
                           onChange={(e) =>
@@ -307,12 +299,12 @@ export function NewProjectModal() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label htmlFor="project-product" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <label htmlFor="project-product" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                         Product (optional)
                       </label>
                       <input
                         id="project-product"
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-stone-400"
                         placeholder="e.g. Mobile App"
                         value={formData.product}
                         onChange={(e) =>
@@ -322,13 +314,13 @@ export function NewProjectModal() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label htmlFor="project-research-plan" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <label htmlFor="project-research-plan" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                         Research Plan (optional)
                       </label>
                       <textarea
                         id="project-research-plan"
                         rows={3}
-                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-slate-400 resize-none"
+                        className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 placeholder:text-stone-400 resize-none"
                         placeholder="Study goals and questions..."
                         value={formData.researchPlan}
                         onChange={(e) =>
@@ -338,13 +330,13 @@ export function NewProjectModal() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label htmlFor="project-codebook" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <label htmlFor="project-codebook" className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
                         Codebook
                       </label>
                       <div className="relative">
                         <select
                           id="project-codebook"
-                          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 appearance-none cursor-pointer"
+                          className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary transition-[border-color,box-shadow] text-slate-900 appearance-none cursor-pointer"
                           value={formData.codebook || ""}
                           onChange={(e) =>
                             setFormData({
@@ -356,7 +348,7 @@ export function NewProjectModal() {
                           <option value="">Global Only</option>
                           <option value="custom">Custom (upload CSV)</option>
                         </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
                           <svg
                             className="w-4 h-4 fill-current"
                             viewBox="0 0 20 20"
@@ -373,7 +365,7 @@ export function NewProjectModal() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm text-slate-700 mb-1">Upload codebook CSV</label>
-                      <p className="text-xs text-slate-400 mb-2">
+                      <p className="text-xs text-stone-400 mb-2">
                         Required columns: <code>label</code>, <code>category</code>
                       </p>
                       <input
@@ -401,7 +393,7 @@ export function NewProjectModal() {
                             setError(`CSV parse error: ${err instanceof Error ? err.message : String(err)}`);
                           }
                         }}
-                        className="block w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                        className="block w-full text-sm text-stone-500 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200"
                       />
                     </div>
 
@@ -410,7 +402,7 @@ export function NewProjectModal() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="text-slate-500 text-left border-b border-slate-200">
+                              <tr className="text-stone-500 text-left border-b border-stone-200">
                                 <th className="pb-2 pr-4">Label</th>
                                 <th className="pb-2 pr-4">Category</th>
                                 <th className="pb-2 pr-4">ID</th>
@@ -420,7 +412,7 @@ export function NewProjectModal() {
                             </thead>
                             <tbody>
                               {csvRows.map((row, i) => (
-                                <tr key={i} className="border-b border-slate-100">
+                                <tr key={i} className="border-b border-stone-200">
                                   <td className="py-2 pr-4 text-slate-900">{row.label}</td>
                                   <td className="py-2 pr-4">
                                     <CategoryCombobox
@@ -436,10 +428,10 @@ export function NewProjectModal() {
                                       }}
                                     />
                                   </td>
-                                  <td className="py-2 pr-4 text-slate-400 font-mono text-xs">{row.id}</td>
+                                  <td className="py-2 pr-4 text-stone-400 font-mono text-xs">{row.id}</td>
                                   <td className="py-2 pr-4">
                                     <span
-                                      className="inline-block w-4 h-4 rounded-full border border-slate-300"
+                                      className="inline-block w-4 h-4 rounded-full border border-stone-200"
                                       style={{ backgroundColor: row.color }}
                                     />
                                   </td>
@@ -457,18 +449,18 @@ export function NewProjectModal() {
                         </div>
 
                         {newCategories.length > 0 && (
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-stone-500">
                             New categories:{" "}
                             {newCategories.map((c, i) => (
                               <span key={i} className="inline-flex items-center gap-1 mr-2">
                                 <span className="text-slate-700">{c}</span>
-                                <span className="text-xs bg-slate-100 px-1 rounded text-slate-500">New</span>
+                                <span className="text-xs bg-stone-100 px-1 rounded text-stone-500">New</span>
                               </span>
                             ))}
                           </p>
                         )}
 
-                        <p className="text-xs text-slate-400 mt-2">
+                        <p className="text-xs text-stone-400 mt-2">
                           You can update your codebook anytime from the Codebook link in the header.
                         </p>
                       </>
@@ -477,7 +469,7 @@ export function NewProjectModal() {
                     <button
                       type="button"
                       onClick={() => setStep("details")}
-                      className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+                      className="text-sm text-stone-500 hover:text-stone-900 transition-colors"
                     >
                       ← Back
                     </button>
@@ -490,11 +482,11 @@ export function NewProjectModal() {
                   {error}
                 </div>
               )}
-              <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 shrink-0">
+              <div className="px-4 py-2.5 border-t border-stone-200 flex items-center justify-end gap-3 bg-stone-100/50 shrink-0">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
                 >
                   Cancel
                 </button>
@@ -518,7 +510,7 @@ export function NewProjectModal() {
                       setError(null);
                       setStep("codebook");
                     }}
-                    className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center gap-2 transition-colors"
+                    className="px-4 py-2 text-sm font-medium bg-clay-600 text-white rounded hover:opacity-90 flex items-center gap-2 transition-colors"
                   >
                     Next: Set Up Codebook
                   </button>
@@ -526,7 +518,7 @@ export function NewProjectModal() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    className="px-4 py-2 text-sm font-medium bg-clay-600 text-white rounded hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                   >
                     {isLoading ? (
                       <>
@@ -542,7 +534,7 @@ export function NewProjectModal() {
                     type="button"
                     onClick={handleSubmitWithCodebook}
                     disabled={isLoading || hasMissingCategory}
-                    className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    className="px-4 py-2 text-sm font-medium bg-clay-600 text-white rounded hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                   >
                     {isLoading ? (
                       <>

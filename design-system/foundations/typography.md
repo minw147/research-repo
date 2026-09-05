@@ -4,51 +4,59 @@
 
 | Role | Family | CSS variable | Tailwind class | When to use |
 |------|--------|-------------|----------------|-------------|
-| Display / headings | DM Sans | `--font-dm-sans` | `font-display` | H1, H2, H3, project card titles, modal headings |
-| Body | Inter | `--font-inter` | `font-sans` (default) | All body copy, labels, UI text |
-| Monospace | System mono | — | `font-mono` | Agent terminal output, code blocks |
+| Serif / display | Newsreader | `--font-newsreader` | `font-serif` / `font-display` | H1–H4, card/modal titles, **and quote text (italic)** |
+| Sans / UI | IBM Plex Sans | `--font-plex-sans` | `font-sans` (default) | Body copy, labels, buttons, all UI chrome |
+| Mono / data | IBM Plex Mono | `--font-plex-mono` | `font-mono` | Timestamps, session/tag chips, dates, file paths, terminal output, micro-labels |
 
-Both fonts are loaded via `next/font/google` in `src/app/layout.tsx`. DM Sans adds visual differentiation between structural headings and body content — without it everything reads like a form.
+All three load via `next/font/google` in `src/app/layout.tsx`. This supersedes the prior Inter + Source Serif 4 pairing — Newsreader is now a load-bearing font (headings AND quote text), not an optional accent.
 
-> **Rule:** Apply `font-display` to every `<h1>`, `<h2>`, `<h3>`, and component title (e.g. `<h3 className="font-display ...">` in ProjectCard). Do not apply it to labels, body paragraphs, or UI controls.
+> **Rule:** Apply `font-serif` to every heading (`<h1>`–`<h4>`) and to quote/pulled-evidence text (usually combined with `italic`). Do not apply it to labels, body paragraphs, or UI controls — those stay `font-sans` (the default).
+> **Rule:** Reach for `font-mono` more than you'd expect — this system uses it heavily for anything data-shaped: dates, timestamps, counts, file paths, adapter names in Storage. If a Notion-blue-era component uses plain `font-sans` for one of these, it's a candidate for a mono fix, not necessarily urgent.
 
 ---
 
 ## Type Scale
 
-| Role | Size | Weight | Line-height | Tailwind classes |
-|------|------|--------|-------------|-----------------|
-| H1 (hero) | 2.25–3rem | 800 | 1.2 | `font-display text-3xl font-extrabold tracking-tight` |
-| H2 (section) | 1.5rem | 700 | 1.25 | `font-display text-2xl font-bold tracking-tight` |
-| H3 (card / sub) | 1.25rem | 600 | 1.3 | `font-display text-xl font-semibold` |
-| H4 | 1.125rem | 600 | 1.35 | `font-display text-lg font-semibold` |
-| Body | 1rem | 400 | 1.5 | `text-base` |
-| Body small | 0.875rem | 400 | 1.5 | `text-sm` |
-| Caption / label | 0.75rem | 500–600 | 1.4 | `text-xs font-medium` |
-| Badge / micro | 0.625rem | 700 | 1 | `text-[10px] font-bold uppercase tracking-wider` |
+| Role | Size | Weight | Tailwind classes |
+|------|------|--------|-----------------|
+| H1 (page/dashboard) | 26px | 600 | `font-serif text-[26px] font-semibold` |
+| H2 (section) | 20px | 600 | `font-serif text-xl font-semibold` |
+| H3 (card / modal title) | 16px | 600 | `font-serif text-base font-semibold` |
+| Body | 14px | 400 | `text-sm` |
+| Body large (report) | 15–16px | 400 | `text-[15px]` / `text-base` |
+| Small / meta | 13px | 400 | `text-[13px]` |
+| Micro / label | 10–11px | 600 | `text-[10.5px] font-semibold uppercase tracking-wide` |
+| Button label | 14px | 500 | `text-sm font-medium` |
+| Quote text | 15–16px | 400 italic | `font-serif italic text-[15px] leading-[1.55]` |
 
-> **Rule:** Use `tracking-tight` on headings, `tracking-wider` only on micro-labels/badges. Do not introduce ad-hoc sizes like `text-[13px]` — use the nearest scale step.
+> **Rule:** Buttons use `font-medium` (500) — including the clay CTA buttons — not `font-bold`/`font-semibold`.
+> **Rule:** Micro-labels (session counts, status labels, form field labels) are `font-semibold` (600) at 10–11px with `uppercase tracking-wide`, in mono where the content is data-shaped (counts, dates) or plain sans where it's a label (form field names).
 
 ---
 
 ## Usage Examples
 
 ```tsx
-// H1
-<h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
-  Research Hub
+// H1 (Dashboard)
+<h1 className="font-serif text-[26px] font-semibold text-stone-900">
+  Research <span className="italic text-clay-600">Hub</span>
 </h1>
 
 // Card title (H3)
-<h3 className="font-display text-xl font-semibold text-slate-900">
+<h3 className="font-serif font-semibold text-[16px] text-stone-900">
   {project.title}
 </h3>
 
-// Status badge micro-label
-<span className="text-[10px] font-bold uppercase tracking-wider">
-  {status}
+// Quote text
+<p className="font-serif italic text-stone-900 text-[15px] leading-[1.55]">"{quote}"</p>
+
+// Micro label (mono, data-shaped)
+<span className="font-mono text-[10.5px] text-stone-500 uppercase tracking-wide">
+  {date}
 </span>
 
-// Body caption
-<p className="text-sm text-slate-600">Secondary description text</p>
+// Form field label (sans, not data)
+<label className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wide">
+  Project Title
+</label>
 ```

@@ -122,7 +122,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   );
 
   return (
-    <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-li:my-0">
+    <div className="prose prose-stone max-w-none prose-p:leading-relaxed prose-li:my-0">
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkDirective, remarkCalloutDirectives]} components={components}>
         {content}
       </ReactMarkdown>

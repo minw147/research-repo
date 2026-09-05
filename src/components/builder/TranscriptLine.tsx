@@ -34,7 +34,7 @@ export const TranscriptLine: React.FC<TranscriptLineProps> = ({
       <button
         type="button"
         onClick={() => onClick(line.sec)}
-        className="shrink-0 w-14 min-w-[3.5rem] text-left font-mono text-xs text-gray-400 mt-0.5 select-none cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded py-0.5 -my-0.5 -mx-1"
+        className="shrink-0 w-14 min-w-[3.5rem] text-left font-mono text-xs text-primary mt-0.5 select-none cursor-pointer hover:text-primary-dark hover:bg-stone-100 rounded py-0.5 -my-0.5 -mx-1"
         aria-label={`Play from ${formatTime(line.sec)}`}
       >
         [{formatTime(line.sec)}]
@@ -42,7 +42,7 @@ export const TranscriptLine: React.FC<TranscriptLineProps> = ({
       {/* Column 2: transcript text only — selectable for clips */}
       <p
         className={`flex-1 min-w-0 text-sm select-text cursor-text pl-2 ${
-          isActive ? "text-slate-900 font-medium" : "text-gray-700"
+          isActive ? "text-stone-900 font-medium" : "text-stone-700"
         }`}
       >
         {line.text}

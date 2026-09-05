@@ -2,33 +2,34 @@
 
 **Source:** `src/components/builder/AgentRunner.tsx`
 
-The Agent Runner terminal displays streaming output from CLI agent runs. It uses a warm dark palette — not the default VS Code-style cool blue-slate.
+The Agent Runner terminal displays streaming output from CLI agent runs. **As of the Mint Leaf redesign, the terminal is light-themed, not dark** — the canvas dropped the "one dark surface" convention entirely. There is currently no intentionally-dark surface anywhere in the app; see `patterns/dark-mode.md`.
 
 ## Palette
 
 | Element | Class / Value |
 |---------|--------------|
-| Body background | `bg-[#1c1108]` |
-| Header / chrome | `bg-[#2a1f0e]` (= `surface-dark` token) |
-| Borders | `border-[#4a3520]` (= `border-dark` token) |
-| Primary text | `text-amber-50` |
-| Muted labels | `text-amber-200/70` |
-| Tool output | `text-yellow-400` / `text-yellow-500` |
-| Success / agent text | `text-green-300` |
-| Error text | `text-red-400` |
-| Running indicator | `text-green-400 animate-pulse` |
-| Stop button | `border-red-500/50 text-red-400 hover:bg-red-500/10` |
+| Header bar ("Agent output") | `bg-stone-100 text-stone-600` |
+| Log body background | `bg-stone-50` |
+| Borders | `border-stone-200` |
+| Tool-call lines | `text-ochre-600` |
+| Agent text / success | `text-stone-700` |
+| Error / stderr | `text-red-700` |
+| Info (e.g. "Stopped.") | `text-stone-400 italic` |
+| Running indicator | `text-primary` (sage dot + "Running…") |
+| Stop button | `border-red-700/40 text-red-700 hover:bg-red-700/10` |
+| "Run in Agent" button | `bg-clay-600 text-white` (the CTA color, not sage) |
+| Settings-panel background | `bg-stone-100`, inputs `bg-white border-stone-300` |
 
 ## Layout
 
 ```tsx
 {/* Header bar */}
-<div className="bg-[#2a1f0e] px-3 py-1.5 text-xs text-amber-200/70 flex justify-between items-center border-b border-[#4a3520]">
+<div className="bg-stone-100 px-3.5 py-2 text-[11px] font-semibold text-stone-600 flex justify-between items-center">
   <span>Agent output</span>
 </div>
 
 {/* Log body */}
-<div className="bg-[#1c1108] font-mono text-xs p-3 max-h-48 overflow-y-auto">
+<div className="bg-stone-50 font-mono text-[11.5px] leading-relaxed p-3 max-h-48 overflow-y-auto">
   {logLines.map(...)}
 </div>
 ```
@@ -37,16 +38,17 @@ The Agent Runner terminal displays streaming output from CLI agent runs. It uses
 
 | Kind | Color |
 |------|-------|
-| `text` (agent response) | `text-green-300` |
-| `tool` (tool call) | icon `text-yellow-500`, name `text-yellow-400`, summary `text-slate-500` |
-| `stderr` | `text-red-400` |
-| `info` (e.g. "Stopped.") | `text-slate-500 italic` |
+| `text` (agent response) | `text-stone-700` |
+| `tool` (tool call) | icon `text-ochre-600`, name `text-ochre-600`, summary `text-stone-400` |
+| `stderr` | `text-red-700` |
+| `info` | `text-stone-400 italic` |
 
-## Settings Panel
+## Controls row
 
-When the settings panel is open, it uses `bg-[#2a1f0e]` with `border-[#4a3520]` borders and `text-amber-200/70` labels — matching the terminal chrome, not the light app surface.
+The always-visible bottom row (Run button, settings gear, side actions) sits on `bg-white`, not a tinted surface — this is a genuine full-white bar, distinct from the stone-100 header above it.
 
 ## Usage
 
-**Don't** — use `bg-slate-800`, `bg-slate-900`, or any cool-slate class in this component.
-**Don't** — use `text-slate-200` for terminal text — use `text-amber-50`.
+**Don't** — reintroduce `midnight-ink`, amber, or any dark surface here — the terminal is light now, matching the rest of the app.
+**Don't** — use `bg-primary` for the "Run in Agent" button — it's clay, matching every other primary CTA in the system.
+**Do** — keep the header (`bg-stone-100`) visually distinct from the log body (`bg-stone-50`) — two adjacent warm neutrals, not one flat surface.

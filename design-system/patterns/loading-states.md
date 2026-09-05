@@ -36,7 +36,7 @@ Do not introduce new sizes — pick the nearest from this table.
 The agent terminal uses a pulsing dot for streaming state:
 
 ```tsx
-<span className="animate-pulse text-green-400">● Running...</span>
+<span className="animate-pulse text-[#62aef0]">● Running...</span>
 ```
 
 ## Future — Skeleton Loaders
@@ -45,9 +45,9 @@ For content-heavy lists (project cards, session lists), prefer skeleton loaders 
 
 ```tsx
 // Skeleton card placeholder
-<div className="bg-white border border-slate-200 rounded-xl p-4 animate-pulse">
-  <div className="h-5 bg-slate-200 rounded w-3/4 mb-3" />
-  <div className="h-4 bg-slate-100 rounded w-1/2" />
+<div className="bg-white border border-black/[.08] rounded-xl p-4 animate-pulse">
+  <div className="h-5 bg-black/[.08] rounded w-3/4 mb-3" />
+  <div className="h-4 bg-black/[.08] rounded w-1/2" />
 </div>
 ```
 

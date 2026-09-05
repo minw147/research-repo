@@ -1,35 +1,38 @@
-# Badge
+# Badge (Status)
 
 **Source:** `src/components/projects/ProjectCard.tsx`
 
-Status badges communicate the current phase of a project. They always combine **color + icon** — never color alone.
+Status is now a **dot + label**, not a pill badge with an icon. This is a deliberate simplification from the earlier pill/icon convention — don't reintroduce icons or a background pill.
 
 ## Status Variants
 
-| Status | Icon (Lucide) | Classes |
-|--------|--------------|---------|
-| `setup` | `Circle` | `bg-gray-100 text-gray-700 border-gray-200` |
-| `findings` | `Search` | `bg-blue-100 text-blue-700 border-blue-200` |
-| `tagged` | `Tag` | `bg-purple-100 text-purple-700 border-purple-200` |
-| `report` | `FileText` | `bg-green-100 text-green-700 border-green-200` |
-| `exported` | `Upload` | `bg-emerald-100 text-emerald-700 border-emerald-200` |
-| `published` | `Globe` | `bg-teal-100 text-teal-700 border-teal-200` |
+| Status | Dot color | Tailwind |
+|--------|-----------|----------|
+| `setup` | stone-400 (neutral) | `bg-stone-400` |
+| `findings` | sage | `bg-primary` |
+| `tagged` | ochre | `bg-ochre-600` |
+| `report` | clay | `bg-clay-600` |
+| `exported` | `#4A5A8C` | `bg-status-back` |
+| `published` | `#2F6F4E` | `bg-status-right` |
 
 ## Shell Classes
 
 ```tsx
-<span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border ${statusColors[status]}`}>
-  <StatusIcon className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
-  {status}
-</span>
+<div className="flex items-center gap-1.5">
+  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDotColors[status]}`} />
+  <span className="text-[10px] font-semibold uppercase tracking-wide text-stone-700">
+    {statusLabels[status]}
+  </span>
+</div>
 ```
 
 ## Usage
 
-**Do** — always include both the icon and the text label.
-**Don't** — use color as the sole differentiator (approximately 8% of males are red-green colorblind).
+**Do** — always pair the dot with the text label; the label is what actually carries the status, the dot is a quick-scan accent.
+**Don't** — add a background pill or an icon back in — the flat dot+label is intentional across every status this system defines.
+**Don't** — reuse `status-back`/`status-right` names to mean anything other than exported/published — they're borrowed from the shared Mint Leaf design system's generic status-color set, repurposed here specifically for these two project statuses.
 
 ## Accessibility
 
-- Icon is `aria-hidden="true"` — the text label carries the semantic meaning.
-- Color + icon + text = three independent cues. WCAG 1.4.1 (Use of Color) is satisfied.
+- The text label is the accessible name — the dot alone is `aria-hidden` implicitly (no separate `aria-hidden` needed since it carries no text).
+- Color is never the sole differentiator — the uppercase label text is always present alongside the dot.

@@ -52,7 +52,7 @@ function TableHoverControls({ editor }: { editor: Editor }) {
         "group-hover:opacity-100",
       ].join(" ")}
     >
-      <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur px-1.5 py-1">
+      <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-black/[.08] bg-white/95 shadow-dialog backdrop-blur px-1.5 py-1">
         <button
           type="button"
           disabled={!canAddRow}
@@ -62,7 +62,7 @@ function TableHoverControls({ editor }: { editor: Editor }) {
           }}
           className={[
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canAddRow ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 cursor-not-allowed",
+            canAddRow ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
           ].join(" ")}
           title="Add row"
         >
@@ -77,14 +77,14 @@ function TableHoverControls({ editor }: { editor: Editor }) {
           }}
           className={[
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canDelRow ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 cursor-not-allowed",
+            canDelRow ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
           ].join(" ")}
           title="Delete row"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
 
-        <span className="w-px h-4 bg-slate-200 mx-0.5" aria-hidden />
+        <span className="w-px h-4 bg-black/[.08] mx-0.5" aria-hidden />
 
         <button
           type="button"
@@ -95,7 +95,7 @@ function TableHoverControls({ editor }: { editor: Editor }) {
           }}
           className={[
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canAddCol ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 cursor-not-allowed",
+            canAddCol ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
           ].join(" ")}
           title="Add column"
         >
@@ -110,7 +110,7 @@ function TableHoverControls({ editor }: { editor: Editor }) {
           }}
           className={[
             "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canDelCol ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 cursor-not-allowed",
+            canDelCol ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
           ].join(" ")}
           title="Delete column"
         >
@@ -260,7 +260,7 @@ export const RichMarkdownEditor = forwardRef<RichMarkdownEditorHandle, RichMarkd
       editorProps: {
         attributes: {
           class:
-            "prose prose-slate max-w-none focus:outline-none px-8 py-6 min-h-full",
+            "prose prose-stone max-w-none focus:outline-none px-8 py-6 min-h-full",
         },
         handleClick(_view, _pos, event) {
           // Never navigate on link clicks inside the editor.
@@ -373,7 +373,7 @@ export const RichMarkdownEditor = forwardRef<RichMarkdownEditorHandle, RichMarkd
     if (!editor) return null;
 
     return (
-      <div className="flex flex-col flex-1 min-h-0 bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div className="flex flex-col flex-1 min-h-0 bg-white rounded-xl border border-black/[.08] overflow-hidden">
         <EditorToolbar editor={editor} />
         <div className="flex-1 min-h-0 overflow-y-auto">
           <EditorContent editor={editor} className="h-full" />
