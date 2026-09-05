@@ -48,13 +48,13 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
                   ? "bg-primary text-white"
                   : i === step
                   ? "border-2 border-primary text-primary"
-                  : "border border-slate-200 text-slate-400"
+                  : "border border-black/[.08] text-black/54"
               }`}
             >
               {i < step ? "✓" : i + 1}
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`h-px w-4 ${i < step ? "bg-primary" : "bg-slate-200"}`} />
+              <div className={`h-px w-4 ${i < step ? "bg-primary" : "bg-black/[.08]"}`} />
             )}
           </div>
         ))}
@@ -66,7 +66,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-slate-900">Welcome! What&apos;s your name?</h2>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ob-name">
+              <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ob-name">
                 Full name
               </label>
               <input
@@ -76,12 +76,12 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && name.trim() && next()}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 placeholder="e.g. Alex Chen"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ob-preferred-name">
+              <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ob-preferred-name">
                 Preferred name (optional)
               </label>
               <input
@@ -90,7 +90,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
                 value={preferredName}
                 onChange={(e) => setPreferredName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && name.trim() && next()}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 placeholder="e.g. Alex"
               />
             </div>
@@ -108,7 +108,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-slate-900">What&apos;s your role?</h2>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ob-role">
+              <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ob-role">
                 Role / title
               </label>
               <input
@@ -118,7 +118,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && next()}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 placeholder="e.g. UX Researcher"
               />
             </div>
@@ -135,7 +135,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-slate-900">What should I call myself?</h2>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500" htmlFor="ob-bot-name">
+              <label className="mb-1 block text-xs font-medium text-[#757575]" htmlFor="ob-bot-name">
                 Bot name
               </label>
               <input
@@ -145,7 +145,7 @@ export function ResearchOnboarding({ onComplete, saveError }: ResearchOnboarding
                 value={botName}
                 onChange={(e) => setBotName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleFinish()}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="w-full rounded-lg border border-black/[.08] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-black/54 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 placeholder="Sage"
               />
             </div>

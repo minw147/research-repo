@@ -319,13 +319,13 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     }
 
     return (
-        <div className="h-full flex flex-col bg-slate-50">
+        <div className="h-full flex flex-col bg-stone-50">
             <WorkspaceNav slug={slug} onOpenCodebook={() => setShowCodebookModal(true)} />
 
             {showTaggingNudge && (
                 <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-primary/5 border-b border-primary/20 text-sm shrink-0">
                     <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                    <span className="flex-1 min-w-0 text-slate-700">
+                    <span className="flex-1 min-w-0 text-stone-700">
                         Codebook updated — your tags are ready to apply.
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
@@ -335,7 +335,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                 setActiveFile("tags.md");
                                 setShowPromptModal(true);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-clay-600 text-white text-xs font-medium hover:opacity-90 transition-opacity cursor-pointer"
                         >
                             Run AI Tagging
                             <ArrowRight className="h-3.5 w-3.5" />
@@ -346,13 +346,13 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                 setActiveFile("findings.md");
                                 setShowPromptModal(true);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 text-xs font-medium hover:bg-stone-50 transition-colors cursor-pointer"
                         >
                             Re-run Findings
                         </button>
                         <button
                             onClick={() => setShowTaggingNudge(false)}
-                            className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors cursor-pointer"
+                            className="p-1 text-stone-400 hover:text-stone-900 rounded transition-colors cursor-pointer"
                             aria-label="Dismiss"
                         >
                             <X className="h-4 w-4" />
@@ -364,10 +364,10 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
             <Group orientation="horizontal" className="flex-1 overflow-hidden">
                 {/* LEFT PANE: Video + Transcript (resizable vertical split) */}
                 <Panel defaultSize={45} minSize={30}>
-                    <div className="flex flex-col h-full bg-white border-r overflow-hidden">
+                    <div className="flex flex-col h-full bg-white border-r border-stone-200 overflow-hidden">
                         <Group orientation="vertical" className="flex-1 min-h-0">
                             <Panel defaultSize={40} minSize={20} className="min-h-0 flex flex-col">
-                                <div className="flex-1 min-h-0 flex flex-col p-4 pb-0 bg-white border-b overflow-hidden">
+                                <div className="flex-1 min-h-0 flex flex-col p-4 pb-0 bg-white border-b border-stone-200 overflow-hidden">
                                     <VideoPlayer
                                         ref={videoPlayerRef}
                                         sessions={project.sessions}
@@ -379,7 +379,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                     />
                                 </div>
                             </Panel>
-                            <Separator className="h-2 shrink-0 group bg-slate-200 hover:bg-primary/20 transition-colors cursor-row-resize relative">
+                            <Separator className="h-2 shrink-0 group bg-stone-100 hover:bg-primary/20 transition-colors cursor-row-resize relative">
                               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-row items-center justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="h-1 w-1 rounded-full bg-primary/60" />
                                 <span className="h-1 w-1 rounded-full bg-primary/60" />
@@ -428,7 +428,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                     </div>
                 </Panel>
 
-                <Separator className="w-2 group bg-slate-200 hover:bg-primary/20 transition-colors cursor-col-resize relative">
+                <Separator className="w-2 group bg-stone-100 hover:bg-primary/20 transition-colors cursor-col-resize relative">
                   <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="w-1 h-1 rounded-full bg-primary/60" />
                     <span className="w-1 h-1 rounded-full bg-primary/60" />
@@ -438,17 +438,17 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
                 {/* RIGHT PANE: Document Editor */}
                 <Panel defaultSize={55} minSize={30}>
-                    <div className="flex flex-col h-full bg-slate-50">
+                    <div className="flex flex-col h-full bg-stone-50">
                         {/* Header / Toolbar */}
                         <div className="h-12 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 border-b bg-white">
                             <div className="flex items-center gap-2 flex-wrap min-w-0">
 
-                                <div className="flex p-0.5 bg-slate-100 rounded-lg" role="group" aria-label="View mode">
+                                <div className="flex p-0.5 bg-stone-100 rounded-lg" role="group" aria-label="View mode">
                                     <button
                                         onClick={() => setViewMode("formatted")}
                                         className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 cursor-pointer ${viewMode === "formatted"
                                             ? "bg-white text-primary shadow-sm"
-                                            : "text-slate-500 hover:text-slate-700"
+                                            : "text-stone-400 hover:text-stone-900"
                                             }`}
                                         aria-pressed={viewMode === "formatted"}
                                         aria-label="Edit (formatted)"
@@ -460,7 +460,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                         onClick={() => setViewMode("raw")}
                                         className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 cursor-pointer ${viewMode === "raw"
                                             ? "bg-white text-primary shadow-sm"
-                                            : "text-slate-500 hover:text-slate-700"
+                                            : "text-stone-400 hover:text-stone-900"
                                             }`}
                                         aria-pressed={viewMode === "raw"}
                                         aria-label="Source (markdown)"
@@ -474,7 +474,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                                 <button
                                     onClick={() => setShowPromptModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors duration-200 shadow-sm cursor-pointer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-lg text-xs font-medium bg-clay-600 text-white hover:opacity-90 transition-opacity duration-200 cursor-pointer"
                                     title="Run AI Analysis"
                                     aria-label="Run AI Analysis"
                                 >
@@ -484,18 +484,18 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
                                 <button
                                     onClick={handleRefresh}
-                                    className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer"
+                                    className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-md transition-colors duration-200 cursor-pointer"
                                     title="Refresh from disk"
                                     aria-label="Refresh from disk"
                                 >
                                     <RefreshCw className="h-3.5 w-3.5 shrink-0" />
                                 </button>
 
-                                <div className="w-px h-4 bg-slate-200" aria-hidden />
+                                <div className="w-px h-4 bg-stone-100" aria-hidden />
 
                                 <button
                                     onClick={handleSaveDoc}
-                                    className="p-1.5 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer"
+                                    className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-md transition-colors duration-200 cursor-pointer"
                                     title="Save changes"
                                     aria-label="Save changes"
                                 >
@@ -503,7 +503,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                 </button>
                                 <button
                                     onClick={handleRevertDoc}
-                                    className="p-1.5 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer"
+                                    className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-md transition-colors duration-200 cursor-pointer"
                                     title="Revert to last saved"
                                     aria-label="Revert to last saved"
                                 >
@@ -520,19 +520,19 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                     </div>
                                 ) : docError ? (
-                                    <div className="flex h-full flex-col items-center justify-center bg-white rounded-xl border p-8 shadow-sm">
+                                    <div className="flex h-full flex-col items-center justify-center bg-white rounded-xl border p-8">
                                         {activeFile === "tags.md" && docError.includes("not found") ? (
                                             <div className="text-center max-w-md">
-                                                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                <div className="w-16 h-16 bg-primary/10 text-primary rounded-md flex items-center justify-center mx-auto mb-4">
                                                     <Tag className="w-8 h-8" />
                                                 </div>
-                                                <h3 className="text-lg font-bold text-slate-900 mb-2">No Tags Document Yet</h3>
-                                                <p className="text-sm text-slate-600 mb-6">
+                                                <h3 className="font-serif text-lg font-semibold text-stone-900 mb-2">No Tags Document Yet</h3>
+                                                <p className="text-sm text-stone-600 mb-6">
                                                     Ready to organize your findings by codebook categories? Use the AI generator to scan your transcripts or findings and create your Tag Board.
                                                 </p>
                                                 <button
                                                     onClick={() => setShowPromptModal(true)}
-                                                    className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
+                                                    className="bg-clay-600 text-white px-6 py-2.5 rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
                                                 >
                                                     Generate tags.md
                                                 </button>
@@ -563,7 +563,7 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                         />
                                     </div>
                                 ) : (
-                                    <div className="flex-1 min-h-0 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
+                                    <div className="flex-1 min-h-0 bg-white rounded-xl border overflow-hidden flex flex-col">
                                         <MarkdownEditor
                                             ref={markdownEditorRef}
                                             content={docContent || ""}
@@ -608,21 +608,21 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
             )}
 
             {showCodebookModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden border border-slate-200 flex flex-col animate-in zoom-in duration-200">
-                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 bg-slate-50 shrink-0">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-md shadow-dialog w-full max-w-5xl max-h-[90vh] overflow-hidden border border-stone-200 flex flex-col animate-in zoom-in duration-200">
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-200 bg-stone-100 shrink-0">
                             <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                                <div className="p-1.5 bg-clay-600/10 rounded text-clay-600">
                                     <Settings className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-semibold text-slate-900">Manage Research Codebook</h2>
-                                    <p className="text-xs text-slate-500">Define tags and categories for your analysis</p>
+                                    <h2 className="font-serif font-semibold text-stone-900">Manage Research Codebook</h2>
+                                    <p className="text-xs text-stone-500">Define tags and categories for your analysis</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowCodebookModal(false)}
-                                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+                                className="text-stone-400 hover:text-stone-900 p-1 rounded-md hover:bg-stone-100 transition-colors duration-200 cursor-pointer"
                                 aria-label="Close"
                             >
                                 <X className="w-5 h-5" />

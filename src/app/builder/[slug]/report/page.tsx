@@ -206,14 +206,14 @@ export default function ReportPage({ params }: ReportPageProps) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-stone-50">
       <WorkspaceNav slug={slug} />
       {/* Header / Toolbar */}
-      <div className="h-12 flex items-center justify-end gap-1.5 px-4 sm:px-6 border-b border-slate-200 bg-white shrink-0 shadow-sm">
+      <div className="h-12 flex items-center justify-end gap-1.5 px-4 sm:px-6 border-b border-stone-200 bg-white shrink-0">
         <button
           onClick={handleBuildHtml}
           disabled={buildStatus === "running"}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-white text-stone-900 border border-stone-300 hover:bg-stone-50 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           title="Build findings.html from findings.md (no AI)"
           aria-label="Build HTML"
         >
@@ -227,7 +227,7 @@ export default function ReportPage({ params }: ReportPageProps) {
 
         <button
           onClick={() => setShowPromptModal(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-clay-600 text-white hover:opacity-90 transition-opacity duration-200 cursor-pointer"
           title="Run AI Synthesis"
           aria-label="Run AI Synthesis"
         >
@@ -239,7 +239,7 @@ export default function ReportPage({ params }: ReportPageProps) {
           <button
             onClick={handleExport}
             disabled={exportStatus === "running"}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold bg-white text-stone-700 border border-stone-300 hover:bg-stone-50 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export portable HTML with sliced clips"
             aria-label="Export HTML"
           >
@@ -255,7 +255,7 @@ export default function ReportPage({ params }: ReportPageProps) {
         {hasExport && (
           <button
             onClick={handleViewExport}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold bg-white text-stone-700 border border-stone-300 hover:bg-stone-50 transition-colors duration-200 cursor-pointer"
             title="Open exported HTML in new tab"
             aria-label="View Export"
           >
@@ -266,7 +266,7 @@ export default function ReportPage({ params }: ReportPageProps) {
 
         <button
           onClick={handleRefresh}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors duration-200 cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold bg-white text-stone-700 border border-stone-300 hover:bg-stone-50 transition-colors duration-200 cursor-pointer"
           title="Refresh to load changes"
           aria-label="Refresh to load changes"
         >
@@ -280,7 +280,7 @@ export default function ReportPage({ params }: ReportPageProps) {
         <div
           role="status"
           aria-live="polite"
-          className="mx-4 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm font-medium text-amber-900 shrink-0"
+          className="mx-4 mt-4 p-3 rounded bg-amber-50 border border-amber-200 text-sm font-medium text-amber-900 shrink-0"
         >
           Report has changed since last export. Click <strong>Export HTML</strong> to update.
         </div>
@@ -290,7 +290,7 @@ export default function ReportPage({ params }: ReportPageProps) {
       {exportError && (
         <div
           role="alert"
-          className="mx-4 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
+          className="mx-4 mt-4 p-3 rounded bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
           {exportError}
@@ -300,7 +300,7 @@ export default function ReportPage({ params }: ReportPageProps) {
       {buildError && (
         <div
           role="alert"
-          className="mx-4 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
+          className="mx-4 mt-4 p-3 rounded bg-red-50 border border-red-200 text-sm font-medium text-red-900 shrink-0 flex items-center gap-2"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
           {buildError}
@@ -312,7 +312,7 @@ export default function ReportPage({ params }: ReportPageProps) {
         <div
           role="status"
           aria-live="polite"
-          className="mx-4 mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm font-medium text-slate-900 shrink-0"
+          className="mx-4 mt-4 p-3 rounded bg-primary/10 border border-primary/20 text-sm font-medium text-stone-900 shrink-0"
         >
           Refresh the page once the AI agent is done to view the generated findings.html
         </div>
@@ -329,36 +329,36 @@ export default function ReportPage({ params }: ReportPageProps) {
             <div className="p-4 bg-red-50 text-red-600 rounded-full mb-4">
               <AlertCircle className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Error Loading Report</h3>
-            <p className="text-slate-500 mb-6 max-w-md">
+            <h3 className="font-serif text-lg font-semibold text-stone-900 mb-2">Error Loading Report</h3>
+            <p className="text-stone-500 mb-6 max-w-md">
               We couldn&apos;t load findings.html. Use AI Synthesis to generate it, or try refreshing.
             </p>
             <button
               onClick={() => setShowPromptModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20 mb-2"
+              className="flex items-center gap-2 px-6 py-2.5 bg-clay-600 text-white rounded text-sm font-medium hover:opacity-90 transition-opacity mb-2"
             >
               <Sparkles className="h-4 w-4" />
               Generate Report
             </button>
             <button
               onClick={handleRefresh}
-              className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors duration-200 rounded-lg px-3 py-2"
+              className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors duration-200 rounded px-3 py-2"
             >
               Refresh
             </button>
           </div>
         ) : !reportContent ? (
           <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-            <div className="p-4 bg-primary/10 text-primary rounded-full mb-4">
+            <div className="p-4 bg-clay-600/10 text-clay-600 rounded-full mb-4">
               <Sparkles className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">No Report Yet</h3>
-            <p className="text-slate-500 mb-6 max-w-md">
+            <h3 className="font-serif text-lg font-semibold text-stone-900 mb-2">No Report Yet</h3>
+            <p className="text-stone-500 mb-6 max-w-md">
               Generate a report from your findings using AI Synthesis. The AI will create findings.html with video clips and styling.
             </p>
             <button
               onClick={() => setShowPromptModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
+              className="flex items-center gap-2 px-6 py-2.5 bg-clay-600 text-white rounded text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <Sparkles className="h-4 w-4" />
               Generate Report

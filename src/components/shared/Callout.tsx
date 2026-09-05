@@ -10,28 +10,28 @@ interface CalloutProps {
 
 const variants = {
   info: {
-    bg: "bg-primary/10 dark:bg-primary/20",
+    bg: "bg-primary/10",
     border: "border-l-primary",
     icon: <Info className="w-4 h-4 shrink-0" aria-hidden="true" />,
-    title: "text-primary-dark dark:text-primary",
+    title: "text-primary-dark",
   },
   tip: {
-    bg: "bg-emerald-50 dark:bg-emerald-950/40",
+    bg: "bg-emerald-50",
     border: "border-l-emerald-500",
     icon: <Lightbulb className="w-4 h-4 shrink-0" aria-hidden="true" />,
-    title: "text-emerald-800 dark:text-emerald-300",
+    title: "text-emerald-800",
   },
   warning: {
-    bg: "bg-amber-50 dark:bg-amber-950/40",
+    bg: "bg-amber-50",
     border: "border-l-amber-500",
     icon: <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />,
-    title: "text-amber-800 dark:text-amber-300",
+    title: "text-amber-800",
   },
   insight: {
-    bg: "bg-violet-50 dark:bg-violet-950/40",
+    bg: "bg-violet-50",
     border: "border-l-violet-500",
     icon: <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />,
-    title: "text-violet-800 dark:text-violet-300",
+    title: "text-violet-800",
   },
 };
 
@@ -60,7 +60,7 @@ export function Callout({
           <span>{title}</span>
         </div>
       )}
-      <div className="report-callout-content text-slate-700 dark:text-slate-300 [&>p:last-child]:mb-0">
+      <div className="report-callout-content text-slate-700 [&>p:last-child]:mb-0">
         {children}
       </div>
     </div>

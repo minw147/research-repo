@@ -10,9 +10,9 @@
 
 ```tsx
 {/* Backdrop */}
-<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
   {/* Panel */}
-  <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg mx-4">
+  <div className="bg-white rounded-md border border-stone-200 shadow-dialog w-full max-w-lg mx-4">
     ...
   </div>
 </div>
@@ -21,30 +21,34 @@
 ## Header Pattern
 
 ```tsx
-<div className="flex items-center gap-3 p-6 border-b border-slate-100">
-  {/* Icon in tinted square */}
-  <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
-    <SomeIcon className="w-5 h-5" />
+<div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-200 bg-stone-100/50">
+  <div className="flex items-center gap-2">
+    {/* Icon in tinted square — ALWAYS clay, regardless of modal subject */}
+    <div className="p-1.5 bg-clay-600/10 rounded text-clay-600">
+      <SomeIcon className="w-4 h-4" />
+    </div>
+    <h2 className="font-serif font-semibold text-stone-900">Modal Title</h2>
   </div>
-  <div>
-    <h2 className="font-display text-lg font-semibold text-slate-900">Modal Title</h2>
-    <p className="text-sm text-slate-500">Optional subtitle</p>
-  </div>
+  <button aria-label="Close" className="text-stone-400 hover:text-stone-900 p-1 rounded-md hover:bg-stone-100">
+    <X className="w-5 h-5" />
+  </button>
 </div>
 ```
 
 ## Footer Pattern
 
 ```tsx
-<div className="flex items-center justify-end gap-3 p-6 border-t border-slate-100">
-  <button className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
+<div className="flex items-center justify-end gap-3 px-4 py-2.5 border-t border-stone-200 bg-stone-100/50">
+  <button className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors cursor-pointer">
     Cancel
   </button>
-  <button className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors cursor-pointer">
+  <button className="px-4 py-2 text-sm font-medium bg-clay-600 text-white rounded hover:opacity-90 transition-opacity cursor-pointer">
     Confirm
   </button>
 </div>
 ```
+
+The confirm/submit button in every modal in this app is **clay**, not sage — this is the one place the CTA rule is most consistent (New Project → Create Project, AI Analyze → Run in Agent, Publish → Publish Report).
 
 ## Sizes
 
@@ -52,11 +56,14 @@
 |------|-------------|----------|
 | Small | `max-w-sm` | Confirmation dialogs |
 | Medium | `max-w-lg` | Standard modals (default) |
-| Large | `max-w-2xl` | Multi-step modals (NewProjectModal) |
+| Large | `max-w-2xl` | Multi-step modals (NewProjectModal, PromptModal) |
 
 ## Usage
 
-**Do** — use `rounded-2xl` for the modal panel.
+**Do** — use `rounded-md` (8px) for the modal panel.
+**Do** — use `shadow-dialog` on the panel — the one shadow token, reserved for modals and floating popovers.
+**Do** — use `bg-stone-100/50` for header/footer bars, `bg-white` for the body.
+**Do** — form inputs inside modals use `border-stone-300` (not `stone-200` — that's for hairlines/dividers).
 **Do** — close on backdrop click and Escape key.
 **Don't** — nest a modal inside another modal.
 

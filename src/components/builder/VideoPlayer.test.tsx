@@ -43,7 +43,7 @@ describe("VideoPlayer", () => {
       />
     );
 
-    expect(screen.getByText("Participant 1")).toBeInTheDocument();
+    expect(screen.getByText("S1 · Participant 1")).toBeInTheDocument();
     expect(screen.getByText("video-1.mp4")).toBeInTheDocument();
     
     const video = container.querySelector("video");
@@ -51,7 +51,7 @@ describe("VideoPlayer", () => {
     expect(video).toHaveAttribute("src", "/api/projects/test-project/files/videos/video-1.mp4");
   });
 
-  it("calls onSessionChange when dropdown changes", () => {
+  it("calls onSessionChange when a session pill is clicked", () => {
     const onSessionChange = vi.fn();
     render(
       <VideoPlayer
@@ -62,8 +62,8 @@ describe("VideoPlayer", () => {
       />
     );
 
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "1" } });
+    const pills = screen.getAllByRole("radio");
+    fireEvent.click(pills[1]);
 
     expect(onSessionChange).toHaveBeenCalledWith(1);
   });

@@ -121,19 +121,19 @@ export const PromptModal: React.FC<PromptModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-200 animate-in zoom-in duration-200 flex flex-col"
+        className="bg-white rounded-md shadow-dialog w-full max-w-2xl max-h-[90vh] overflow-hidden border border-stone-200 animate-in zoom-in duration-200 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-stone-200 bg-stone-100/50 shrink-0">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+            <div className="p-1.5 bg-clay-600/10 rounded text-clay-600">
               <Sparkles className="w-4 h-4" />
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">AI Analysis</h2>
+            <h2 className="font-serif font-semibold text-stone-900">AI Analysis</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+            className="text-stone-400 hover:text-stone-900 p-1 rounded-md hover:bg-stone-100 transition-colors duration-200 cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -161,31 +161,31 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                     if (id !== "change-theme") setSelectedThemeId(null);
                   }}
                   className={`p-2.5 rounded-lg border transition-colors duration-200 text-left cursor-pointer ${selectedAction === id
-                      ? "border-primary bg-primary/10 text-primary-dark"
-                      : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                      ? "border-primary/80 bg-primary/[.06] text-primary-dark"
+                      : "border-stone-200 hover:border-stone-300 bg-white text-stone-700"
                     }`}
                 >
                   <span className="block text-xs font-medium leading-tight">{label}</span>
-                  <span className="block text-[10px] text-slate-500 mt-0.5">{sub}</span>
+                  <span className="block text-[10px] text-stone-500 mt-0.5">{sub}</span>
                 </button>
               ))}
           </div>
 
           {selectedAction === "other-templates" && otherTemplates.length > 0 && (
             <div>
-              <span className="block text-xs font-medium text-slate-500 mb-2">Choose a template</span>
+              <span className="block text-xs font-medium text-stone-500 mb-2">Choose a template</span>
               <div className="flex flex-wrap gap-2">
                 {otherTemplates.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setSelectedTemplateId(t.id)}
                     className={`px-3 py-1.5 rounded-lg border text-left transition-colors duration-200 cursor-pointer ${selectedTemplateId === t.id
-                        ? "border-primary bg-primary/10 text-primary-dark"
-                        : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                        ? "border-primary/80 bg-primary/[.06] text-primary-dark"
+                        : "border-stone-200 hover:border-stone-300 bg-white text-stone-700"
                       }`}
                   >
                     <span className="block text-xs font-medium leading-tight">{t.label}</span>
-                    <span className="block text-[10px] text-slate-500 mt-0.5">{t.sub}</span>
+                    <span className="block text-[10px] text-stone-500 mt-0.5">{t.sub}</span>
                   </button>
                 ))}
               </div>
@@ -194,15 +194,15 @@ export const PromptModal: React.FC<PromptModalProps> = ({
 
           {selectedAction === "change-theme" && (
             <div>
-              <span className="block text-xs font-medium text-slate-500 mb-2">Choose a theme</span>
+              <span className="block text-xs font-medium text-stone-500 mb-2">Choose a theme</span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {COLOR_THEMES.map((theme) => (
                   <button
                     key={theme.id}
                     onClick={() => setSelectedThemeId(theme.id)}
                     className={`px-3 py-2 rounded-lg border text-left transition-colors duration-200 cursor-pointer ${selectedThemeId === theme.id
-                        ? "border-primary bg-primary/10 text-primary-dark"
-                        : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                        ? "border-primary/80 bg-primary/[.06] text-primary-dark"
+                        : "border-stone-200 hover:border-stone-300 bg-white text-stone-700"
                       }`}
                   >
                     <span className="block text-xs font-medium leading-tight">{theme.name}</span>
@@ -216,7 +216,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                       ].map((hex) => (
                         <span
                           key={hex}
-                          className="w-4 h-4 rounded-full border border-slate-200 shrink-0"
+                          className="w-4 h-4 rounded-full border border-stone-200 shrink-0"
                           style={{ backgroundColor: hex }}
                           title={hex}
                           aria-hidden
@@ -231,20 +231,20 @@ export const PromptModal: React.FC<PromptModalProps> = ({
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-slate-500">Generated prompt</span>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-xs font-medium text-stone-500">Generated prompt</span>
+              <span className="text-[10px] text-stone-500">
                 {selectedAction === "other-templates" && !selectedTemplateId ? (
                   "Select a template above"
                 ) : selectedAction === "change-theme" && !selectedThemeId ? (
                   "Select a theme above"
                 ) : (
-                  <>Will update <code className="bg-slate-100 px-1 rounded">{targetFile}</code></>
+                  <>Will update <code className="bg-stone-100 px-1 rounded">{targetFile}</code></>
                 )}
               </span>
             </div>
             <div className="relative">
               <textarea
-                className="w-full min-h-[220px] p-3 pr-24 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary font-mono text-slate-700 resize-y max-h-[50vh]"
+                className="w-full min-h-[220px] p-3 pr-24 text-sm bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary font-mono text-stone-700 resize-y max-h-[50vh]"
                 value={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
                 onChange={(e) => setEditablePrompt(e.target.value)}
                 aria-label="Generated prompt (editable)"
@@ -255,25 +255,25 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                 type="button"
                 onClick={handleCopy}
                 disabled={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId)}
-                className="absolute top-2 right-10 p-1.5 bg-white border border-slate-200 rounded shadow-sm hover:bg-slate-50 transition-colors duration-200 flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute top-2 right-10 p-1.5 bg-white border border-stone-200 rounded shadow-sm hover:bg-stone-50 transition-colors duration-200 flex items-center gap-1.5 text-xs font-medium text-stone-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
-              <span className="font-medium text-slate-600">How it works:</span>{" "}
+            <p className="mt-2 text-xs text-stone-500">
+              <span className="font-medium text-stone-600">How it works:</span>{" "}
               {(selectedAction === "other-templates" && !selectedTemplateId) ? (
                 "Select a template above to generate the prompt."
               ) : (selectedAction === "change-theme" && !selectedThemeId) ? (
                 "Select a theme above to generate the prompt."
               ) : (
                 <>
-                  <span className="font-medium text-slate-600">▶ Run in Agent</span> — runs the prompt directly using your local{" "}
-                  <code className="bg-slate-100 px-1 rounded">claude</code> CLI and streams output here.{" "}
-                  <span className="font-medium text-slate-600">Copy</span> — paste into Cursor or another AI tool manually.{" "}
+                  <span className="font-medium text-stone-600">▶ Run in Agent</span> — runs the prompt directly using your local{" "}
+                  <code className="bg-stone-100 px-1 rounded">claude</code> CLI and streams output here.{" "}
+                  <span className="font-medium text-stone-600">Copy</span> — paste into Cursor or another AI tool manually.{" "}
                   Either way the AI will create or update{" "}
-                  <code className="bg-slate-100 px-1 rounded">{targetFile}</code>.
+                  <code className="bg-stone-100 px-1 rounded">{targetFile}</code>.
                 </>
               )}
             </p>
@@ -289,7 +289,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
           </div>
         </div>
 
-        <div className="border-t border-slate-100 shrink-0">
+        <div className="border-t border-stone-200 shrink-0">
           <AgentRunner
             prompt={(selectedAction === "other-templates" && !selectedTemplateId) || (selectedAction === "change-theme" && !selectedThemeId) ? "" : editablePrompt}
             onRefreshFile={onRefreshFile ?? (() => {})}
@@ -298,7 +298,7 @@ export const PromptModal: React.FC<PromptModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark bg-primary/10 hover:bg-primary/20 rounded-md border border-primary/20 transition-colors duration-200 cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-stone-900 bg-stone-100 hover:bg-stone-200 rounded transition-colors duration-200 cursor-pointer"
               >
                 Done
               </button>

@@ -201,8 +201,8 @@ export function ResearchAssistantBot() {
   if (!portalEl) return null;
 
   const panelClass = docked && open
-    ? "fixed right-0 top-0 z-[9999] flex h-screen w-[380px] flex-col border-l border-slate-200 bg-white shadow-xl"
-    : "relative flex h-[500px] w-[100vw] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl sm:w-[min(400px,100vw-3rem)]";
+    ? "fixed right-0 top-0 z-[9999] flex h-screen w-[380px] flex-col border-l border-black/[.08] bg-white shadow-dialog"
+    : "relative flex h-[500px] w-[100vw] flex-col overflow-hidden rounded-xl border border-black/[.08] bg-white shadow-dialog sm:w-[min(400px,100vw-3rem)]";
 
   return createPortal(
     <div className={docked && open ? "contents" : "fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3"}>
@@ -217,10 +217,10 @@ export function ResearchAssistantBot() {
           className={panelClass}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-3 py-2">
+          <div className="flex items-center justify-between border-b border-black/[.08] bg-[#f6f5f4]/50 px-3 py-2">
             <div className="flex items-center gap-2">
               {state === "loading" ? (
-                <span className="h-2 w-2 animate-pulse rounded-full bg-slate-300" />
+                <span className="h-2 w-2 animate-pulse rounded-full bg-black/[.24]" />
               ) : (
                 <span className="h-2 w-2 rounded-full bg-primary" />
               )}
@@ -249,7 +249,7 @@ export function ResearchAssistantBot() {
                     ? "bg-emerald-400"
                     : cliStatus === "error"
                     ? "bg-red-400"
-                    : "bg-slate-300 animate-pulse"
+                    : "bg-black/[.24] animate-pulse"
                 }`} />
               </span>
               {/* Dock toggle — panel-right icon */}
@@ -257,7 +257,7 @@ export function ResearchAssistantBot() {
                 onClick={() => setDocked((v) => !v)}
                 aria-label={docked ? "Float panel" : "Dock to sidebar"}
                 title={docked ? "Float panel" : "Dock to right sidebar"}
-                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="flex h-7 w-7 items-center justify-center rounded text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 {docked ? (
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -276,7 +276,7 @@ export function ResearchAssistantBot() {
               <button
                 onClick={() => setShowSettings((v) => !v)}
                 aria-label="Settings"
-                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="flex h-7 w-7 items-center justify-center rounded text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                   <line x1="2" y1="4" x2="12" y2="4" />
@@ -290,7 +290,7 @@ export function ResearchAssistantBot() {
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close assistant"
-                className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:text-slate-600 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="flex h-7 w-7 items-center justify-center rounded text-black/54 hover:text-black focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                   <line x1="1" y1="1" x2="11" y2="11" />
@@ -302,7 +302,7 @@ export function ResearchAssistantBot() {
 
           {/* Context strip */}
           {state === "ready" && (
-            <div className="border-b border-slate-100 bg-slate-50 px-3 py-1 text-[10px] text-slate-400">
+            <div className="border-b border-black/[.08] bg-[#f6f5f4] px-3 py-1 text-[10px] text-black/54">
               {pathname}
             </div>
           )}
@@ -368,7 +368,7 @@ export function ResearchAssistantBot() {
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close research assistant" : "Open research assistant"}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl text-white shadow-lg hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl text-white shadow-dialog hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white"
         >
           {open ? "✕" : "✦"}
         </button>

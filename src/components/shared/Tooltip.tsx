@@ -21,7 +21,7 @@ export function Tooltip({ children, content }: TooltipProps) {
       </span>
       {show && (
         <span
-          className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-xs font-medium text-white shadow-lg"
+          className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-xs font-medium text-white shadow-dialog"
           role="tooltip"
         >
           {content}

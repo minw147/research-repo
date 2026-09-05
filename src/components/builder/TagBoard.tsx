@@ -82,23 +82,23 @@ export const TagBoard: React.FC<TagBoardProps> = ({
   const categoriesToShow = Object.keys(groupedQuotes);
 
   return (
-    <div className="flex h-[calc(100vh-200px)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+    <div className="flex h-[calc(100vh-200px)] flex-col overflow-hidden rounded-md border border-stone-200 bg-white">
+      <div className="flex items-center justify-between border-b border-stone-200 bg-stone-100/50 px-6 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Evidence Board</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="font-serif text-lg font-semibold text-stone-900">Evidence board</h2>
+          <p className="text-[12.5px] text-stone-500 mt-0.5">
             Quotes grouped by codebook category
           </p>
         </div>
         
-        <div className="relative w-72">
+        <div className="relative w-64">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-slate-400" />
+            <Search className="h-3.5 w-3.5 text-stone-400" />
           </div>
           <input
             type="text"
-            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            placeholder="Search quotes or tags..."
+            className="block w-full h-10 rounded border border-stone-300 bg-white py-2 pl-9 pr-9 text-sm placeholder:text-stone-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            placeholder="Search quotes or tags…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -107,19 +107,19 @@ export const TagBoard: React.FC<TagBoardProps> = ({
               onClick={() => setSearchQuery("")}
               className="absolute inset-y-0 right-0 flex items-center pr-3"
             >
-              <X className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+              <X className="h-4 w-4 text-stone-400 hover:text-stone-900" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex flex-1 gap-6 overflow-x-auto bg-slate-50/30 p-6">
+      <div className="flex flex-1 gap-6 overflow-x-auto bg-stone-100/40 p-6">
         {categoriesToShow.map(category => (
           <div key={category} className="flex h-full w-80 flex-shrink-0 flex-col">
-            <div className="mb-4 flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">{category}</h3>
-              <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-400 shadow-sm ring-1 ring-slate-200">
-                {groupedQuotes[category].length}
+            <div className="mb-2.5 flex items-center justify-between px-1">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-stone-700">{category}</h3>
+              <span className="font-mono rounded-full bg-white border border-stone-200 px-1.5 py-px text-[10.5px] text-stone-500">
+                {String(groupedQuotes[category].length).padStart(2, "0")}
               </span>
             </div>
             
@@ -135,7 +135,7 @@ export const TagBoard: React.FC<TagBoardProps> = ({
                   />
                 ))
               ) : (
-                <div className="flex h-32 items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-sm text-slate-400">
+                <div className="flex h-[100px] items-center justify-center rounded border-[1.5px] border-dashed border-stone-300 text-xs text-stone-400">
                   No evidence
                 </div>
               )}

@@ -66,11 +66,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
     const s = Math.floor(sec % 60);
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
-  const endSeconds = quote.startSeconds + quote.durationSeconds;
-  const timeRange =
-    quote.durationSeconds > 0
-      ? `${quote.timestampDisplay} – ${formatTime(endSeconds)}`
-      : quote.timestampDisplay;
+  const timestampDisplay = quote.timestampDisplay || formatTime(quote.startSeconds);
 
   return (
     <div
@@ -79,8 +75,14 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
       onDragStart={handleDragStart}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      className="group relative my-4 cursor-pointer rounded-lg border-l-4 border-l-primary bg-white pt-4 pr-11 pl-4 pb-4 shadow-sm transition-shadow duration-200 hover:shadow-md"
+      className="group relative my-3 cursor-pointer bg-clay-600/5 border border-clay-600/20 rounded-tr-md rounded-br-md rounded-bl-md"
     >
+      {/* Floating tab label — timestamp + session, the signature evidence-card treatment */}
+      <div className="absolute -top-px -left-px flex items-center gap-1.5 bg-clay-600 text-stone-50 font-mono text-[10.5px] px-2 py-0.5 rounded-tl-md rounded-br-md">
+        <span className="w-1 h-1 rounded-full bg-stone-50" />
+        {timestampDisplay} · S{quote.sessionIndex}
+      </div>
+
       {onDelete && (
         <button
           type="button"
@@ -89,47 +91,38 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
             e.preventDefault();
             onDelete(quote);
           }}
-          className="absolute top-1 right-1 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-slate-400 hover:text-red-600 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+          className="absolute top-1 right-1 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-stone-400 hover:text-red-600 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
           aria-label="Remove quote"
         >
           <X className="w-4 h-4 shrink-0" />
         </button>
       )}
-      <div className="flex flex-col gap-2">
-        <p className="text-slate-800 italic leading-relaxed pr-0">
+      <div className="flex flex-col gap-2 pt-6 px-3.5 pb-3">
+        <p className="font-serif italic text-stone-900 text-[15px] leading-[1.55] pr-8">
           &ldquo;{stripTimestampFragments(quote.text)}&rdquo;
         </p>
-        
-        <div className="flex flex-wrap gap-2 mt-1">
+
+        <div className="flex flex-wrap gap-1.5">
           {quote.tags.map((tagId) => (
             <span
               key={tagId}
-              className="inline-flex items-center gap-2 bg-slate-100 pl-1.5 pr-2 py-0.5 rounded-full shrink-0"
+              className="inline-flex items-center gap-1.5 bg-stone-100 border border-stone-200 pl-1.5 pr-2 py-0.5 rounded shrink-0"
             >
               <span
-                className="h-2 w-2 shrink-0 rounded-full"
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: getTagColor(tagId) }}
                 aria-hidden
               />
-              <span className="text-[10px] font-medium text-slate-600 uppercase tracking-wider">
+              <span className="font-mono text-[10.5px] text-stone-600">
                 {getTagLabel(tagId)}
               </span>
             </span>
           ))}
-        </div>
-
-        <div className="mt-3 pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap">
           {quote.hidden && (
-            <div className="text-amber-500" title="Hidden from transcript">
-              <EyeOff className="h-3 w-3" />
-            </div>
+            <span className="flex items-center gap-1 font-mono text-[10.5px] text-ochre-600" title="Hidden from transcript">
+              <EyeOff className="h-3 w-3" /> hidden
+            </span>
           )}
-          <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
-            Session {quote.sessionIndex}
-          </span>
-          <span className="text-[10px] font-mono text-slate-400">
-            {timeRange}
-          </span>
         </div>
       </div>
     </div>

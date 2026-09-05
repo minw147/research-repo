@@ -2,13 +2,15 @@
 
 **Source:** `src/components/builder/WorkspaceNav.tsx`
 
-The workspace navigation bar. Fixed at the top of every builder page. Contains: skip link, home link, project title, tab navigation, codebook button, help link.
+The workspace navigation bar. Fixed at the top of every builder page. Contains: skip link, brand mark + home link, project title, tab navigation, codebook button, help link.
 
 ## Shell
 
 ```tsx
-<nav className="flex h-12 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 shadow-sm">
+<nav className="flex h-12 items-center gap-3 border-b border-stone-200 bg-white px-4 sm:px-6">
 ```
+
+The nav has **no shadow** — flat white bar with a hairline bottom border. `shadow-dialog` is reserved for modals and floating popovers, not the nav.
 
 Height is always `h-12` (48px) — this also satisfies the 44px touch target for tab buttons.
 
@@ -27,20 +29,15 @@ Must be the **first element** inside `<nav>`:
 
 The target `<main id="main-content">` must exist on every page that uses this nav.
 
-## Home Link
+## Home Link (Brand Mark)
 
 ```tsx
-<Link
-  href="/"
-  className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg -m-1 p-1"
-  aria-label="Research Hub home"
->
-  <FlaskConical className="h-5 w-5 text-primary" />
-  <span className="hidden sm:inline font-bold">Research Hub</span>
+<Link href="/" aria-label="Research Hub home" className="flex shrink-0 items-center gap-2 -m-1 p-1 rounded-lg">
+  <BrandMark size={22} wordmarkClassName="text-sm hidden sm:inline" />
 </Link>
 ```
 
-Logo icon: `FlaskConical` from Lucide. Never `Box`.
+`BrandMark` (`src/components/shared/BrandMark.tsx`) is a custom SVG badge (a ribbon/ID-badge shape, not a Lucide icon) on a `bg-pine-800` rounded square, plus the "Research *Hub*" serif wordmark with the accent word in italic clay. **Never** substitute a Lucide icon (e.g. `FlaskConical`) for the badge — it's a bespoke mark.
 
 ## Tab Navigation
 
@@ -49,20 +46,25 @@ Logo icon: `FlaskConical` from Lucide. Never `Box`.
   <Link
     role="tab"
     aria-selected={isActive}
-    aria-label={tab.label}
-    className={`flex h-full min-w-[44px] items-center justify-center gap-2 border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+    className={`flex h-full min-w-[44px] items-center justify-center gap-1.5 border-b-2 px-3 text-[12.5px] whitespace-nowrap transition-colors duration-200 ${
       isActive
-        ? "border-primary text-slate-900 font-semibold"
-        : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+        ? "border-primary text-stone-900 font-semibold"
+        : "border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300"
     }`}
   >
-    <Icon className="h-4 w-4 shrink-0" />
+    <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-primary" : ""}`} />
     <span className="hidden md:inline">{tab.label}</span>
   </Link>
 </div>
 ```
 
-Active tab: `border-primary` bottom underline + `text-slate-900`. Inactive: `border-transparent text-slate-500`.
+Active tab: `border-primary` (sage) bottom underline + `text-stone-900` + icon in `text-primary`. Inactive: `border-transparent text-stone-500`.
+
+## Right-aligned ghost items (Codebook, Help)
+
+```tsx
+className="flex items-center gap-1.5 rounded px-2 py-1.5 text-xs text-stone-600 hover:bg-stone-100"
+```
 
 ## Accessibility
 

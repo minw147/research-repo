@@ -15,8 +15,9 @@ const base: Project = {
   researcher: "Jane", persona: "Admin", status: "setup", sessions: [],
 };
 
-it("status badge renders an svg icon alongside the text", () => {
+it("status row renders a colored dot alongside the label", () => {
   render(<ProjectCard project={base} />);
-  const badge = screen.getByText("setup");
-  expect(badge.querySelector("svg") || badge.parentElement?.querySelector("svg")).toBeTruthy();
+  const label = screen.getByText("Setup");
+  const dot = label.parentElement?.querySelector("span.rounded-full");
+  expect(dot).toBeTruthy();
 });

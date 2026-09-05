@@ -6,22 +6,25 @@ Buttons are sitewide — no single source file. The variants below are the canon
 
 | Variant | Classes | When to use |
 |---------|---------|-------------|
-| **Primary** | `bg-primary text-white rounded-lg px-4 py-2 text-sm font-bold hover:bg-primary-dark transition-colors duration-200 cursor-pointer` | The single most important action in a group (Run, Save, Add Session, Send) |
-| **Secondary** | `border border-slate-200 bg-white text-slate-700 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition-colors duration-200 cursor-pointer` | Alternative action of equal importance when two CTAs exist |
-| **Ghost / icon** | `p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors duration-200 cursor-pointer` | Toolbar actions (Refresh, Revert), icon-only controls |
-| **Soft accent** | `bg-primary/10 text-primary border border-primary/20 rounded-lg px-2.5 py-1.5 text-xs font-semibold hover:bg-primary/20 transition-colors duration-200 cursor-pointer` | Secondary accent action where primary would be too heavy. Use sparingly — see [patterns/button-hierarchy.md](../patterns/button-hierarchy.md) |
-| **Plain text** | `text-slate-500 hover:text-slate-700 transition-colors duration-200 cursor-pointer` | Low-importance actions (Run again, Cancel) |
-| **Danger** | `text-red-400 border border-red-500/50 hover:bg-red-500/10 rounded px-2 py-0.5 transition-colors duration-200 cursor-pointer` | Destructive / stop actions (Stop in AgentRunner) |
+| **Primary (CTA)** | `bg-clay-600 text-white rounded px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity duration-200 cursor-pointer` | The single most important action in a group — New project, Create Project, Publish, AI Analyze, Run in Agent |
+| **Secondary (interactive/sage)** | `bg-primary text-white rounded px-4 py-2 text-sm font-medium hover:bg-primary-dark transition-colors duration-200 cursor-pointer` | An action that's important but not the CTA — e.g. Save, Send follow-up. Sage, not clay. |
+| **Outline** | `border border-stone-300 bg-white text-stone-900 rounded px-4 py-2 text-sm font-medium hover:bg-stone-50 transition-colors duration-200 cursor-pointer` | Alternative action of equal importance alongside a CTA (e.g. "Connect" on a storage destination) |
+| **Ghost / icon** | `p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded transition-colors duration-200 cursor-pointer` | Toolbar actions (Refresh, Revert), icon-only controls |
+| **Soft accent (clay tint)** | `bg-clay-600/10 text-clay-600 rounded px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 cursor-pointer` | Modal header icon squares, settings-toggle active state |
+| **Plain text** | `text-stone-500 hover:text-stone-900 transition-colors duration-200 cursor-pointer` | Low-importance actions (Cancel, Run again) |
+| **Danger** | `text-red-700 border border-red-700/40 hover:bg-red-700/10 rounded px-2 py-0.5 transition-colors duration-200 cursor-pointer` | Destructive / stop actions (Stop in AgentRunner). Red is not part of the accent rotation. |
+
+**Two accents, not one** — `clay-600` is the CTA color; `primary` (sage) is for links, active nav, and secondary-important actions. Before defaulting a button to `bg-primary`, check whether the canvas actually shows it in clay — most primary-action buttons in this system are clay, not sage.
 
 ## Disabled State
 
-All buttons: `disabled:opacity-50 disabled:cursor-not-allowed`
+All buttons: `disabled:opacity-50 disabled:cursor-not-allowed` (or `disabled:opacity-40`/`disabled:opacity-60` — minor variance across call sites, not worth normalizing).
 
 ## Usage
 
-**Do** — use exactly one primary button per action group.
-**Do** — use ghost buttons for toolbar controls that sit alongside a primary CTA.
-**Don't** — use soft accent (`bg-primary/10`) for the most important action in a group.
+**Do** — use exactly one clay CTA button per action group.
+**Do** — use ghost buttons for toolbar controls that sit alongside a CTA.
+**Don't** — use `bg-primary` for the main call-to-action — that's what clay is for.
 **Don't** — give multiple buttons in the same group identical styling when they have different importance levels.
 
 ## Accessibility

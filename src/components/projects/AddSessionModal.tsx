@@ -60,15 +60,15 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200"
+        className="bg-white rounded-xl shadow-dialog w-full max-w-lg overflow-hidden border border-black/[.08]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className="flex items-center justify-between p-6 border-b border-black/[.08]">
           <h2 className="text-xl font-semibold text-slate-900">Add Session</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-black/54 hover:text-black p-1 rounded-lg hover:bg-black/[.08] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,12 +82,12 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <label className="text-xs font-bold text-[#757575] uppercase tracking-wider">
               Participant name
             </label>
             <input
               type="text"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary text-slate-900 placeholder:text-slate-400"
+              className="w-full px-4 py-2.5 bg-[#f6f5f4] border border-black/[.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-primary text-slate-900 placeholder:text-black/54"
               placeholder="e.g. User 1, Alex"
               value={participant}
               onChange={(e) => setParticipant(e.target.value)}
@@ -95,7 +95,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <label className="text-xs font-bold text-[#757575] uppercase tracking-wider">
               Video file *
             </label>
             <input
@@ -108,7 +108,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
             <button
               type="button"
               onClick={() => videoInputRef.current?.click()}
-              className="w-full flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 text-sm"
+              className="w-full flex items-center gap-2 px-4 py-3 bg-[#f6f5f4] border border-black/[.08] rounded-lg hover:bg-black/[.08] transition-colors text-[#615d59] text-sm"
             >
               <Upload className="w-4 h-4" />
               {videoFile ? videoFile.name : "Choose video (e.g. .mp4)"}
@@ -116,7 +116,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <label className="text-xs font-bold text-[#757575] uppercase tracking-wider">
               Transcript file *
             </label>
             <input
@@ -129,7 +129,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
             <button
               type="button"
               onClick={() => transcriptInputRef.current?.click()}
-              className="w-full flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 text-sm"
+              className="w-full flex items-center gap-2 px-4 py-3 bg-[#f6f5f4] border border-black/[.08] rounded-lg hover:bg-black/[.08] transition-colors text-[#615d59] text-sm"
             >
               <Upload className="w-4 h-4" />
               {transcriptFile ? transcriptFile.name : "Choose transcript (.txt or .vtt)"}
@@ -140,7 +140,7 @@ export function AddSessionModal({ project, onSuccess, onClose }: AddSessionModal
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
+              className="flex-1 px-4 py-2.5 border border-black/[.08] bg-white text-black/90 font-medium rounded-lg hover:bg-black/[.04] transition-colors"
             >
               Cancel
             </button>

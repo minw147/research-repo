@@ -58,11 +58,11 @@ export default function HubPage() {
   const unique = (key: keyof RepoEntry) =>
     [...new Set(projects.map(p => p[key] as string).filter(Boolean))].sort();
 
-  const selClass = "px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-900 cursor-pointer";
+  const selClass = "px-3 py-2 border border-black/[.08] rounded-lg text-sm bg-white text-slate-900 cursor-pointer";
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-background-light font-sans">
-      <p className="text-slate-500">Loading…</p>
+      <p className="text-[#757575]">Loading…</p>
     </div>
   );
   if (error) return (
@@ -74,8 +74,8 @@ export default function HubPage() {
   return (
     <div className="min-h-screen bg-background-light font-sans p-8">
       <header className="max-w-[1200px] mx-auto mb-8">
-        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">Research Hub</h1>
-        <p className="text-slate-500">{filtered.length} {filtered.length === 1 ? "study" : "studies"}</p>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-1">Research Hub</h1>
+        <p className="text-[#757575]">{filtered.length} {filtered.length === 1 ? "study" : "studies"}</p>
       </header>
 
       <div className="max-w-[1200px] mx-auto mb-8 flex flex-wrap gap-3 items-center">
@@ -105,18 +105,18 @@ export default function HubPage() {
 
       <main className="max-w-[1200px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.length === 0 && (
-          <div className="col-span-full text-center py-16 text-slate-500">
+          <div className="col-span-full text-center py-16 text-[#757575]">
             No studies match your filters.
           </div>
         )}
         {filtered.map(p => (
-          <div key={p.id} className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col gap-3">
+          <div key={p.id} className="bg-white border border-black/[.08] rounded-xl p-6 flex flex-col gap-3">
             <h2 className="text-lg font-bold text-slate-900">{p.title}</h2>
-            <div className="text-sm text-slate-500 flex flex-col gap-1 flex-1">
-              {p.researcher && <span><strong className="text-slate-600">Researcher:</strong> {p.researcher}</span>}
-              {p.persona && <span><strong className="text-slate-600">Persona:</strong> {p.persona}</span>}
-              {p.product && <span><strong className="text-slate-600">Product:</strong> {p.product}</span>}
-              {p.date && <span><strong className="text-slate-600">Date:</strong> {p.date}</span>}
+            <div className="text-sm text-[#757575] flex flex-col gap-1 flex-1">
+              {p.researcher && <span><strong className="text-[#615d59]">Researcher:</strong> {p.researcher}</span>}
+              {p.persona && <span><strong className="text-[#615d59]">Persona:</strong> {p.persona}</span>}
+              {p.product && <span><strong className="text-[#615d59]">Product:</strong> {p.product}</span>}
+              {p.date && <span><strong className="text-[#615d59]">Date:</strong> {p.date}</span>}
             </div>
             {p.driveFileIds?.clips && Object.entries(p.driveFileIds.clips).length > 0 && (
               <div className="flex flex-col gap-2">
@@ -130,7 +130,7 @@ export default function HubPage() {
             )}
             {p.driveFileIds?.report && (
               <a href={`/api/drive/report/${p.driveFileIds.report}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold no-underline">
+                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium no-underline">
                 View Report
               </a>
             )}

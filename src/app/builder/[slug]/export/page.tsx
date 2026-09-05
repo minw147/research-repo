@@ -69,20 +69,20 @@ export default function ExportPage() {
   if (!project) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+        <Loader2 className="h-8 w-8 animate-spin text-stone-300" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-stone-50">
       <WorkspaceNav slug={slug} />
       <div className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-2xl px-6 py-10">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Cloud Storage</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-stone-900">Cloud Storage</h1>
+        <p className="mt-1 text-sm text-stone-500">
           Publish your exported report to a destination for stakeholders to access.
         </p>
       </div>
@@ -90,7 +90,7 @@ export default function ExportPage() {
       <div className="space-y-4">
         {/* Export required notice */}
         {!canPublish && (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-5 py-4">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
             <p className="text-sm text-amber-800">
               You need to{" "}
@@ -106,15 +106,15 @@ export default function ExportPage() {
         )}
 
         {/* Publish card */}
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-md border border-stone-200 bg-white">
           {/* Card header */}
-          <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-5">
+          <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-6 py-5">
             <div className="flex items-center gap-3">
               <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                   isPublished
                     ? "bg-green-100 text-green-600"
-                    : "bg-slate-100 text-slate-500"
+                    : "bg-stone-100 text-stone-500"
                 }`}
               >
                 {isPublished ? (
@@ -124,10 +124,10 @@ export default function ExportPage() {
                 )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-stone-900">
                   {isPublished ? "Published" : "Publish report"}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-stone-500">
                   {isPublished
                     ? `${records.length} destination${records.length > 1 ? "s" : ""}`
                     : "Choose where to store your export"}
@@ -137,7 +137,7 @@ export default function ExportPage() {
             <button
               onClick={() => setIsPublishModalOpen(true)}
               disabled={!canPublish}
-              className="flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] hover:bg-primary/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex shrink-0 cursor-pointer items-center gap-2 rounded bg-clay-600 px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Share2 className="h-4 w-4" />
               {isPublished ? "Re-publish" : "Publish Report"}
@@ -146,21 +146,21 @@ export default function ExportPage() {
 
           {/* Destination records */}
           {records.length > 0 && (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-stone-200">
               {records.map((record) => (
                 <li key={record.url} className="flex items-center gap-4 px-6 py-4">
                   {/* Adapter badge */}
                   <div className="w-24 shrink-0">
-                    <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    <span className="inline-block rounded bg-stone-100 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-wide text-stone-500">
                       {record.adapterName}
                     </span>
                   </div>
 
                   {/* URL + date */}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-700">{record.url}</p>
+                    <p className="truncate text-sm font-medium text-stone-700">{record.url}</p>
                     {record.publishedAt && (
-                      <p className="mt-0.5 text-xs text-slate-400">{formatDate(record.publishedAt)}</p>
+                      <p className="mt-0.5 text-xs text-stone-500">{formatDate(record.publishedAt)}</p>
                     )}
                   </div>
 
@@ -171,7 +171,7 @@ export default function ExportPage() {
                         href={record.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                        className="flex cursor-pointer items-center gap-1.5 rounded border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
                       >
                         View <ExternalLink className="h-3 w-3" />
                       </a>
@@ -189,7 +189,7 @@ export default function ExportPage() {
                             console.warn("Open folder failed:", e);
                           }
                         }}
-                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                        className="flex cursor-pointer items-center gap-1.5 rounded border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
                       >
                         <FolderOpen className="h-3 w-3" />
                         Open
@@ -200,7 +200,7 @@ export default function ExportPage() {
                       onClick={() => handleDeleteRecord(record.url)}
                       disabled={deletingUrl === record.url}
                       aria-label="Remove publish record"
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
                     >
                       {deletingUrl === record.url ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -217,18 +217,18 @@ export default function ExportPage() {
           {/* Empty state when can publish but not yet */}
           {canPublish && !isPublished && (
             <div className="px-6 py-8 text-center">
-              <p className="text-sm text-slate-400">
-                No destinations yet — click <strong className="text-slate-500">Publish Report</strong> to get started.
+              <p className="text-sm text-stone-500">
+                No destinations yet — click <strong className="text-stone-500">Publish Report</strong> to get started.
               </p>
             </div>
           )}
         </div>
 
         {/* Pro tip */}
-        <div className="rounded-xl border border-slate-100 bg-slate-50 px-5 py-4">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Pro Tip</p>
-          <p className="text-sm leading-relaxed text-slate-600">
-            The exported <code className="rounded bg-slate-200 px-1 py-0.5 text-xs">/export</code> folder is
+        <div className="rounded-md border border-stone-200 bg-stone-50 px-5 py-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-stone-500">Pro Tip</p>
+          <p className="text-sm leading-relaxed text-stone-600">
+            The exported <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">/export</code> folder is
             fully portable. Zip it and upload to SharePoint, OneDrive, or Google Drive — stakeholders can view
             the report and watch video clips directly in their browser.
           </p>

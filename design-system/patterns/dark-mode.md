@@ -1,42 +1,20 @@
 # Dark Mode
 
-## The Warm Token Rule
+## The app is fully light — no exceptions
 
-This app uses a warm amber-brown primary. Dark mode must stay in the same color temperature — **never introduce cool blue-slate in dark contexts**.
+There is no dark palette anywhere in the app, and no intentionally-dark surface. The Agent Runner terminal — previously the one dark exception — was reskinned to a light stone theme as part of the Mint Leaf redesign (see [components/terminal.md](../components/terminal.md)). Don't add `dark:` variants to new components, and don't reintroduce a dark terminal.
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `background-dark` | `#221c10` | Page background |
-| `surface-dark` | `#2a1f0e` | Panels, cards, settings chrome |
-| `border-dark` | `#4a3520` | Borders, dividers |
-| Terminal body | `#1c1108` | Deepest dark surface |
-
-These are defined in `tailwind.config.ts` as named tokens.
+`darkMode: "class"` may still be declared in `tailwind.config.ts` as leftover scaffolding — check before relying on it for anything; nothing in the app currently uses `dark:` classes.
 
 ## Current Coverage
 
-| Component | Dark mode status |
-|-----------|-----------------|
-| `AgentRunner` terminal | ✅ Full warm dark palette |
-| `globals.css` slides mode | ✅ Warm token colors |
-| `tailwind.config.ts` tokens | ✅ Warm `surface-dark`, `border-dark` |
-| `Callout` shared component | ✅ Has `dark:` variants |
-| Page backgrounds | ⚠️ Partial — `darkMode: "class"` is set but most pages lack `dark:` variants |
-| Cards and modals | ❌ Not yet — `bg-white` with no `dark:` override |
-| Nav | ❌ Not yet |
-
-## Adding Dark Mode to a Component
-
-The Tailwind `darkMode: "class"` strategy is configured. Dark mode activates when a `dark` class is on a parent element.
-
-```tsx
-// Light surface that needs dark mode
-<div className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark text-slate-900 dark:text-amber-50">
-```
+| Component | Status |
+|-----------|--------|
+| Every component, including `AgentRunner` | ❌ Light-only, by design — no `dark:` variants, no dark surfaces |
 
 ## Rules
 
-- **Never** use `dark:bg-slate-800` or `dark:bg-gray-900` — always use the warm tokens.
-- `dark:text-slate-200` is acceptable for body text only (close enough to warm-neutral).
-- `dark:text-amber-50` for primary text in explicitly dark surfaces (terminal, settings panel).
-- Test dark mode at `background-dark` (#221c10) — if text is readable there, it's correct.
+- **Don't** add `dark:` variants to new components.
+- **Don't** invent a dark surface anywhere, including a terminal or console. If something historically needed to "look like a terminal," it's now light (`bg-stone-50` body, `bg-stone-100` chrome) — see [components/terminal.md](../components/terminal.md).
+- **Don't** use `midnight-ink`, amber tokens, or any hardcoded dark hex — they were retired when the terminal moved to the light theme.
+- If you find a stray `dark:` class or a dark surface anywhere, it's a leftover from a prior design pass — flatten it to the current light tokens.

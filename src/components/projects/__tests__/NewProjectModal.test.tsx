@@ -8,9 +8,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), refresh: 
 afterEach(cleanup);
 
 it("codebook step label is visible (not white-on-white)", async () => {
-  render(<NewProjectModal />);
-  // Open modal
-  fireEvent.click(screen.getByRole("button", { name: /new project/i }));
+  render(<NewProjectModal isOpen onClose={() => {}} />);
   // Fill required fields
   fireEvent.change(screen.getByLabelText(/project title/i), { target: { value: "Test" } });
   fireEvent.change(screen.getByLabelText(/researcher/i), { target: { value: "Jane" } });

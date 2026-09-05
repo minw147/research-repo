@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, DM_Sans } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import dynamic from "next/dynamic";
 import "./globals.css";
 
@@ -11,15 +11,23 @@ const ResearchAssistantBot = dynamic(
   { ssr: false }
 );
 
-const inter = Inter({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-sans",
 });
 
-const dmSans = DM_Sans({
+const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
+  variable: "--font-plex-mono",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${dmSans.variable} ${inter.className} font-sans`}>
+      <body className={`${plexSans.variable} ${plexMono.variable} ${newsreader.variable} ${plexSans.className} font-sans`}>
         {children}
         <div id="ra-portal" />
         <ResearchAssistantBot />

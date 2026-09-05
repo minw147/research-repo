@@ -30,10 +30,10 @@ function AgentSettingsPanel({
   onSave: (s: AgentSettings) => void;
 }) {
   return (
-    <div className="px-4 py-3 border-b border-[#4a3520]/40 bg-[#2a1f0e] space-y-2">
-      <label className="block text-xs font-medium text-amber-200/70">CLI tool</label>
+    <div className="px-4 py-3 border-b border-stone-200 bg-stone-100 space-y-2">
+      <label className="block text-xs font-medium text-stone-600">CLI tool</label>
       <select
-        className="w-full text-xs border border-[#4a3520] rounded px-2 py-1 bg-[#1c1108] text-amber-50"
+        className="w-full text-xs border border-stone-300 rounded px-2 py-1 bg-white text-stone-900"
         value={settings.cli}
         onChange={(e) =>
           onSave({ ...settings, cli: e.target.value as AgentSettings["cli"] })
@@ -44,7 +44,7 @@ function AgentSettingsPanel({
       </select>
       {settings.cli === "custom" && (
         <>
-          <label className="block text-xs font-medium text-amber-200/70 mt-2">
+          <label className="block text-xs font-medium text-stone-600 mt-2">
             Command template — use {"{prompt}"} as placeholder
           </label>
           <input
@@ -53,7 +53,7 @@ function AgentSettingsPanel({
               onSave({ ...settings, customTemplate: e.target.value })
             }
             placeholder="opencode run {prompt}"
-            className="w-full text-xs border border-[#4a3520] rounded px-2 py-1 bg-[#1c1108] text-amber-50"
+            className="w-full text-xs border border-stone-300 rounded px-2 py-1 bg-white text-stone-900"
           />
         </>
       )}
@@ -152,16 +152,19 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
 
       {/* Output log — expands above controls when active */}
       {isActive && (
-        <div className="border-t border-slate-200 overflow-hidden">
-          <div className="bg-slate-800 px-3 py-1.5 text-xs text-slate-400 flex justify-between items-center">
+        <div className="border-t border-stone-200 overflow-hidden">
+          <div className="bg-stone-100 px-3.5 py-2 text-[11px] font-semibold text-stone-600 flex justify-between items-center">
             <span>Agent output</span>
             <div className="flex items-center gap-3">
               {runState === "running" && (
                 <div className="flex items-center gap-2">
-                  <span className="animate-pulse text-green-400">● Running...</span>
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    Running…
+                  </span>
                   <button
                     onClick={() => abortRef.current?.abort()}
-                    className="px-2 py-0.5 rounded border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                    className="px-2 py-0.5 rounded border border-red-700/40 text-red-700 hover:bg-red-700/10 transition-colors cursor-pointer"
                   >
                     Stop
                   </button>
@@ -171,11 +174,11 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
                 <div className="flex items-center gap-2">
                   <button
                     onClick={onRefreshFile}
-                    className="flex items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <RefreshCw className="w-3 h-3" /> Refresh file
                   </button>
-                  <span className="text-slate-600">·</span>
+                  <span className="text-stone-300">·</span>
                   <button
                     onClick={() => {
                       setRunState("idle");
@@ -184,7 +187,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
                       abortRef.current = null;
                       onRunStateChange?.(false);
                     }}
-                    className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    className="text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     Run again
                   </button>
@@ -192,23 +195,23 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
               )}
             </div>
           </div>
-          <div className="bg-[#1c1108] font-mono text-xs p-3 max-h-48 overflow-y-auto">
+          <div className="bg-stone-50 font-mono text-[11.5px] leading-relaxed p-3 max-h-48 overflow-y-auto">
             {logLines.map((entry, i) => (
               <div key={i}>
                 {entry.kind === "tool" ? (
-                  <span className="text-slate-400">
-                    <span className="text-yellow-500">⚙</span>{" "}
-                    <span className="text-yellow-400">{entry.name}</span>
+                  <span className="text-stone-600">
+                    <span className="text-ochre-600">⚙</span>{" "}
+                    <span className="text-ochre-600">{entry.name}</span>
                     {entry.summary ? (
-                      <span className="text-slate-500"> {entry.summary}</span>
+                      <span className="text-stone-400"> {entry.summary}</span>
                     ) : null}
                   </span>
                 ) : entry.kind === "stderr" ? (
-                  <span className="text-red-400">{entry.content}</span>
+                  <span className="text-red-700">{entry.content}</span>
                 ) : entry.kind === "info" ? (
-                  <span className="text-slate-500 italic">{entry.content}</span>
+                  <span className="text-stone-400 italic">{entry.content}</span>
                 ) : (
-                  <span className="text-green-300">{entry.content}</span>
+                  <span className="text-stone-700">{entry.content}</span>
                 )}
               </div>
             ))}
@@ -217,7 +220,7 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
 
           {/* Follow-up input — inline below log when session available */}
           {runState === "done" && sessionId && (
-            <div className="bg-[#1c1108] border-t border-[#4a3520] px-3 pb-2 flex gap-2">
+            <div className="bg-white border-t border-stone-200 px-3 pb-2 pt-2 flex gap-2">
               <input
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
@@ -225,12 +228,12 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
                   if (e.key === "Enter" && followUp.trim()) handleSendFollowUp();
                 }}
                 placeholder="Follow-up message..."
-                className="flex-1 text-xs bg-[#2a1f0e] text-amber-50 border border-[#4a3520] rounded px-2 py-1.5 focus:outline-none focus:border-primary placeholder:text-amber-900/50"
+                className="flex-1 text-xs bg-white text-stone-900 border border-stone-300 rounded px-2 py-1.5 focus:outline-none focus:border-primary placeholder:text-stone-400"
               />
               <button
                 onClick={handleSendFollowUp}
                 disabled={!followUp.trim()}
-                className="px-3 py-1.5 text-xs font-semibold rounded bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 text-xs font-medium rounded bg-clay-600 text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
               </button>
@@ -240,12 +243,12 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
       )}
 
       {/* Controls row — always visible at bottom */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/50">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white">
         <div className="flex items-center gap-2">
           <button
             onClick={() => runAgent(prompt)}
             disabled={runState === "running"}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded bg-clay-600 text-white hover:opacity-90 transition-opacity duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {runState === "running" ? "Running..." : "▶ Run in Agent"}
           </button>
@@ -254,8 +257,8 @@ export function AgentRunner({ prompt, onRefreshFile, sideActions, onRunStateChan
             title="CLI settings"
             className={`p-1.5 rounded-md transition-colors duration-200 cursor-pointer ${
               showSettings
-                ? "bg-primary/10 text-primary"
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                ? "bg-clay-600/10 text-clay-600"
+                : "text-stone-400 hover:text-stone-900 hover:bg-stone-100"
             }`}
           >
             <Settings className="w-3.5 h-3.5" />
