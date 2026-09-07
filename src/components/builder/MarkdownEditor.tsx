@@ -140,7 +140,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
 
   return (
     <div 
-      className="min-h-0 flex-1 w-full border border-black/[.08] rounded-md overflow-hidden bg-white flex flex-col"
+      className="min-h-0 flex-1 w-full overflow-hidden flex flex-col"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       data-testid="markdown-editor-container"

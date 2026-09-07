@@ -1,136 +1,16 @@
 "use client";
 
-import React, { useCallback, useRef, useEffect, useImperativeHandle, forwardRef, useMemo, useState } from "react";
-import type { Editor } from "@tiptap/core";
-import { useEditor, EditorContent, NodeViewWrapper, NodeViewContent, ReactNodeViewRenderer } from "@tiptap/react";
-import { Fragment, Slice } from "@tiptap/pm/model";
-import { dropPoint } from "@tiptap/pm/transform";
-import StarterKit from "@tiptap/starter-kit";
-import { Placeholder } from "@tiptap/extension-placeholder";
-import {
-  Table as BaseTable,
-  TableRow,
-  TableCell,
-  TableHeader,
-} from "@tiptap/extension-table";
-import { Markdown } from "tiptap-markdown";
+import React, { useRef, useEffect, useImperativeHandle, forwardRef, useState, useCallback } from "react";
+import { EditorState } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+import { Fragment, Slice } from "prosemirror-model";
+import { dropPoint } from "prosemirror-transform";
+import { pmSchema, pmSerializer, pmParser, buildPlugins, pmNodeViews, quoteViewContext } from "@/lib/prosemirror";
+import { createAutosaveController, type AutosaveController } from "@/lib/prosemirror/autosave";
 import { EditorToolbar } from "@/components/builder/EditorToolbar";
-import { QuoteExtension } from "@/lib/tiptap/quote-extension";
-import { CalloutExtension } from "@/lib/tiptap/callout-extension";
-import { preprocessMarkdownForEditor } from "@/lib/tiptap/markdown-bridge";
-import { parseQuote, parseQuotesFromMarkdown, formatQuoteAsMarkdown } from "@/lib/quote-parser";
+import { parseQuote, quotesMatch } from "@/lib/quote-parser";
+import { quoteFromAttrs, type QuoteAttrs } from "@/lib/prosemirror/nodes/quote";
 import type { ParsedQuote, Codebook } from "@/types";
-import { Columns, Rows, Trash2 } from "lucide-react";
-
-function TableHoverControls({ editor }: { editor: Editor }) {
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const update = () => setActive(editor.isActive("table"));
-    update();
-    editor.on("selectionUpdate", update);
-    editor.on("transaction", update);
-    return () => {
-      editor.off("selectionUpdate", update);
-      editor.off("transaction", update);
-    };
-  }, [editor]);
-
-  const canAddRow = editor.can().addRowAfter?.() ?? false;
-  const canAddCol = editor.can().addColumnAfter?.() ?? false;
-  const canDelRow = editor.can().deleteRow?.() ?? false;
-  const canDelCol = editor.can().deleteColumn?.() ?? false;
-
-  const show = active;
-
-  return (
-    <div
-      className={[
-        "pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 z-20",
-        "opacity-0 transition-opacity duration-150",
-        show ? "opacity-100" : "",
-        "group-hover:opacity-100",
-      ].join(" ")}
-    >
-      <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-black/[.08] bg-white/95 shadow-dialog backdrop-blur px-1.5 py-1">
-        <button
-          type="button"
-          disabled={!canAddRow}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            editor.chain().focus().addRowAfter().run();
-          }}
-          className={[
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canAddRow ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
-          ].join(" ")}
-          title="Add row"
-        >
-          <Rows className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          disabled={!canDelRow}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            editor.chain().focus().deleteRow().run();
-          }}
-          className={[
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canDelRow ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
-          ].join(" ")}
-          title="Delete row"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-
-        <span className="w-px h-4 bg-black/[.08] mx-0.5" aria-hidden />
-
-        <button
-          type="button"
-          disabled={!canAddCol}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            editor.chain().focus().addColumnAfter().run();
-          }}
-          className={[
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canAddCol ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
-          ].join(" ")}
-          title="Add column"
-        >
-          <Columns className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          disabled={!canDelCol}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            editor.chain().focus().deleteColumn().run();
-          }}
-          className={[
-            "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
-            canDelCol ? "text-slate-700 hover:bg-black/[.08]" : "text-black/[.24] cursor-not-allowed",
-          ].join(" ")}
-          title="Delete column"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TableNodeView({ editor }: { editor: Editor }) {
-  return (
-    <NodeViewWrapper className="relative group my-4">
-      <TableHoverControls editor={editor} />
-      <div className="overflow-x-auto">
-        <NodeViewContent as="table" />
-      </div>
-    </NodeViewWrapper>
-  );
-}
 
 interface RichMarkdownEditorProps {
   content: string;
@@ -140,245 +20,242 @@ interface RichMarkdownEditorProps {
   onQuoteClick?: (q: ParsedQuote) => void;
   onQuoteDoubleClick?: (q: ParsedQuote) => void;
   onQuoteDelete?: (q: ParsedQuote) => void;
+  /**
+   * Fired when the `content` prop changes while mounted and does NOT match our own
+   * last-known-saved markdown — i.e. a real external change (another process editing the
+   * file, or the file-watcher's echo of some other client's save). The editor never
+   * auto-resyncs itself in response to this; the parent decides whether/when to show a
+   * "reload?" affordance and call the `reload()` handle below.
+   */
+  onExternalChangePending?: () => void;
 }
 
 export interface RichMarkdownEditorHandle {
   save: () => void;
+  /** Remounts the editor from the current `content` prop, discarding any unsaved edits. */
+  reload: () => void;
+  /**
+   * Removes every `quote` node in the live doc matching `target` (see `quotesMatch`) in one
+   * transaction, then writes to disk immediately. Needed because the editor never resyncs
+   * from the `content` prop — a plain disk-level edit wouldn't be reflected here.
+   */
+  removeQuoteInstances: (target: ParsedQuote) => void;
 }
 
 const EMPTY_CODEBOOK: Codebook = { tags: [], categories: [] };
+const AUTOSAVE_DEBOUNCE_MS = 500;
 
 export const RichMarkdownEditor = forwardRef<RichMarkdownEditorHandle, RichMarkdownEditorProps>(
   function RichMarkdownEditor(
-    { content, onChange, onSave, codebook = EMPTY_CODEBOOK, onQuoteClick, onQuoteDoubleClick, onQuoteDelete },
+    { content, onChange, onSave, codebook = EMPTY_CODEBOOK, onQuoteClick, onQuoteDoubleClick, onQuoteDelete, onExternalChangePending },
     ref
   ) {
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const latestMarkdownRef = useRef<string>(content);
-    /** Set in onCreate so handleDrop can call tiptap-markdown after dispatch (editorProps only receive EditorView). */
-    const tiptapEditorRef = useRef<Editor | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const viewRef = useRef<EditorView | null>(null);
+    const autosaveRef = useRef<AutosaveController | null>(null);
+    const latestMarkdownRef = useRef(content);
+    const onChangeRef = useRef(onChange);
+    const onSaveRef = useRef(onSave);
+    const [version, setVersion] = useState(0);
 
-    const getMarkdown = useCallback((editor: ReturnType<typeof useEditor>) => {
-      if (!editor) return latestMarkdownRef.current;
-      const storage = editor.storage as unknown as { markdown: { getMarkdown: () => string } };
-      return storage.markdown.getMarkdown();
-    }, []);
+    onChangeRef.current = onChange;
+    onSaveRef.current = onSave;
 
-    const triggerOnChange = useCallback(
-      (md: string) => {
-        latestMarkdownRef.current = md;
-        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = setTimeout(() => {
-          onChange(md);
-        }, 1500);
-      },
-      [onChange]
-    );
+    // Keep the quote NodeView's shared context (codebook + callbacks) current without
+    // rebuilding the schema or remounting the editor — QuoteExtension holds this object
+    // by reference (see src/lib/prosemirror/index.ts).
+    useEffect(() => {
+      quoteViewContext.codebook = codebook;
+      quoteViewContext.onQuoteClick = onQuoteClick ?? (() => {});
+      quoteViewContext.onQuoteDoubleClick = onQuoteDoubleClick ?? (() => {});
+      quoteViewContext.onQuoteDelete = onQuoteDelete ?? (() => {});
+      // Force existing quote NodeViews to re-render (e.g. tag colors changed) even
+      // though no ProseMirror transaction happened, by dispatching a no-op transaction.
+      const view = viewRef.current;
+      if (view) view.dispatch(view.state.tr);
+    }, [codebook, onQuoteClick, onQuoteDoubleClick, onQuoteDelete]);
 
-    const Table = useMemo(() => BaseTable.extend({
-      addNodeView() {
-        return ReactNodeViewRenderer((props) => <TableNodeView editor={props.editor as unknown as Editor} />);
-      },
-      addStorage() {
-        return {
-          markdown: {
-            serialize(
-              state: { write: (s: string) => void; ensureNewLine: () => void; closeBlock: (n: unknown) => void },
-              node: {
-                childCount: number;
-                child: (i: number) => { childCount: number; child: (j: number) => { textContent: string } };
-              }
-            ) {
-              const escapeCell = (text: string) =>
-                text.replace(/\|/g, "\\|").replace(/\n/g, " ").replace(/\r/g, " ").trim();
+    const mount = useCallback((markdown: string) => {
+      const container = containerRef.current;
+      if (!container) return;
 
-              const rows: string[][] = [];
-              for (let r = 0; r < node.childCount; r++) {
-                const row = node.child(r);
-                const cells: string[] = [];
-                for (let c = 0; c < row.childCount; c++) {
-                  cells.push(escapeCell(row.child(c).textContent ?? ""));
-                }
-                rows.push(cells);
-              }
+      autosaveRef.current?.dispose();
+      viewRef.current?.destroy();
+      container.innerHTML = "";
 
-              const colCount = Math.max(1, ...rows.map((r) => r.length));
-              const normalized = rows.map((r) => {
-                const out = r.slice(0, colCount);
-                while (out.length < colCount) out.push("");
-                return out;
-              });
-
-              const header = normalized[0] ?? new Array(colCount).fill("");
-              const body = normalized.slice(1);
-
-              state.ensureNewLine();
-              state.write(`| ${header.join(" | ")} |\n`);
-              state.write(`| ${new Array(colCount).fill("---").join(" | ")} |\n`);
-              for (const row of body) {
-                state.write(`| ${row.join(" | ")} |\n`);
-              }
-              state.ensureNewLine();
-              state.closeBlock(node);
-            },
-            parse: {},
-          },
-        };
-      },
-    }).configure({ resizable: false }), []);
-
-    const editor = useEditor({
-      immediatelyRender: false,
-      onCreate({ editor: ed }) {
-        tiptapEditorRef.current = ed;
-      },
-      onDestroy() {
-        tiptapEditorRef.current = null;
-      },
-      extensions: [
-        StarterKit.configure({
-          // We supply heading/list/etc via StarterKit defaults
-          codeBlock: false, // avoid conflict with our markdown code block handling
-        }),
-        Placeholder.configure({ placeholder: "Start writing your findings…" }),
-        Table,
-        TableRow,
-        TableCell,
-        TableHeader,
-        // tiptap-markdown bundles `table` + `link` and related markdown parsing/serialization.
-        // Avoid registering duplicates (can make tables appear as plain text lines and become non-editable).
-        Markdown.configure({ html: true, tightLists: true, bulletListMarker: "-", linkify: false }),
-        QuoteExtension.configure({
-          codebook,
-          onQuoteClick: onQuoteClick ?? (() => {}),
-          onQuoteDoubleClick: onQuoteDoubleClick ?? (() => {}),
-          onQuoteDelete: onQuoteDelete ?? (() => {}),
-        }),
-        CalloutExtension,
-      ],
-      content: preprocessMarkdownForEditor(content),
-      editorProps: {
-        attributes: {
-          class:
-            "prose prose-stone max-w-none focus:outline-none px-8 py-6 min-h-full",
+      const autosave = createAutosaveController({
+        debounceMs: AUTOSAVE_DEBOUNCE_MS,
+        serialize: () => pmSerializer.serialize(viewRef.current!.state.doc),
+        onDebouncedChange: (md) => {
+          latestMarkdownRef.current = md;
+          onChangeRef.current(md);
         },
-        handleClick(_view, _pos, event) {
-          // Never navigate on link clicks inside the editor.
-          // The toolbar is the intended way to create/edit links.
+        onWrite: (md) => {
+          latestMarkdownRef.current = md;
+          onSaveRef.current(md);
+        },
+      });
+      autosave.noteExternalKnownGood(markdown);
+      autosaveRef.current = autosave;
+      latestMarkdownRef.current = markdown;
+
+      const doc = pmParser.parse(markdown);
+
+      const view = new EditorView(container, {
+        state: EditorState.create({ schema: pmSchema, doc, plugins: buildPlugins() }),
+        nodeViews: pmNodeViews,
+        attributes: { class: "prose prose-stone max-w-none focus:outline-none px-8 py-6 min-h-full" },
+        dispatchTransaction(tr) {
+          const newState = view.state.apply(tr);
+          view.updateState(newState);
+          autosave.onTransaction(tr.docChanged);
+          setVersion((v) => v + 1);
+        },
+        handleClickOn(_view, _pos, _node, _nodePos, event) {
+          // Never navigate on link clicks inside the editor — the toolbar's Link button
+          // is the intended way to create/edit links.
           const target = event.target as Element | null;
-          const link = target?.closest?.("a");
-          if (link) {
+          if (target?.closest?.("a")) {
             event.preventDefault();
             return true;
           }
           return false;
         },
-        handleDrop(view, event, _slice, moved) {
-          if (moved) return false;
-          const data = event.dataTransfer?.getData("text/plain");
-          if (!data) return false;
-
-          const droppedLine = data.trim().split("\n")[0];
-          const droppedQuote = parseQuote(droppedLine);
-          if (!droppedQuote) return false;
-
-          // Deduplicate against existing doc quotes
-          const currentMd = latestMarkdownRef.current;
-          const existing = parseQuotesFromMarkdown(currentMd);
-          const alreadyPresent = existing.some(
-            (q) =>
-              q.text === droppedQuote.text &&
-              q.startSeconds === droppedQuote.startSeconds &&
-              q.sessionIndex === droppedQuote.sessionIndex
-          );
-          if (alreadyPresent) return true;
-
-          const quoteNode = view.state.schema.nodes.quote.create({
-            text: droppedQuote.text,
-            startSeconds: droppedQuote.startSeconds,
-            durationSeconds: droppedQuote.durationSeconds,
-            sessionIndex: droppedQuote.sessionIndex,
-            tags: droppedQuote.tags,
-            hidden: droppedQuote.hidden,
-          });
-          const slice = new Slice(Fragment.from(quoteNode), 0, 0);
-
-          // Prefer drop coordinates; when null (common during DnD), use caret — not doc end.
-          const atCoords = view.posAtCoords({ left: event.clientX, top: event.clientY });
-          let insertPos = atCoords?.pos ?? view.state.selection.$anchor.pos;
-          const fitted = dropPoint(view.state.doc, insertPos, slice);
-          if (fitted != null) insertPos = fitted;
-
-          view.dispatch(view.state.tr.insert(insertPos, quoteNode));
-
-          // Serialize full document — never append a quote line to the file string (that forced inserts to the end).
-          const ed = tiptapEditorRef.current;
-          if (ed?.view === view) {
-            const storage = ed.storage as unknown as { markdown: { getMarkdown: () => string } };
-            const md = storage.markdown.getMarkdown();
-            latestMarkdownRef.current = md;
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            onSave(md);
-          } else {
-            const md = formatQuoteAsMarkdown(
-              droppedQuote.text,
-              droppedQuote.startSeconds,
-              droppedQuote.durationSeconds,
-              droppedQuote.sessionIndex,
-              droppedQuote.tags,
-              droppedQuote.hidden
-            );
-            const updated = `${currentMd}\n\n${md}`;
-            latestMarkdownRef.current = updated;
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            onSave(updated);
-          }
-          return true;
+        handleDOMEvents: {
+          blur: () => {
+            const result = autosave.flushAndWrite("blur");
+            if (result.blocked) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                "Autosave blocked: the new content looks suspiciously empty compared to what's saved on disk. Use Save to force it, or Revert."
+              );
+            }
+            return false;
+          },
         },
-      },
-      onUpdate({ editor: ed }) {
-        const md = getMarkdown(ed);
-        triggerOnChange(md);
-      },
-    });
+        // Dedicated hook, not handleDOMEvents.drop: this is the one ProseMirror checks
+        // BEFORE running its own default drop-slice insertion, and it hands us the
+        // pre-parsed `slice`/`moved` PM already computed. handleDOMEvents.drop is a
+        // generic catch-all that fires alongside PM's own native drop handling rather
+        // than pre-empting it, which was silently fighting with our own insert.
+        handleDrop(view, event, _slice, moved) {
+          return handleQuoteDrop(view, event, autosave, moved);
+        },
+      });
+      viewRef.current = view;
+      setVersion((v) => v + 1);
+    }, []);
 
-    // Sync content from prop (file watcher / external load)
-    const prevContentRef = useRef(content);
+    // Mount once. `content` at mount time seeds the editor; later prop changes never
+    // resync a mounted editor (see onExternalChangePending below) — only an explicit
+    // reload() (via the imperative handle) remounts it.
     useEffect(() => {
-      if (!editor || content === prevContentRef.current) return;
-      prevContentRef.current = content;
-      latestMarkdownRef.current = content;
-      editor.commands.setContent(preprocessMarkdownForEditor(content));
-    }, [content, editor]);
+      mount(content);
+      return () => {
+        autosaveRef.current?.dispose();
+        viewRef.current?.destroy();
+        viewRef.current = null;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // Expose save() to parent (DocumentWorkspace toolbar save button)
+    // An external content change (file watcher, including an echo of our own save) never
+    // auto-resyncs the mounted editor — that reset cursor/scroll/undo-history on every
+    // autosave in the previous implementation. Just flag it; DocumentWorkspace decides
+    // whether to show a "reload?" affordance and calls reload() if the user wants it.
+    useEffect(() => {
+      if (content === latestMarkdownRef.current) return;
+      onExternalChangePending?.();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [content]);
+
     useImperativeHandle(
       ref,
       () => ({
         save: () => {
-          const md = editor ? getMarkdown(editor) : latestMarkdownRef.current;
-          onSave(md);
+          autosaveRef.current?.flushAndWrite("manual-save");
+        },
+        reload: () => {
+          mount(content);
+        },
+        removeQuoteInstances: (target: ParsedQuote) => {
+          const view = viewRef.current;
+          if (!view) return;
+          const positions: number[] = [];
+          view.state.doc.descendants((node, pos) => {
+            if (node.type.name === "quote" && quotesMatch(quoteFromAttrs(node.attrs as QuoteAttrs), target)) {
+              positions.push(pos);
+            }
+          });
+          if (positions.length === 0) return;
+          let tr = view.state.tr;
+          for (const pos of positions.sort((a, b) => b - a)) {
+            const node = tr.doc.nodeAt(pos);
+            if (node) tr = tr.delete(pos, pos + node.nodeSize);
+          }
+          view.dispatch(tr);
+          autosaveRef.current?.flushAndWrite("delete");
         },
       }),
-      [editor, getMarkdown, onSave]
+      [content, mount]
     );
 
-    // Cleanup debounce timer on unmount
-    useEffect(() => {
-      return () => {
-        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      };
-    }, []);
-
-    if (!editor) return null;
-
     return (
-      <div className="flex flex-col flex-1 min-h-0 bg-white rounded-xl border border-black/[.08] overflow-hidden">
-        <EditorToolbar editor={editor} />
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <EditorContent editor={editor} className="h-full" />
-        </div>
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        {viewRef.current && <EditorToolbar view={viewRef.current} version={version} />}
+        <div className="flex-1 min-h-0 overflow-y-auto" ref={containerRef} />
       </div>
     );
   }
 );
+
+/**
+ * Handles an external drop (a quote-citation line dragged from the transcript panel's
+ * QuoteCard). The actual fix for the corruption bug this used to trigger lives in the
+ * quote NodeView's ignoreMutation/stopEvent (src/lib/prosemirror/nodes/quote-node-view.tsx)
+ * — this handler's own logic is close to what existed before.
+ *
+ * Deliberately does NOT dedupe against quotes already elsewhere in the document: the
+ * same clip is allowed to be cited multiple times in the report (e.g. under different
+ * thematic sections), matching how this app's own real documents are actually written.
+ */
+function handleQuoteDrop(view: EditorView, event: DragEvent, autosave: AutosaveController, moved?: boolean): boolean {
+  // An internal drag (moving an existing node within the doc) — let ProseMirror's own
+  // native move handling take it, this hook is only for drops originating outside the editor.
+  if (moved) return false;
+
+  const data = event.dataTransfer?.getData("text/plain");
+  if (!data) return false;
+
+  const droppedLine = data.trim().split("\n")[0];
+  const droppedQuote = parseQuote(droppedLine);
+  if (!droppedQuote) return false;
+
+  // Suppress the browser's own native drop-insert explicitly, rather than relying solely
+  // on returning true from this handler.
+  event.preventDefault();
+
+  const quoteNode = view.state.schema.nodes.quote.create({
+    text: droppedQuote.text,
+    startSeconds: droppedQuote.startSeconds,
+    durationSeconds: droppedQuote.durationSeconds,
+    sessionIndex: droppedQuote.sessionIndex,
+    tags: droppedQuote.tags,
+    hidden: droppedQuote.hidden,
+  });
+
+  const atCoords = view.posAtCoords({ left: event.clientX, top: event.clientY });
+  let insertPos = atCoords?.pos ?? view.state.selection.$anchor.pos;
+  // Snap to the nearest valid block boundary — inserting a block atom at a raw
+  // posAtCoords result (which can land mid-way through inline text) would otherwise
+  // split whatever text is at that position instead of cleanly inserting a new block.
+  const slice = new Slice(Fragment.from(quoteNode), 0, 0);
+  const fitted = dropPoint(view.state.doc, insertPos, slice);
+  if (fitted != null) insertPos = fitted;
+  view.dispatch(view.state.tr.insert(insertPos, quoteNode));
+
+  // Silent autosave on drop: serialize + write to disk immediately, bypassing the
+  // debounce entirely (not just clearing its pending timer).
+  autosave.flushAndWrite("drop");
+  return true;
+}

@@ -1,4 +1,6 @@
-## Insight summary
+# Insight summary
+
+### 
 
 | Theme | So what |
 | --- | --- |
@@ -10,21 +12,21 @@
 
 :::insight
 If you remember one lens from this session, make it **roofline**: it turns “faster chips” into a concrete question—*are we compute-bound, memory-bound, or network-bound at the scale we care about?*
-
 :::
 
 :::insight
 For an investor audience, the repeated subtext is “**constraints define outcomes**”: roadmaps for HBM capacity/bandwidth and interconnect standards can matter as much as peak TFLOPs for real-world training economics.
-
 :::
 
 ## Hardware is treated as the first-order constraint on LLM progress
 
+- **"The silicon that makes modern large language models possible. We are doing a deep dive into the AI accelerator chip arms race."** @ 00:16 (16s) | duration: 21s | session: 1 | tags: 
+
+- **"Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We're skipping past the software, we're skipping the algorithms, and we're going straight to the foundation, the bedrock."** @ 00:00 (0s) | duration: 15s | session: 1 | tags: 
+
 The conversation frames the AI “chip war” as a foundational driver of what’s possible in large language models. Rather than starting from model architectures or algorithms, it focuses on the physical substrate—silicon—and argues that anyone tracking scaling quickly runs into limits imposed by compute, memory, and interconnect.
 
 Implication: For an investor audience, this suggests diligence should emphasize hardware roadmaps and constraints (compute throughput, memory bandwidth, networking) as leading indicators—not just model releases—because these constraints shape costs, timelines, and feasibility for frontier training and inference.
-
-- **"Welcome back to the Deep Dive. Today we are focusing on something really fundamental that underpins the entire AI revolution. We're skipping past the software, we're skipping the algorithms, and we're going straight to the foundation, the bedrock."** @ 00:00 (0s) | duration: 15s | session: 1 | tags: 
 
 - **"That's exactly right. And look, if you're involved in or you're just tracking the scaling of these massive LLMs, you were constantly, constantly battling constraints that are imposed by the hardware."** @ 00:24 (24s) | duration: 11s | session: 1 | tags: mental-model
 

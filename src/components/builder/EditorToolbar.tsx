@@ -1,15 +1,38 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import type { Editor } from "@tiptap/react";
+import type { EditorView } from "prosemirror-view";
 import {
   Bold, Italic, Code, Link2, List, ListOrdered, Quote,
   Heading, Table, Minus, Undo, Redo, ChevronDown,
   Info, Lightbulb, AlertTriangle, Sparkles,
 } from "lucide-react";
+import { undo, redo } from "prosemirror-history";
+import {
+  isMarkActive,
+  isNodeActive,
+  isNodeActiveAnyAncestor,
+  toggleHeading,
+  setParagraph,
+  toggleBold,
+  toggleItalic,
+  toggleCode,
+  toggleBulletList,
+  toggleOrderedList,
+  toggleBlockquote,
+  insertCallout,
+  insertTable,
+  setHorizontalRule,
+  setLink,
+  unsetLink,
+} from "@/lib/prosemirror/commands";
 
 interface EditorToolbarProps {
-  editor: Editor;
+  view: EditorView;
+  /** Bumped by the parent on every dispatched transaction, forcing this toolbar to
+   * re-evaluate active/disabled state — there is no more `editor.on("transaction")`
+   * event emitter with a raw EditorView. */
+  version: number;
 }
 
 function ToolbarButton({
@@ -44,10 +67,15 @@ function Divider() {
   return <span className="w-px h-4 bg-black/[.08] mx-0.5" aria-hidden />;
 }
 
-function HeadingDropdown({ editor }: { editor: Editor }) {
+function runCommand(view: EditorView, cmd: (state: EditorView["state"], dispatch: EditorView["dispatch"]) => boolean) {
+  cmd(view.state, view.dispatch);
+  view.focus();
+}
+
+function HeadingDropdown({ view }: { view: EditorView }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const activeLevel = [1, 2, 3].find((l) => editor.isActive("heading", { level: l }));
+  const activeLevel = [1, 2, 3].find((l) => isNodeActive(view.state, view.state.schema.nodes.heading, { level: l }));
 
   useEffect(() => {
     function close(e: MouseEvent) {
@@ -80,12 +108,12 @@ function HeadingDropdown({ editor }: { editor: Editor }) {
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
-                editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 }).run();
+                runCommand(view, toggleHeading(level as 1 | 2 | 3));
                 setOpen(false);
               }}
               className={[
                 "w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-black/[.04] cursor-pointer",
-                editor.isActive("heading", { level }) ? "text-primary font-semibold" : "text-slate-700",
+                isNodeActive(view.state, view.state.schema.nodes.heading, { level }) ? "text-primary font-semibold" : "text-slate-700",
               ].join(" ")}
             >
               <span className="font-bold" style={{ fontSize: 18 - (level - 1) * 3 }}>H{level}</span>
@@ -95,7 +123,7 @@ function HeadingDropdown({ editor }: { editor: Editor }) {
             type="button"
             onMouseDown={(e) => {
               e.preventDefault();
-              editor.chain().focus().setParagraph().run();
+              runCommand(view, setParagraph());
               setOpen(false);
             }}
             className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-slate-700 hover:bg-black/[.04] cursor-pointer"
@@ -108,7 +136,7 @@ function HeadingDropdown({ editor }: { editor: Editor }) {
   );
 }
 
-function CalloutDropdown({ editor }: { editor: Editor }) {
+function CalloutDropdown({ view }: { view: EditorView }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -127,18 +155,7 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
     { type: "insight", label: "Insight", Icon: Sparkles },
   ];
 
-  const isActive = editor.isActive("callout");
-
-  function insertCallout(type: string) {
-    editor.chain().focus()
-      .insertContent({
-        type: "callout",
-        attrs: { calloutType: type },
-        content: [{ type: "paragraph" }],
-      })
-      .run();
-    setOpen(false);
-  }
+  const isActive = isNodeActiveAnyAncestor(view.state, view.state.schema.nodes.callout);
 
   return (
     <div ref={ref} className="relative">
@@ -160,7 +177,11 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
             <button
               key={type}
               type="button"
-              onMouseDown={(e) => { e.preventDefault(); insertCallout(type); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                runCommand(view, insertCallout(type));
+                setOpen(false);
+              }}
               className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-slate-700 hover:bg-black/[.04] cursor-pointer"
             >
               <Icon className="h-3.5 w-3.5" />
@@ -173,38 +194,37 @@ function CalloutDropdown({ editor }: { editor: Editor }) {
   );
 }
 
-function LinkButton({ editor }: { editor: Editor }) {
+/** Pure — no ProseMirror dependency. Ported unchanged. */
+export function normalizeHref(input: string): string | null {
+  const raw = input.trim();
+  if (!raw) return null;
+
+  if (raw === "https://" || raw === "http://" || raw === "https:" || raw === "http:") return null;
+
+  const withProtocol = (() => {
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^www\./i.test(raw)) return `https://${raw}`;
+    if (/^https?:/i.test(raw) && !/^https?:\/\//i.test(raw)) {
+      const rest = raw.replace(/^https?:/i, "");
+      return `${raw.slice(0, raw.indexOf(":") + 1)}//${rest.replace(/^\/+/, "")}`;
+    }
+    return `https://${raw}`;
+  })();
+
+  try {
+    const url = new URL(withProtocol);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (!url.hostname) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function LinkButton({ view }: { view: EditorView }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const wrapRef = useRef<HTMLDivElement>(null);
-
-  function normalizeHref(input: string): string | null {
-    const raw = input.trim();
-    if (!raw) return null;
-
-    // Common incomplete protocols that browsers normalize weirdly (e.g. https:// -> https:)
-    if (raw === "https://" || raw === "http://" || raw === "https:" || raw === "http:") return null;
-
-    const withProtocol = (() => {
-      if (/^https?:\/\//i.test(raw)) return raw;
-      if (/^www\./i.test(raw)) return `https://${raw}`;
-      // If user typed a scheme without slashes, try to fix it.
-      if (/^https?:/i.test(raw) && !/^https?:\/\//i.test(raw)) {
-        const rest = raw.replace(/^https?:/i, "");
-        return `${raw.slice(0, raw.indexOf(":") + 1)}//${rest.replace(/^\/+/, "")}`;
-      }
-      return `https://${raw}`;
-    })();
-
-    try {
-      const url = new URL(withProtocol);
-      if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-      if (!url.hostname) return null;
-      return url.toString();
-    } catch {
-      return null;
-    }
-  }
 
   useEffect(() => {
     function close(e: MouseEvent) {
@@ -215,26 +235,27 @@ function LinkButton({ editor }: { editor: Editor }) {
   }, []);
 
   function openPopover() {
-    const prev = editor.getAttributes("link").href as string | undefined;
-    setValue(prev ?? "");
+    const { $from } = view.state.selection;
+    const linkMark = view.state.schema.marks.link.isInSet($from.marks());
+    setValue((linkMark?.attrs.href as string) ?? "");
     setOpen(true);
   }
 
   function apply() {
     const href = normalizeHref(value);
     if (!href) return;
-    editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+    runCommand(view, setLink(href));
     setOpen(false);
   }
 
   function remove() {
-    editor.chain().focus().unsetLink().run();
+    runCommand(view, unsetLink());
     setOpen(false);
   }
 
   return (
     <div ref={wrapRef} className="relative">
-      <ToolbarButton onClick={openPopover} active={editor.isActive("link")} title="Link">
+      <ToolbarButton onClick={openPopover} active={isMarkActive(view.state, view.state.schema.marks.link)} title="Link">
         <Link2 className="h-3.5 w-3.5" />
       </ToolbarButton>
       {open && (
@@ -305,60 +326,65 @@ function LinkButton({ editor }: { editor: Editor }) {
   );
 }
 
-export function EditorToolbar({ editor }: EditorToolbarProps) {
+export function EditorToolbar({ view }: EditorToolbarProps) {
+  const { state } = view;
   return (
     <div className="flex flex-wrap items-center gap-0.5 px-3 py-1.5 border-b bg-[#f6f5f4]/80 min-h-[40px]">
-      {/* History */}
-      <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
+      <ToolbarButton onClick={() => runCommand(view, undo)} disabled={!undo(state)} title="Undo">
         <Undo className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Redo">
+      <ToolbarButton onClick={() => runCommand(view, redo)} disabled={!redo(state)} title="Redo">
         <Redo className="h-3.5 w-3.5" />
       </ToolbarButton>
 
       <Divider />
 
-      {/* Headings */}
-      <HeadingDropdown editor={editor} />
+      <HeadingDropdown view={view} />
 
       <Divider />
 
-      {/* Inline formatting */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold">
+      <ToolbarButton onClick={() => runCommand(view, toggleBold())} active={isMarkActive(state, state.schema.marks.strong)} title="Bold">
         <Bold className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")} title="Italic">
+      <ToolbarButton onClick={() => runCommand(view, toggleItalic())} active={isMarkActive(state, state.schema.marks.em)} title="Italic">
         <Italic className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive("code")} title="Inline code">
+      <ToolbarButton onClick={() => runCommand(view, toggleCode())} active={isMarkActive(state, state.schema.marks.code)} title="Inline code">
         <Code className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <LinkButton editor={editor} />
+      <LinkButton view={view} />
 
       <Divider />
 
-      {/* Lists */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet list">
+      <ToolbarButton
+        onClick={() => runCommand(view, toggleBulletList())}
+        active={isNodeActiveAnyAncestor(state, state.schema.nodes.bullet_list)}
+        title="Bullet list"
+      >
         <List className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Numbered list">
+      <ToolbarButton
+        onClick={() => runCommand(view, toggleOrderedList())}
+        active={isNodeActiveAnyAncestor(state, state.schema.nodes.ordered_list)}
+        title="Numbered list"
+      >
         <ListOrdered className="h-3.5 w-3.5" />
       </ToolbarButton>
 
       <Divider />
 
-      {/* Blocks */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")} title="Blockquote">
+      <ToolbarButton
+        onClick={() => runCommand(view, toggleBlockquote())}
+        active={isNodeActiveAnyAncestor(state, state.schema.nodes.blockquote)}
+        title="Blockquote"
+      >
         <Quote className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <CalloutDropdown editor={editor} />
-      <ToolbarButton
-        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-        title="Insert table"
-      >
+      <CalloutDropdown view={view} />
+      <ToolbarButton onClick={() => runCommand(view, insertTable(3, 3, true))} title="Insert table">
         <Table className="h-3.5 w-3.5" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal rule">
+      <ToolbarButton onClick={() => runCommand(view, setHorizontalRule())} title="Horizontal rule">
         <Minus className="h-3.5 w-3.5" />
       </ToolbarButton>
     </div>

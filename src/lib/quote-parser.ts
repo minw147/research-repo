@@ -50,6 +50,22 @@ export function parseQuotesFromMarkdown(markdown: string): ParsedQuote[] {
     .filter((q): q is ParsedQuote => q !== null);
 }
 
+/** True if two quotes refer to the same underlying clip (text + start time + session). */
+export function quotesMatch(a: ParsedQuote, b: ParsedQuote): boolean {
+  return a.text === b.text && a.startSeconds === b.startSeconds && a.sessionIndex === b.sessionIndex;
+}
+
+/** Removes every line in `markdown` that refers to the same clip as `target` (see quotesMatch). */
+export function removeQuoteLines(markdown: string, target: ParsedQuote): string {
+  return markdown
+    .split("\n")
+    .filter((line) => {
+      const q = parseQuote(line);
+      return !(q && quotesMatch(q, target));
+    })
+    .join("\n");
+}
+
 const MAX_TAGS_PER_QUOTE = 3;
 
 export function formatQuoteAsMarkdown(

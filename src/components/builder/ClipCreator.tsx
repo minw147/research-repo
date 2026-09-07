@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
 import { TranscriptLine, ParsedQuote, Codebook } from "@/types";
 import { TranscriptViewer } from "./TranscriptViewer";
-import { formatQuoteAsMarkdown } from "@/lib/quote-parser";
+import { formatQuoteAsMarkdown, quotesMatch } from "@/lib/quote-parser";
 
 export interface ClipCreatorHandle {
   /** Update a pending quote (e.g. after editing tags/hide in the modal). Call when the quote is not in findings.md yet. */
@@ -12,10 +12,10 @@ export interface ClipCreatorHandle {
 
 interface ClipCreatorProps {
   lines: TranscriptLine[];
-  /** Quotes from file for current session (used for transcript display). */
+  /** Tagged (library) quotes for current session — drives the "already tagged" transcript display. */
   quotes: ParsedQuote[];
-  /** All quotes parsed from findings.md (used to hide pending quotes that are already in the file and avoid duplicates). */
-  quotesInFile?: ParsedQuote[];
+  /** All quotes in the clip library (tags.md), used to hide pending quotes that are already tagged and avoid duplicates. */
+  libraryQuotes?: ParsedQuote[];
   codebook: Codebook;
   activeSecond: number;
   sessionIndex: number;
@@ -33,18 +33,10 @@ interface SelectionState {
   rect: { top: number; left: number; width: number; height: number };
 }
 
-function samePendingQuote(a: ParsedQuote, b: ParsedQuote): boolean {
-  return a.text === b.text && a.startSeconds === b.startSeconds && a.sessionIndex === b.sessionIndex;
-}
-
-function quoteMatchesFile(a: ParsedQuote, b: ParsedQuote): boolean {
-  return a.text === b.text && a.startSeconds === b.startSeconds && a.sessionIndex === b.sessionIndex;
-}
-
 export const ClipCreator = forwardRef<ClipCreatorHandle, ClipCreatorProps>(function ClipCreator({
   lines,
   quotes,
-  quotesInFile = [],
+  libraryQuotes = [],
   codebook,
   activeSecond,
   sessionIndex,
@@ -56,21 +48,21 @@ export const ClipCreator = forwardRef<ClipCreatorHandle, ClipCreatorProps>(funct
   const [selection, setSelection] = useState<SelectionState | null>(null);
   const [pendingQuotes, setPendingQuotes] = useState<ParsedQuote[]>([]);
 
-  // Only show pending quotes that are not already in the file (avoids duplicate cards after drag-to-findings)
+  // Only show pending quotes that aren't already tagged (avoids duplicate cards after drag-to-tags.md)
   const visiblePendingQuotes = useMemo(() => {
     return pendingQuotes.filter(
-      (p) => !p.hidden && !quotesInFile.some((f) => quoteMatchesFile(f, p))
+      (p) => !p.hidden && !libraryQuotes.some((f) => quotesMatch(f, p))
     );
-  }, [pendingQuotes, quotesInFile]);
+  }, [pendingQuotes, libraryQuotes]);
 
   useImperativeHandle(ref, () => ({
     updatePendingQuote(updatedQuote: ParsedQuote) {
       setPendingQuotes((prev) =>
-        prev.map((q) => (samePendingQuote(q, updatedQuote) ? { ...updatedQuote, rawLine: formatQuoteAsMarkdown(updatedQuote.text, updatedQuote.startSeconds, updatedQuote.durationSeconds, updatedQuote.sessionIndex, updatedQuote.tags, updatedQuote.hidden) } : q))
+        prev.map((q) => (quotesMatch(q, updatedQuote) ? { ...updatedQuote, rawLine: formatQuoteAsMarkdown(updatedQuote.text, updatedQuote.startSeconds, updatedQuote.durationSeconds, updatedQuote.sessionIndex, updatedQuote.tags, updatedQuote.hidden) } : q))
       );
     },
     removePendingQuote(quote: ParsedQuote) {
-      setPendingQuotes((prev) => prev.filter((q) => !samePendingQuote(q, quote)));
+      setPendingQuotes((prev) => prev.filter((q) => !quotesMatch(q, quote)));
     },
   }), []);
 

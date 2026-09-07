@@ -12,12 +12,13 @@ import { ClipCreator, type ClipCreatorHandle } from "@/components/builder/ClipCr
 import { MarkdownEditor, type MarkdownEditorHandle } from "@/components/builder/MarkdownEditor";
 import { MarkdownRenderer } from "@/components/builder/MarkdownRenderer";
 import { RichMarkdownEditor, type RichMarkdownEditorHandle } from "@/components/builder/RichMarkdownEditor";
+import { ExternalChangeBanner } from "@/components/builder/ExternalChangeBanner";
 import { QuoteEditModal } from "@/components/builder/QuoteEditModal";
 import { CodebookEditor } from "@/components/builder/CodebookEditor";
 import { PromptModal, type AIAction } from "@/components/builder/PromptModal";
 import { ProjectEmptyState } from "@/components/projects/ProjectEmptyState";
 import { AddSessionModal } from "@/components/projects/AddSessionModal";
-import { parseQuotesFromMarkdown, parseQuote, formatQuoteAsMarkdown } from "@/lib/quote-parser";
+import { parseQuotesFromMarkdown, parseQuote, quotesMatch, removeQuoteLines, formatQuoteAsMarkdown } from "@/lib/quote-parser";
 import { parseTranscript } from "@/lib/transcript";
 import { mergeCodebooks } from "@/lib/codebook";
 import type { Project, Session, TranscriptLine, Codebook, ParsedQuote } from "@/types";
@@ -42,12 +43,14 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
     const [showAddSessionModal, setShowAddSessionModal] = useState(false);
     const [showCodebookModal, setShowCodebookModal] = useState(false);
     const [showTaggingNudge, setShowTaggingNudge] = useState(false);
+    const [externalChangePending, setExternalChangePending] = useState(false);
 
     const videoPlayerRef = useRef<VideoPlayerRef>(null);
     const markdownEditorRef = useRef<MarkdownEditorHandle>(null);
     const richEditorRef = useRef<RichMarkdownEditorHandle>(null);
     const clipCreatorRef = useRef<ClipCreatorHandle>(null);
-    const lastSaveRef = useRef<number>(0);
+    const lastFindingsSaveRef = useRef<number>(0);
+    const lastTagsSaveRef = useRef<number>(0);
 
     const [globalCodebook, setGlobalCodebook] = useState<Codebook | null>(null);
 
@@ -81,14 +84,20 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
     const activeSession = project?.sessions?.[activeSessionIndex];
 
-    // 2. Fetch active markdown file
+    // 2. Fetch both markdown files (always mounted, not just the active one) — tags.md
+    // must stay current as the persistent clip library regardless of which file is open in
+    // the right panel, and findings.md needs to be editable via disk-level writes even when
+    // it isn't the mounted editor (transcript-side cascade delete).
+    const findings = useFileContent(slug, "findings.md");
+    const tags = useFileContent(slug, "tags.md");
+    const active = activeFile === "findings.md" ? findings : tags;
     const {
         content: docContent,
         loading: docLoading,
         error: docError,
         refetch: refetchDoc,
         saveContent: saveDoc,
-    } = useFileContent(slug, activeFile);
+    } = active;
 
     // 3. Fetch active transcript
     const [transcriptLines, setTranscriptLines] = useState<TranscriptLine[]>([]);
@@ -128,23 +137,29 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
         fetchTranscript();
     }, [slug, activeSession]);
 
-    // 4. File Watcher
+    // 4. File Watcher — refetches whichever file changed on disk, independent of which one
+    // is currently active/mounted, so tags.md (the clip library) stays current even while
+    // findings.md is open, and vice versa.
     useFileWatcher(slug, useCallback((file: string) => {
-        if (file !== activeFile) return;
-        if (Date.now() - lastSaveRef.current < 5000) return;
-        refetchDoc();
-    }, [activeFile, refetchDoc]));
+        if (file === "findings.md" && Date.now() - lastFindingsSaveRef.current >= 5000) {
+            findings.refetch();
+        }
+        if (file === "tags.md" && Date.now() - lastTagsSaveRef.current >= 5000) {
+            tags.refetch();
+        }
+    }, [findings.refetch, tags.refetch]));
 
-    // 5. Parse quotes from active doc
-    const quotes = useMemo(() => {
-        if (!docContent) return [];
-        return parseQuotesFromMarkdown(docContent);
-    }, [docContent]);
+    // 5. The clip library (tags.md) is the persistent source of truth for "is this quote
+    // tagged" — independent of what's currently cited in findings.md.
+    const libraryQuotes = useMemo(() => {
+        if (!tags.content) return [];
+        return parseQuotesFromMarkdown(tags.content);
+    }, [tags.content]);
 
-    // Filter quotes for the active session
-    const sessionQuotes = useMemo(() => {
-        return quotes.filter((q) => q.sessionIndex === activeSessionIndex + 1 && !q.hidden);
-    }, [quotes, activeSessionIndex]);
+    // Filter library quotes for the active session
+    const sessionLibraryQuotes = useMemo(() => {
+        return libraryQuotes.filter((q) => q.sessionIndex === activeSessionIndex + 1 && !q.hidden);
+    }, [libraryQuotes, activeSessionIndex]);
 
     // 6. Callbacks
     const handleTimestampClick = useCallback((sec: number) => {
@@ -181,54 +196,51 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
             const lines = docContent.split("\n");
             const matchByContent = (line: string) => {
                 const q = parseQuote(line);
-                return (
-                    q &&
-                    q.text === updatedQuote.text &&
-                    q.startSeconds === updatedQuote.startSeconds &&
-                    q.sessionIndex === updatedQuote.sessionIndex
-                );
+                return q != null && quotesMatch(q, updatedQuote);
             };
             const foundInFile = lines.some(matchByContent);
             if (foundInFile) {
                 const updatedLines = lines.map((line) =>
                     matchByContent(line) ? newRawLine : line
                 );
-                lastSaveRef.current = Date.now();
+                (activeFile === "findings.md" ? lastFindingsSaveRef : lastTagsSaveRef).current = Date.now();
                 saveDoc(updatedLines.join("\n"));
             } else {
                 clipCreatorRef.current?.updatePendingQuote({ ...updatedQuote, rawLine: newRawLine });
             }
             setEditingQuote(null);
         },
-        [docContent, saveDoc]
+        [docContent, saveDoc, activeFile]
     );
 
-    const handleQuoteDelete = useCallback(
-        (quote: ParsedQuote) => {
-            if (docContent == null) return;
-            const lines = docContent.split("\n");
-            const matchByContent = (line: string) => {
-                const q = parseQuote(line);
-                return (
-                    q &&
-                    q.text === quote.text &&
-                    q.startSeconds === quote.startSeconds &&
-                    q.sessionIndex === quote.sessionIndex
-                );
-            };
-            const updatedLines = lines.filter((line) => !matchByContent(line));
-            lastSaveRef.current = Date.now();
-            saveDoc(updatedLines.join("\n"));
+    // Removes every instance of `quote` from `file`'s content, whether that file is the
+    // currently mounted rich editor (which never resyncs from prop changes — needs the
+    // imperative handle) or not (a plain hook-level save is enough).
+    const removeQuoteFromFile = useCallback(
+        (file: DocumentType, hook: typeof findings, quote: ParsedQuote) => {
+            if (file === activeFile && viewMode === "formatted") {
+                richEditorRef.current?.removeQuoteInstances(quote);
+                return;
+            }
+            if (hook.content == null) return;
+            (file === "findings.md" ? lastFindingsSaveRef : lastTagsSaveRef).current = Date.now();
+            hook.saveContent(removeQuoteLines(hook.content, quote));
         },
-        [docContent, saveDoc]
+        [activeFile, viewMode]
     );
 
+    // Untagging from the transcript is the one true "delete" action: it removes the clip
+    // from the library (tags.md) and cascades to remove every citation of it in
+    // findings.md. Deleting a citation from the report editor itself (right panel) is
+    // handled entirely inside the quote NodeView (see quote-node-view.tsx's deleteSelf) —
+    // it only ever removes that one node, and never reaches this function.
     const handleQuoteDeleteFromTranscript = useCallback(
         (quote: ParsedQuote) => {
-            handleQuoteDelete(quote);
+            removeQuoteFromFile("tags.md", tags, quote);
+            removeQuoteFromFile("findings.md", findings, quote);
             clipCreatorRef.current?.removePendingQuote(quote);
         },
-        [handleQuoteDelete]
+        [removeQuoteFromFile, tags, findings]
     );
 
     const handleSessionChange = useCallback((index: number) => {
@@ -238,11 +250,33 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
     const handleDocChange = useCallback(
         (newContent: string) => {
-            lastSaveRef.current = Date.now();
+            (activeFile === "findings.md" ? lastFindingsSaveRef : lastTagsSaveRef).current = Date.now();
             saveDoc(newContent);
         },
-        [saveDoc]
+        [saveDoc, activeFile]
     );
+
+    // RichMarkdownEditor's `onChange` is the debounced, in-memory-only signal (no disk
+    // write) — kept separate from `onSave` (handleDocChange, above) so a disk write only
+    // happens on the editor's own blur/drop/manual-save triggers, not on every pause in
+    // typing. Nothing here needs to track that in-memory value at the DocumentWorkspace
+    // level today (quotes/session overlays are fine reflecting "last saved to disk").
+    const handleRichEditorChange = useCallback(() => {}, []);
+
+    const handleExternalChangePending = useCallback(() => {
+        setExternalChangePending(true);
+    }, []);
+
+    const handleReloadEditor = useCallback(() => {
+        richEditorRef.current?.reload();
+        setExternalChangePending(false);
+    }, []);
+
+    // A pending "file changed outside the editor" banner for one file/view shouldn't
+    // linger after navigating away from it.
+    useEffect(() => {
+        setExternalChangePending(false);
+    }, [activeFile, viewMode]);
 
     const handleRefresh = useCallback(() => {
         refetchDoc();
@@ -412,8 +446,8 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                     <ClipCreator
                                         ref={clipCreatorRef}
                                         lines={transcriptLines}
-                                        quotes={sessionQuotes}
-                                        quotesInFile={quotes}
+                                        quotes={sessionLibraryQuotes}
+                                        libraryQuotes={libraryQuotes}
                                         codebook={codebook}
                                         activeSecond={activeSecond}
                                         sessionIndex={activeSessionIndex + 1}
@@ -438,9 +472,9 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
 
                 {/* RIGHT PANE: Document Editor */}
                 <Panel defaultSize={55} minSize={30}>
-                    <div className="flex flex-col h-full bg-stone-50">
+                    <div className="flex flex-col h-full bg-white overflow-hidden">
                         {/* Header / Toolbar */}
-                        <div className="h-12 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 border-b bg-white">
+                        <div className="h-12 shrink-0 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 border-b border-black/[.08]">
                             <div className="flex items-center gap-2 flex-wrap min-w-0">
 
                                 <div className="flex p-0.5 bg-stone-100 rounded-lg" role="group" aria-label="View mode">
@@ -513,14 +547,13 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                         </div>
 
                         {/* Content Area */}
-                        <div className="flex-1 min-h-0 p-6 flex flex-col overflow-hidden">
-                            <div className="max-w-3xl mx-auto flex-1 min-w-0 min-h-0 flex flex-col">
+                        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                                 {docLoading ? (
                                     <div className="flex h-full items-center justify-center">
                                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                     </div>
                                 ) : docError ? (
-                                    <div className="flex h-full flex-col items-center justify-center bg-white rounded-xl border p-8">
+                                    <div className="flex h-full flex-col items-center justify-center p-8">
                                         {activeFile === "tags.md" && docError.includes("not found") ? (
                                             <div className="text-center max-w-md">
                                                 <div className="w-16 h-16 bg-primary/10 text-primary rounded-md flex items-center justify-center mx-auto mb-4">
@@ -551,19 +584,25 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                     </div>
                                 ) : viewMode === "formatted" ? (
                                     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                                        {externalChangePending && (
+                                            <ExternalChangeBanner
+                                                onReload={handleReloadEditor}
+                                                onDismiss={() => setExternalChangePending(false)}
+                                            />
+                                        )}
                                         <RichMarkdownEditor
                                             ref={richEditorRef}
                                             content={docContent || ""}
-                                            onChange={handleDocChange}
+                                            onChange={handleRichEditorChange}
                                             onSave={handleDocChange}
                                             codebook={codebook}
                                             onQuoteClick={handleQuoteClick}
                                             onQuoteDoubleClick={handleQuoteDoubleClick}
-                                            onQuoteDelete={handleQuoteDelete}
+                                            onExternalChangePending={handleExternalChangePending}
                                         />
                                     </div>
                                 ) : (
-                                    <div className="flex-1 min-h-0 bg-white rounded-xl border overflow-hidden flex flex-col">
+                                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                                         <MarkdownEditor
                                             ref={markdownEditorRef}
                                             content={docContent || ""}
@@ -572,7 +611,6 @@ export function DocumentWorkspace({ slug, defaultFile = "findings.md" }: Documen
                                         />
                                     </div>
                                 )}
-                            </div>
                         </div>
                     </div>
                 </Panel>

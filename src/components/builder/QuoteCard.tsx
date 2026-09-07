@@ -86,6 +86,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
       {onDelete && (
         <button
           type="button"
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
