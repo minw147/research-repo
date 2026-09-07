@@ -92,7 +92,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       : "";
 
     return (
-      <div className="flex flex-col w-full h-full min-h-0 bg-white rounded-md border border-stone-200 overflow-hidden">
+      <div className="flex flex-col w-full h-full min-h-0 overflow-hidden">
         {/* Session Selector */}
         <div className="shrink-0 flex flex-col gap-2.5 px-4 py-3 border-b border-stone-200">
           <div className="flex items-center justify-between">
